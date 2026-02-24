@@ -48,3 +48,12 @@ next-env.d.ts
 .env.sentry-build-plugin
 
 /generated/prisma
+
+# --- local editor / terminal artifacts ---
+^C
+^O
+^O.save
+*.bak
+
+# --- Codex local config ---
+.codex/
