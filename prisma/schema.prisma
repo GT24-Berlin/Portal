@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "library"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PartnerType {
+  GUTACHTER
+  ANWALT
+}
+
+enum CaseLane {
+  GUTACHTER
+  ANWALT
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  APPOINTMENT
+  IN_PROGRESS
+  CLOSED
+}
+
+enum GutachterCaseStatus {
+  EINGEGANGEN
+  DATEN_UNVOLLSTAENDIG
+  GUTACHTER_KONTAKTIERT
+  TERMIN_GEPLANT
+  GUTACHTEN_IN_BEARBEITUNG
+  GUTACHTEN_ERSTELLT
+  ABGESCHLOSSEN
+}
+
+enum AnwaltCaseStatus {
+  FALL_EINGEGANGEN
+  FALL_IN_PRUEFUNG
+  RUECKFRAGEN_IN_KLAERUNG
+  FALL_BERICHT_ERSTELLT
+  FALL_ABGESCHLOSSEN
+}
+
+enum AssignmentRole {
+  GUTACHTER
+  ANWALT
+}
+
+enum AssignmentStatus {
+  PENDING
+  ACCEPTED
+  RELEASED
+  EXPIRED
+}
+
+model CaseAssignment {
+  id                  String         @id @default(cuid())
+  caseId              String
+  role                AssignmentRole
+  assigneeClerkUserId String
+
+  status AssignmentStatus @default(PENDING)
+  active Boolean          @default(true)
+
+  activeKey String? @db.Text
+
+  assignedAt DateTime  @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  releasedAt DateTime?
+
+  assignedByClerkUserId String?
+
+  case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([caseId, role, activeKey]) // active=true darf es pro Case+Role nur einmal geben
+ 
+  @@index([assigneeClerkUserId, role, active])
+  @@index([status, active, expiresAt])
+}
+
+enum NotificationType {
+  ASSIGNMENT_CREATED
+  ASSIGNMENT_ACCEPTED
+  ASSIGNMENT_RELEASED
+  ASSIGNMENT_EXPIRED
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  // Empfänger (Clerk User)
+  userId String
+
+  // Kontext
+  caseId String?
+  role   CaseLane?
+
+  type  NotificationType
+  title String
+  body  String?
+
+  // Optional: Deep Link ins Dashboard
+  href String?
+
+  // Relations
+  case Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+  @@index([caseId])
+}
+
+model Partner {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type   PartnerType
+  name   String
+  region String?
+  email  String?
+
+  leads Lead[]
+  cases Case[] @relation("CasePartner")
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  externalId String?    @unique // z.B. "LD-1001" (optional)
+  name       String
+  region     String?
+  source     String?
+  status     LeadStatus @default(NEW)
+
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id])
+
+  // Optional: Lead kann zu einem Case werden
+  case Case?
+}
+
+model Case {
+  id            String           @id @default(cuid())
+  assignments   CaseAssignment[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  notifications Notification[]
+  caseNumber    String?          @unique // z.B. "CS-2002" (optional)
+
+  // Case Token ohne Login (Link wie /case/<token>)
+  token String @unique
+
+  // Partner-Zuordnung (B2B)
+  partnerId String?
+  partner   Partner? @relation("CasePartner", fields: [partnerId], references: [id])
+
+  // Lead Beziehung (optional, 1:1)
+  leadId String? @unique
+  lead   Lead?   @relation(fields: [leadId], references: [id])
+
+  // Track Status (aktuell)
+  gutachterStatus GutachterCaseStatus @default(EINGEGANGEN)
+  anwaltStatus    AnwaltCaseStatus    @default(FALL_EINGEGANGEN)
+
+  // Artefakte/Downloads (später)
+  gutachtenPdfUrl String?
+
+  // Timeline-Events (historisch)
+  events CaseEvent[]
+}
+
+model CaseEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  // Prozess-Lane (nicht an Partner gebunden)
+  lane CaseLane
+
+  // Status als String, damit wir flexibel bleiben (Validierung im Code)
+  status String
+
+  note       String?
+  occurredAt DateTime @default(now())
+
+  @@index([caseId, lane, occurredAt])
+}

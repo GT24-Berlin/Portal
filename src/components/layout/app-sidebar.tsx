@@ -45,8 +45,30 @@ import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
+import {
+  LayoutDashboard,
+  KanbanSquare,
+  Inbox,
+  Users,
+  User,
+  LogOut,
+  Circle,
+  Bell
+} from 'lucide-react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
+import { useNotificationUnread } from '@/hooks/use-notification-unread';
+
+const ICONS: Record<string, any> = {
+  dashboard: LayoutDashboard,
+  kanban: KanbanSquare,
+  inbox: Inbox,
+  teams: Users,
+  account: User,
+  profile: User,
+  login: LogOut,
+  bell: Bell
+};
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -56,6 +78,7 @@ export default function AppSidebar() {
   const router = useRouter();
   const filteredItems = useFilteredNavItems(navItems);
 
+  const { count: unread } = useNotificationUnread();
   React.useEffect(() => {
     // Side effects based on sidebar state changes
   }, [isOpen]);
@@ -70,7 +93,15 @@ export default function AppSidebar() {
           <SidebarGroupLabel>Overview</SidebarGroupLabel>
           <SidebarMenu>
             {filteredItems.map((item) => {
-              const Icon = item.icon ? Icons[item.icon] : Icons.logo;
+              if (!item.url && (!item.items || item.items.length === 0))
+                return null;
+              const Icon = ICONS[item.icon ?? ''] ?? Circle;
+              const itemHasInbox =
+                item.url === '/dashboard/inbox' ||
+                item.items?.some((s) => s.url === '/dashboard/inbox');
+
+              const subItemIsInbox = (url?: string) =>
+                url === '/dashboard/inbox';
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible
                   key={item.title}
@@ -84,8 +115,17 @@ export default function AppSidebar() {
                         tooltip={item.title}
                         isActive={pathname === item.url}
                       >
-                        {item.icon && <Icon />}
-                        <span>{item.title}</span>
+                        {item.icon && (
+                          <span className='relative inline-flex'>
+                            <Icon />
+                            {itemHasInbox && unread > 0 ? (
+                              <span className='absolute -top-1 -right-1 inline-flex h-2 w-2 rounded-full bg-red-500' />
+                            ) : null}
+                          </span>
+                        )}
+                        <span className='flex items-center'>
+                          <span>{item.title}</span>
+                        </span>
                         <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -97,8 +137,14 @@ export default function AppSidebar() {
                               asChild
                               isActive={pathname === subItem.url}
                             >
-                              <Link href={subItem.url}>
+                              <Link
+                                href={subItem.url}
+                                className='flex w-full items-center justify-between'
+                              >
                                 <span>{subItem.title}</span>
+                                {subItemIsInbox(subItem.url) && unread > 0 ? (
+                                  <span className='inline-flex h-2 w-2 rounded-full bg-red-500' />
+                                ) : null}
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -114,9 +160,20 @@ export default function AppSidebar() {
                     tooltip={item.title}
                     isActive={pathname === item.url}
                   >
-                    <Link href={item.url}>
-                      <Icon />
-                      <span>{item.title}</span>
+                    <Link
+                      href={item.url!}
+                      className='flex w-full items-center justify-between'
+                    >
+                      <span className='flex items-center gap-2'>
+                        <Icon />
+                        <span>{item.title}</span>
+                      </span>
+
+                      {(item.url === '/dashboard/inbox' ||
+                        item.url === '/dashboard/admin/notifications') &&
+                      Number(unread) > 0 ? (
+                        <span className='inline-flex h-2 w-2 shrink-0 rounded-full bg-red-500' />
+                      ) : null}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

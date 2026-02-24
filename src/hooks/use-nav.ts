@@ -33,8 +33,9 @@ export function useFilteredNavItems(items: NavItem[]) {
   // Memoize context and permissions
   const accessContext = useMemo(() => {
     const permissions = membership?.permissions || [];
-    const role = membership?.role;
-
+    const role = String(
+      (user?.publicMetadata as any)?.role ?? ''
+    ).toLowerCase();
     return {
       organization: organization ?? undefined,
       user: user ?? undefined,
@@ -70,9 +71,6 @@ export function useFilteredNavItems(items: NavItem[]) {
 
         // Check role
         if (item.access.role) {
-          if (!accessContext.hasOrg) {
-            return false;
-          }
           if (accessContext.role !== item.access.role) {
             return false;
           }
@@ -125,9 +123,6 @@ export function useFilteredNavItems(items: NavItem[]) {
 
             // Check role
             if (childItem.access.role) {
-              if (!accessContext.hasOrg) {
-                return false;
-              }
               if (accessContext.role !== childItem.access.role) {
                 return false;
               }

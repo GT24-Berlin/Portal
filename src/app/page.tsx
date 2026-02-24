@@ -1,12 +1,30 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
-export default async function Page() {
-  const { userId } = await auth();
+export default function Landing() {
+  return (
+    <div className='bg-background text-foreground min-h-screen'>
+      <div className='mx-auto max-w-3xl space-y-6 px-4 py-16'>
+        <h1 className='text-3xl font-semibold'>Gutachtery24</h1>
+        <p className='text-muted-foreground'>MVP Navigation</p>
 
-  if (!userId) {
-    return redirect('/auth/sign-in');
-  } else {
-    redirect('/dashboard/overview');
-  }
+        <div className='flex flex-wrap gap-3'>
+          <Link className='rounded-lg border px-4 py-2 text-sm' href='/sign-in'>
+            Partner Login
+          </Link>
+          <Link
+            className='rounded-lg border px-4 py-2 text-sm'
+            href='/case/demo'
+          >
+            Kunden Case Tracker (Demo)
+          </Link>
+          <Link
+            className='rounded-lg border px-4 py-2 text-sm'
+            href='/dashboard/overview'
+          >
+            Dashboard
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }

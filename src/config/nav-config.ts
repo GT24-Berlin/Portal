@@ -34,64 +34,52 @@ import { NavItem } from '@/types';
  */
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/dashboard/overview',
+    title: 'Leads',
+    url: '/dashboard/leads',
     icon: 'dashboard',
     isActive: false,
-    shortcut: ['d', 'd'],
+    shortcut: ['l', 'l'],
     items: []
   },
   {
-    title: 'Workspaces',
-    url: '/dashboard/workspaces',
-    icon: 'workspace',
+    title: 'Cases',
+    url: '/dashboard/cases',
+    icon: 'kanban',
     isActive: false,
+    shortcut: ['c', 'c'],
     items: []
   },
+
   {
-    title: 'Teams',
-    url: '/dashboard/workspaces/team',
+    title: 'Inbox',
+    url: '/dashboard/inbox',
+    icon: 'inbox',
+    isActive: false,
+    //  nur Partner (Gutachter/Anwalt) sehen den Hauptpunkt
+    access: { role: ['gutachter', 'anwalt'] },
+    items: []
+  },
+
+  {
+    title: 'Notifications',
+    url: '/dashboard/admin/notifications',
+    icon: 'bell', // falls du kein admin-icon hast
+    isActive: false,
+    access: { role: 'admin' },
+    items: []
+  },
+
+  {
+    title: 'Partners',
+    url: '/dashboard/partners',
     icon: 'teams',
     isActive: false,
-    items: [],
-    // Require organization to be active
-    access: { requireOrg: true }
-    // Alternative: require specific permission
-    // access: { requireOrg: true, permission: 'org:teams:view' }
-  },
-  {
-    title: 'Product',
-    url: '/dashboard/product',
-    icon: 'product',
     shortcut: ['p', 'p'],
-    isActive: false,
     items: []
-  },
-  {
-    title: 'Kanban',
-    url: '/dashboard/kanban',
-    icon: 'kanban',
-    shortcut: ['k', 'k'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Pro',
-    url: '#', // Placeholder as there is no direct link for the parent
-    icon: 'pro',
-    isActive: true,
-    items: [
-      {
-        title: 'Exclusive',
-        url: '/dashboard/exclusive',
-        icon: 'exclusive',
-        shortcut: ['m', 'm']
-      }
-    ]
   },
   {
     title: 'Account',
-    url: '#', // Placeholder as there is no direct link for the parent
+    url: '#',
     icon: 'account',
     isActive: true,
     items: [
@@ -102,20 +90,10 @@ export const navItems: NavItem[] = [
         shortcut: ['m', 'm']
       },
       {
-        title: 'Billing',
-        url: '/dashboard/billing',
-        icon: 'billing',
-        shortcut: ['b', 'b'],
-        // Only show billing if in organization context
-        access: { requireOrg: true }
-        // Alternative: require billing management permission
-        // access: { requireOrg: true, permission: 'org:manage:billing' }
-      },
-      {
-        title: 'Login',
-        shortcut: ['l', 'l'],
-        url: '/',
-        icon: 'login'
+        title: 'Logout',
+        url: '/sign-in',
+        icon: 'login',
+        shortcut: ['o', 'o']
       }
     ]
   }

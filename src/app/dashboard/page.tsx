@@ -4,9 +4,11 @@ import { redirect } from 'next/navigation';
 export default async function Dashboard() {
   const { userId } = await auth();
 
+  // nicht eingeloggt -> zur Sign-in Page (entspricht deinen Clerk Paths)
   if (!userId) {
-    return redirect('/auth/sign-in');
-  } else {
-    redirect('/dashboard/overview');
+    redirect('/sign-in');
   }
+
+  // eingeloggt -> Dashboard Start
+  redirect('/dashboard/overview');
 }
