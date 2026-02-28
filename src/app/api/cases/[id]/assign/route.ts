@@ -5,6 +5,7 @@ import { createNotification } from '@/lib/notify';
 import { NotificationType } from '@prisma/client';
 import { sendMail } from '@/lib/mailer';
 import { getPrimaryEmailForClerkUser } from '@/lib/clerk-email';
+import { requireAdmin } from '@/lib/rbac';
 
 export const runtime = 'nodejs';
 
@@ -48,23 +49,17 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId, sessionClaims } = await auth();
-
-    if (!userId) {
+    const guard = await requireAdmin();
+    if (!guard.ok) {
       return NextResponse.json(
-        { ok: false, error: 'Unauthorized' },
-        { status: 401 }
+        {
+          ok: false,
+          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
+        },
+        { status: guard.status }
       );
     }
-
-    const role = await getUserRole(userId, sessionClaims);
-
-    if (role !== 'ADMIN') {
-      return NextResponse.json(
-        { ok: false, error: 'Forbidden', debug: { role } },
-        { status: 403 }
-      );
-    }
+    const userId = guard.userId;
 
     const { id: caseId } = await params;
     if (!caseId) {
@@ -112,7 +107,6 @@ export async function POST(
     // Case existiert?
     const exists = await prisma.case.findUnique({
       where: { id: caseId },
-      select: { id: true },
       select: { id: true, token: true }
     });
 
@@ -141,7 +135,7 @@ export async function POST(
       ) {
         await tx.caseAssignment.update({
           where: { id: active.id },
-          data: { active: false }
+          data: { active: false, activeKey: null }
         });
         active = null;
       }
@@ -151,9 +145,30 @@ export async function POST(
       }
 
       if (active && force) {
-        await tx.caseAssignment.update({
-          where: { id: active.id },
-          data: { status: 'RELEASED' as any, active: false, releasedAt: now }
+        await tx.caseAssignment.updateMany({
+          where: {
+            caseId,
+            role: assignRole as any,
+            activeKey: 'ACTIVE'
+          },
+          data: {
+            status: 'RELEASED' as any,
+            active: false,
+            activeKey: null,
+            releasedAt: now
+          }
+        });
+
+        await tx.caseAssignment.updateMany({
+          where: {
+            caseId,
+            role: assignRole as any,
+            active: true
+          },
+          data: {
+            active: false,
+            activeKey: null
+          }
         });
       }
 
@@ -164,6 +179,7 @@ export async function POST(
           assigneeClerkUserId: assignee,
           status: 'PENDING' as any,
           active: true,
+          activeKey: 'ACTIVE',
           assignedAt: now,
           expiresAt,
           assignedByClerkUserId: userId

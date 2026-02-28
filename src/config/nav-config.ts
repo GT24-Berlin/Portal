@@ -47,9 +47,28 @@ export const navItems: NavItem[] = [
     icon: 'kanban',
     isActive: false,
     shortcut: ['c', 'c'],
-    items: []
+    access: { role: ['gutachter', 'anwalt'] },
+    items: [
+      {
+        title: 'Alle Cases',
+        url: '/dashboard/cases',
+        access: { role: ['gutachter', 'anwalt'] },
+        items: []
+      },
+      {
+        title: 'Accepted Cases',
+        url: '/dashboard/cases?view=accepted',
+        access: { role: ['gutachter', 'anwalt'] },
+        items: []
+      },
+      {
+        title: 'Pending Cases',
+        url: '/dashboard/cases?view=pending',
+        access: { role: ['gutachter', 'anwalt'] },
+        items: []
+      }
+    ]
   },
-
   {
     title: 'Inbox',
     url: '/dashboard/inbox',

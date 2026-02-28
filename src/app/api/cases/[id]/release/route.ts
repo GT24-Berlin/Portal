@@ -28,7 +28,7 @@ export async function POST(
 
   const now = new Date();
 
-  // ✅ Rolle aus DB ableiten (nicht aus Body)
+  //  Rolle aus DB ableiten (nicht aus Body)
   const assignment = await prisma.caseAssignment.findFirst({
     where: { caseId, assigneeClerkUserId: userId, active: true },
     orderBy: { assignedAt: 'desc' },
@@ -44,21 +44,27 @@ export async function POST(
 
   const role = String(assignment.role); // "GUTACHTER" | "ANWALT"
 
-  // ✅ Idempotent: wenn bereits released/expired -> ok zurück
+  //  Idempotent: wenn bereits released/expired -> ok zurück
   if (assignment.status === 'RELEASED' || assignment.status === 'EXPIRED') {
     return NextResponse.json({
       ok: true,
       assignment: {
         id: assignment.id,
         status: assignment.status,
-        active: false
+        active: false,
+        activeKey: null
       }
     });
   }
 
   const updated = await prisma.caseAssignment.update({
     where: { id: assignment.id },
-    data: { status: 'RELEASED' as any, active: false, releasedAt: now },
+    data: {
+      status: 'RELEASED' as any,
+      active: false,
+      activeKey: null,
+      releasedAt: now
+    },
     select: { id: true, status: true, active: true }
   });
 

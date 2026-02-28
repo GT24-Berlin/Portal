@@ -55,7 +55,6 @@ import {
   Circle,
   Bell
 } from 'lucide-react';
-import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
 import { useNotificationUnread } from '@/hooks/use-notification-unread';
 
@@ -100,8 +99,8 @@ export default function AppSidebar() {
                 item.url === '/dashboard/inbox' ||
                 item.items?.some((s) => s.url === '/dashboard/inbox');
 
-              const subItemIsInbox = (url?: string) =>
-                url === '/dashboard/inbox';
+              const isInboxUrl = (url?: string) =>
+                String(url) === '/dashboard/inbox';
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible
                   key={item.title}
@@ -114,19 +113,22 @@ export default function AppSidebar() {
                       <SidebarMenuButton
                         tooltip={item.title}
                         isActive={pathname === item.url}
+                        className='group-data-[collapsible=icon]:justify-center'
                       >
-                        {item.icon && (
-                          <span className='relative inline-flex'>
-                            <Icon />
-                            {itemHasInbox && unread > 0 ? (
-                              <span className='absolute -top-1 -right-1 inline-flex h-2 w-2 rounded-full bg-red-500' />
-                            ) : null}
-                          </span>
-                        )}
-                        <span className='flex items-center'>
-                          <span>{item.title}</span>
+                        <span className='relative inline-flex shrink-0'>
+                          <Icon className='h-4 w-4' />
+                          {itemHasInbox && Number(unread) > 0 ? (
+                            <span className='absolute -top-1 -right-1 inline-flex h-2 w-2 rounded-full bg-red-500' />
+                          ) : null}
                         </span>
-                        <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+
+                        {/* Text im icon-mode verstecken */}
+                        <span className='group-data-[collapsible=icon]:hidden'>
+                          {item.title}
+                        </span>
+
+                        {/* Chevron im icon-mode verstecken */}
+                        <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[collapsible=icon]:hidden group-data-[state=open]/collapsible:rotate-90' />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
@@ -142,7 +144,8 @@ export default function AppSidebar() {
                                 className='flex w-full items-center justify-between'
                               >
                                 <span>{subItem.title}</span>
-                                {subItemIsInbox(subItem.url) && unread > 0 ? (
+                                {isInboxUrl(subItem.url) &&
+                                Number(unread) > 0 ? (
                                   <span className='inline-flex h-2 w-2 rounded-full bg-red-500' />
                                 ) : null}
                               </Link>

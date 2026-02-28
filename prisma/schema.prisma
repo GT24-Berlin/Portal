@@ -6,11 +6,11 @@
 
 generator client {
   provider   = "prisma-client-js"
-  engineType = "library"
+  engineType = "client"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
 }
 
 enum PartnerType {
@@ -159,6 +159,8 @@ model Case {
   updatedAt     DateTime         @updatedAt
   notifications Notification[]
   caseNumber    String?          @unique // z.B. "CS-2002" (optional)
+  customer      CaseCustomer?
+  intake        CaseIntake?
 
   // Case Token ohne Login (Link wie /case/<token>)
   token String @unique
@@ -180,6 +182,53 @@ model Case {
 
   // Timeline-Events (historisch)
   events CaseEvent[]
+}
+
+model CaseCustomer {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caseId String @unique
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String
+  email     String
+  phone     String
+
+  // Optional später:
+  // verifiedAt DateTime?
+  // lastSeenAt DateTime?
+
+  @@index([email])
+}
+
+model CaseIntake {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caseId String @unique
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  // Unfall
+  accidentDescription String?
+  driverIsHolder      Boolean? // true/false/null
+  driverName          String?
+  driverPhone         String?
+
+  // Versicherung
+  insuranceName       String?
+  insuranceNumber     String?
+  insuranceEmail      String?
+
+  // Fahrzeug
+  carMake             String?
+  carModel            String?
+  carYear             Int?
+  plateNumber         String?
+  holderName          String?
 }
 
 model CaseEvent {

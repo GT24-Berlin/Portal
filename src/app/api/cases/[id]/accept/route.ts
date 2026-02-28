@@ -53,7 +53,7 @@ export async function POST(
   if (assignment.expiresAt <= now) {
     await prisma.caseAssignment.update({
       where: { id: assignment.id },
-      data: { status: 'EXPIRED' as any, active: false }
+      data: { status: 'EXPIRED' as any, active: false, activeKey: null }
     });
 
     // Optional: Notification für User (expired)

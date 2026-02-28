@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
@@ -95,7 +95,7 @@ export default async function CaseTokenPage({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  // ✅ Next 16: params ist Promise → MUSS awaited werden
+  //  Next 16: params ist Promise → MUSS awaited werden
   const { token } = await params;
 
   if (!token) notFound();
@@ -103,6 +103,7 @@ export default async function CaseTokenPage({
   const found = await prisma.case.findUnique({
     where: { token },
     include: {
+      customer: true,
       events: {
         orderBy: { occurredAt: 'asc' }
       }
@@ -110,6 +111,10 @@ export default async function CaseTokenPage({
   });
 
   if (!found) notFound();
+
+  if (!found.customer) {
+    redirect(`/case/${token}/register`);
+  }
 
   const events = (found.events ?? []).map((e) => ({
     lane: e.lane as 'GUTACHTER' | 'ANWALT',

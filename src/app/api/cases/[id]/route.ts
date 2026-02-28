@@ -109,7 +109,7 @@ export async function PATCH(
       if (assignment.status === 'PENDING' && assignment.expiresAt <= now) {
         await prisma.caseAssignment.update({
           where: { id: assignment.id },
-          data: { status: 'EXPIRED' as any, active: false }
+          data: { status: 'EXPIRED' as any, active: false, activeKey: null }
         });
         return NextResponse.json(
           { ok: false, error: 'Not found' },
