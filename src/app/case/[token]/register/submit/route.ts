@@ -22,7 +22,7 @@ export async function POST(
 
   const firstName = clean(form.get('firstName'));
   const lastName = clean(form.get('lastName'));
-  const email = clean(form.get('email'));
+  const email = clean(form.get('email')).toLowerCase();
   const phone = clean(form.get('phone'));
 
   if (!firstName || !lastName || !email || !phone) {
@@ -43,14 +43,17 @@ export async function POST(
       { status: 404 }
     );
 
-  // Idempotent: wenn customer schon existiert → einfach weiter
-  if (found.customer) {
-    return NextResponse.redirect(new URL(`/case/${token}`, req.url));
-  }
-
-  await prisma.caseCustomer.create({
-    data: {
+  // Idempotent: upsert (falls Kunde refresh/submit doppelt)
+  await prisma.caseCustomer.upsert({
+    where: { caseId: found.id },
+    create: {
       caseId: found.id,
+      firstName,
+      lastName,
+      email,
+      phone
+    },
+    update: {
       firstName,
       lastName,
       email,

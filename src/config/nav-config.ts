@@ -47,12 +47,12 @@ export const navItems: NavItem[] = [
     icon: 'kanban',
     isActive: false,
     shortcut: ['c', 'c'],
-    access: { role: ['gutachter', 'anwalt'] },
+    access: { role: ['admin', 'gutachter', 'anwalt'] },
     items: [
       {
         title: 'Alle Cases',
         url: '/dashboard/cases',
-        access: { role: ['gutachter', 'anwalt'] },
+        access: { role: ['admin', 'gutachter', 'anwalt'] },
         items: []
       },
       {

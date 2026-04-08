@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 enum PartnerType {
@@ -61,6 +61,33 @@ enum AssignmentStatus {
   EXPIRED
 }
 
+enum ClaimRoute {
+  OPPONENT_LIABILITY
+  OWN_CASCO
+  UNKNOWN
+}
+
+enum CaseFileUploaderType {
+  CUSTOMER
+  PARTNER
+  ADMIN
+}
+
+enum CaseFileVisibility {
+  CUSTOMER // nur Kunde sieht
+  PARTNERS // nur Partner (Gutachter/Anwalt/Admin) sehen
+  CUSTOMER_AND_PARTNERS
+}
+
+enum CaseFileCategory {
+  CUSTOMER_PHOTOS
+  REGISTRATION_DOCS
+  INSURANCE_DOCS
+  GUTACHTEN
+  LAW_DOCS
+  OTHER
+}
+
 model CaseAssignment {
   id                  String         @id @default(cuid())
   caseId              String
@@ -82,7 +109,6 @@ model CaseAssignment {
   case Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
   @@unique([caseId, role, activeKey]) // active=true darf es pro Case+Role nur einmal geben
- 
   @@index([assigneeClerkUserId, role, active])
   @@index([status, active, expiresAt])
 }
@@ -118,6 +144,38 @@ model Notification {
 
   @@index([userId, readAt, createdAt])
   @@index([caseId])
+}
+
+model CaseFile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  uploaderType CaseFileUploaderType
+  uploaderId   String? // Clerk userId bei Partner/Admin oder NULL beim Customer-Token Upload
+
+  // Wer es hochgeladen hat (Lane/Role)
+  role CaseLane? // GUTACHTER | ANWALT (oder null bei Customer)
+
+  visibility CaseFileVisibility @default(CUSTOMER_AND_PARTNERS)
+  category   CaseFileCategory   @default(OTHER)
+
+  title    String? // optional UI Label (z.B. "Gutachten PDF")
+  filename String
+  mimeType String?
+  size     Int?
+
+  // Verweis in Storage (Supabase Storage / S3 / lokal)
+  storageKey String @db.Text
+
+  // Optional: original URL cache (nicht zwingend)
+  // url String? @db.Text
+
+  @@index([caseId, createdAt])
+  @@index([uploaderType, createdAt])
+  @@index([visibility, category])
 }
 
 model Partner {
@@ -161,6 +219,7 @@ model Case {
   caseNumber    String?          @unique // z.B. "CS-2002" (optional)
   customer      CaseCustomer?
   intake        CaseIntake?
+  files         CaseFile[]
 
   // Case Token ohne Login (Link wie /case/<token>)
   token String @unique
@@ -181,7 +240,8 @@ model Case {
   gutachtenPdfUrl String?
 
   // Timeline-Events (historisch)
-  events CaseEvent[]
+  events           CaseEvent[]
+  caseCustomerOtps CaseCustomerOtp[]
 }
 
 model CaseCustomer {
@@ -201,7 +261,41 @@ model CaseCustomer {
   // verifiedAt DateTime?
   // lastSeenAt DateTime?
 
+  otpCodeHash   String?
+  otpExpiresAt  DateTime?
+  otpVerifiedAt DateTime?
+  otpLastSentAt DateTime?
+  otpAttempts   Int       @default(0)
+
   @@index([email])
+}
+
+model CaseCustomerOtp {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  // Fall / Token Kontext
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  // Wir senden OTP an diese Email (normalisiert in Code)
+  email String
+
+  // OTP Handling (wir speichern NICHT den Klartext-Code, sondern einen Hash)
+  codeHash String
+
+  // Rate limit / Sicherheit
+  attempts Int @default(0)
+
+  // falls erfolgreich verifiziert
+  verifiedAt DateTime?
+
+  // pro Case+Email soll nur ein "aktuelles" OTP existieren (wir upserten später)
+  @@unique([caseId, email])
+  @@index([caseId])
+  @@index([email])
+  @@index([expiresAt])
 }
 
 model CaseIntake {
@@ -212,23 +306,88 @@ model CaseIntake {
   caseId String @unique
   case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
 
-  // Unfall
+  // --- Steuerung: Wer reguliert? ---
+  claimRoute ClaimRoute @default(UNKNOWN)
+
+  // --- Unfall (Kern) ---
   accidentDescription String?
-  driverIsHolder      Boolean? // true/false/null
-  driverName          String?
-  driverPhone         String?
+  accidentDate        DateTime?
+  accidentLocation    String? // Freitext oder später: Straße/PLZ/Ort getrennt
+
+  // --- Fahrer ---
+  driverIsHolder Boolean? // true/false/null
+  driverName     String?
+  driverPhone    String?
+
+  // --- Eigenes Fahrzeug ---
+  ownPlateNumber String?
+  ownCarMake     String?
+  ownCarModel    String?
+  ownCarYear     Int?
+  ownerName      String? // Halter (Name)
+
+  // --- Gegnerfahrzeug ---
+  opponentPlateNumber String?
+  opponentCarMake     String?
+  opponentCarModel    String?
+
+  // --- Polizei / Zeugen ---
+  policeInvolved     Boolean?
+  policeReportNumber String?
+  witnessesPresent   Boolean?
+  witnessContact     String? // Freitext (Name+Telefon)
+
+  // --- LEGACY (nicht mehr nutzen; nur damit Prisma nichts droppen will) ---
+  insuranceName   String?
+  insuranceNumber String?
+  insuranceEmail  String?
+
+  carMake     String?
+  carModel    String?
+  carYear     Int?
+  plateNumber String?
+  holderName  String?
+
+  // Relations: Versicherungen (klar getrennt)
+  ownInsurance      CaseInsurance? @relation("OwnInsurance")
+  opponentInsurance CaseInsurance? @relation("OpponentInsurance")
+
+  @@index([claimRoute])
+  @@index([accidentDate])
+}
+
+enum InsuranceParty {
+  OWN
+  OPPONENT
+}
+
+model CaseInsurance {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  party InsuranceParty
 
   // Versicherung
-  insuranceName       String?
-  insuranceNumber     String?
-  insuranceEmail      String?
+  name  String?
+  email String?
+  phone String?
 
-  // Fahrzeug
-  carMake             String?
-  carModel            String?
-  carYear             Int?
-  plateNumber         String?
-  holderName          String?
+  // Vertrags-/Schadendaten
+  policyNumber String?
+  claimNumber  String?
+
+  // Optionaler Ansprechpartner
+  contactPerson String?
+
+  // Relations (2 mögliche 1:1 Links, je Intake maximal 1 je Partei)
+  ownIntakeId      String? @unique
+  opponentIntakeId String? @unique
+
+  intakeAsOwn      CaseIntake? @relation("OwnInsurance", fields: [ownIntakeId], references: [id], onDelete: Cascade)
+  intakeAsOpponent CaseIntake? @relation("OpponentInsurance", fields: [opponentIntakeId], references: [id], onDelete: Cascade)
+
+  @@index([party])
 }
 
 model CaseEvent {

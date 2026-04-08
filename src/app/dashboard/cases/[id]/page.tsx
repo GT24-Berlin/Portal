@@ -5,6 +5,7 @@ import CaseAssignmentAdmin from '@/components/cases/case-assignment-admin';
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
 import { auth, currentUser } from '@clerk/nextjs/server';
+import CaseFilesUpload from '@/components/cases/case-files-upload';
 
 export const runtime = 'nodejs';
 
@@ -83,6 +84,23 @@ export default async function CaseDetailPage({
 
   if (!c) notFound();
 
+  const files = await prisma.caseFile.findMany({
+    where: { caseId: c.id }, // oder einfach { caseId: id }
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+    select: {
+      id: true,
+      createdAt: true,
+      title: true,
+      filename: true,
+      mimeType: true,
+      size: true,
+      uploaderType: true,
+      visibility: true
+    }
+  });
+
+  const canUpload = canEdit;
   return (
     <PageContainer
       pageTitle='Case Detail'
@@ -113,6 +131,72 @@ export default async function CaseDetailPage({
           anwaltStatus={String(c.anwaltStatus)}
           role={canEdit ? role : ''} // <- Trick: nicht editierbar => Editor zeigt "Keine Berechtigung"
         />
+
+        {/* Dokumente (Case Files) */}
+        <div className='bg-card space-y-3 rounded-xl border p-6'>
+          <div className='flex items-start justify-between gap-3'>
+            <div>
+              <h3 className='text-lg font-semibold'>Dokumente</h3>
+              <p className='text-muted-foreground text-xs'>
+                Uploads vom Kunden & Partner (je nach Sichtbarkeit)
+              </p>
+            </div>
+
+            {canUpload ? (
+              <div className='shrink-0'>
+                <CaseFilesUpload caseId={c.id} />
+              </div>
+            ) : (
+              <span className='text-muted-foreground shrink-0 text-xs'>
+                Upload erst nach Annahme (ACCEPTED).
+              </span>
+            )}
+          </div>
+
+          {files.length === 0 ? (
+            <p className='text-muted-foreground text-sm'>
+              Noch keine Dokumente.
+            </p>
+          ) : (
+            <div className='space-y-2'>
+              {files.map((f) => (
+                <div
+                  key={f.id}
+                  className='flex items-center justify-between rounded-md border px-3 py-2 text-sm'
+                >
+                  <div className='min-w-0'>
+                    <div className='truncate font-medium'>
+                      {f.title ? f.title : f.filename}
+                    </div>
+
+                    <div className='text-muted-foreground text-xs'>
+                      {f.filename} · {String(f.uploaderType)} ·{' '}
+                      {String(f.visibility)}
+                    </div>
+
+                    <div className='text-muted-foreground text-xs'>
+                      {new Intl.DateTimeFormat('de-DE', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short'
+                      }).format(new Date(f.createdAt))}
+                      {' · '}
+                      {f.size ? `${Math.round(f.size / 1024)} KB` : '—'}
+                    </div>
+                  </div>
+
+                  <a
+                    className='hover:bg-muted shrink-0 rounded-md border px-3 py-1 text-xs'
+                    href={`/api/cases/${c.id}/files/${f.id}/download`}
+                    target='_blank'
+                    rel='noreferrer'
+                  >
+                    Download
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className='rounded-lg border p-4'>
           <div className='mb-3 text-sm font-medium'>Events</div>

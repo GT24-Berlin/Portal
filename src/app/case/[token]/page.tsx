@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import CaseIntakeForm from '@/components/case/case-intake-form';
+import { cookies } from 'next/headers';
+import CaseOtpCookieRefresh from '@/components/case/case-otp-cookie-refresh';
+import CaseTopNav from '@/components/case/case-top-nav';
+import CaseCustomerUploadsMini from '@/components/case/case-customer-uploads-mini';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -103,7 +108,15 @@ export default async function CaseTokenPage({
   const found = await prisma.case.findUnique({
     where: { token },
     include: {
-      customer: true,
+      customer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          otpVerifiedAt: true
+        }
+      },
+      intake: true,
       events: {
         orderBy: { occurredAt: 'asc' }
       }
@@ -112,9 +125,21 @@ export default async function CaseTokenPage({
 
   if (!found) notFound();
 
+  // 1) Registrierung-Gate
   if (!found.customer) {
     redirect(`/case/${token}/register`);
   }
+
+  // 2) OTP-Gate: wenn noch NICHT verified -> verify page
+  if (!found.customer.otpVerifiedAt) {
+    redirect(`/case/${token}/verify`);
+  }
+
+  // 3) OPTIONAL: Cookie-Gate nur als Zusatzschutz (nicht mehr Pflicht)
+  const jar = await cookies();
+  const hasAccess = jar.get(`case_access_${token}`)?.value === '1';
+
+  // Wenn verified aber Cookie fehlt -> NICHT mehr blocken (kein Redirect!)
 
   const events = (found.events ?? []).map((e) => ({
     lane: e.lane as 'GUTACHTER' | 'ANWALT',
@@ -143,14 +168,14 @@ export default async function CaseTokenPage({
   return (
     <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
       <div className='mx-auto max-w-5xl space-y-6 px-4 py-10 pb-24'>
-        <div className='space-y-1'>
-          <p className='text-muted-foreground text-sm'>
-            Gutachtery24 · Case Tracker
-          </p>
-          <h1 className='text-3xl font-semibold'>Dein Fallstatus</h1>
-          <p className='text-muted-foreground'>
-            Case ID: {found.caseNumber ?? found.id} · Token: {found.token}
-          </p>
+        <div className='flex items-start justify-between gap-4'>
+          <CaseTopNav
+            token={token}
+            active='status'
+            title='Dein Fallstatus'
+            subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
+            showEdit
+          />
         </div>
 
         <div className='bg-card flex flex-col gap-2 rounded-xl border px-5 py-5 md:flex-row md:items-center md:justify-between'>
@@ -230,46 +255,9 @@ export default async function CaseTokenPage({
           </div>
         </div>
 
-        <div className='bg-card space-y-3 rounded-xl border px-5 py-6'>
-          <h3 className='text-lg font-semibold'>Unfallhergang</h3>
-          <p className='text-muted-foreground text-sm'>
-            Bitte beschreibe kurz, was passiert ist. (MVP: noch ohne
-            Speicherung)
-          </p>
-          <textarea
-            className='bg-background focus:ring-ring min-h-[140px] w-full rounded-lg border p-3 text-sm outline-none focus:ring-2'
-            placeholder='z.B. Auffahrunfall an Ampel, Gegner von hinten, … (Ort, Datum, Beteiligte)'
-          />
-          <div className='flex justify-end gap-2'>
-            <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-              Entwurf löschen
-            </button>
-            <button className='bg-foreground text-background rounded-lg px-4 py-2 text-sm hover:opacity-90'>
-              Speichern (Demo)
-            </button>
-          </div>
-        </div>
+        <CaseIntakeForm token={token} />
 
-        <div className='bg-card space-y-3 rounded-xl border p-5'>
-          <h3 className='text-lg font-semibold'>
-            Bilder &amp; Dokumente hochladen
-          </h3>
-          <p className='text-muted-foreground text-sm'>
-            Lade Fotos vom Schaden, Kennzeichen, Fahrzeugschein oder
-            Polizeiakten hoch. (MVP: noch ohne Upload)
-          </p>
-          <div className='text-muted-foreground rounded-lg border border-dashed p-8 text-center text-sm'>
-            Drag &amp; Drop Dateien hierher oder
-            <div className='mt-3'>
-              <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-                Datei auswählen (Demo)
-              </button>
-            </div>
-            <p className='mt-2 text-xs'>
-              Unterstützt: JPG, PNG, PDF · Max. 10 Dateien
-            </p>
-          </div>
-        </div>
+        <CaseCustomerUploadsMini token={token} />
 
         <div className='bg-card space-y-3 rounded-xl border p-5'>
           <h3 className='text-lg font-semibold'>Fragen?</h3>

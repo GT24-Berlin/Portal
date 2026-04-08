@@ -121,8 +121,9 @@ export async function POST(
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
     const created = await prisma.$transaction(async (tx) => {
+      // ACTIVE ist ausschließlich über activeKey="ACTIVE" definiert
       let active = await tx.caseAssignment.findFirst({
-        where: { caseId, role: assignRole as any, active: true },
+        where: { caseId, role: assignRole as any, activeKey: 'ACTIVE' },
         orderBy: { assignedAt: 'desc' },
         select: { id: true, status: true, expiresAt: true }
       });
@@ -145,11 +146,23 @@ export async function POST(
       }
 
       if (active && force) {
+        // zuerst die gefundene ACTIVE-Zeile sauber freigeben
+        await tx.caseAssignment.update({
+          where: { id: active.id },
+          data: {
+            status: 'RELEASED' as any,
+            active: false,
+            activeKey: null,
+            releasedAt: now
+          }
+        });
+
+        // Safety-net: falls es Altlasten/Race gab -> alles für Case+Role deaktivieren
         await tx.caseAssignment.updateMany({
           where: {
             caseId,
             role: assignRole as any,
-            activeKey: 'ACTIVE'
+            OR: [{ active: true }, { activeKey: 'ACTIVE' as any }]
           },
           data: {
             status: 'RELEASED' as any,
@@ -159,17 +172,7 @@ export async function POST(
           }
         });
 
-        await tx.caseAssignment.updateMany({
-          where: {
-            caseId,
-            role: assignRole as any,
-            active: true
-          },
-          data: {
-            active: false,
-            activeKey: null
-          }
-        });
+        active = null;
       }
 
       const newRow = await tx.caseAssignment.create({
