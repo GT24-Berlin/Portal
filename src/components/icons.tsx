@@ -8,6 +8,8 @@ import {
   IconCreditCard,
   IconFile,
   IconFileText,
+  IconInbox,
+  IconBell,
   IconHelpCircle,
   IconPhoto,
   IconDeviceLaptop,
@@ -77,5 +79,7 @@ export const Icons = {
   pro: IconCrown,
   exclusive: IconStar,
   account: IconUserCircle,
-  profile: IconUser
+  profile: IconUser,
+  inbox: IconInbox,
+  bell: IconBell
 };

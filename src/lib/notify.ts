@@ -13,17 +13,15 @@ export async function createNotification(input: {
   body?: string | null;
   href?: string | null;
   caseId?: string | null;
-  assignmentId?: string | null;
 }) {
   return prisma.notification.create({
     data: {
-      recipientClerkUserId: input.recipientClerkUserId,
+      userId: input.recipientClerkUserId,
       type: input.type,
       title: input.title,
       body: input.body ?? null,
       href: input.href ?? null,
-      caseId: input.caseId ?? null,
-      assignmentId: input.assignmentId ?? null
+      caseId: input.caseId ?? null
     },
     select: { id: true }
   });

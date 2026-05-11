@@ -1,0 +1,205 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 2452 >>
+stream
+BT
+/F1 11 Tf
+50 760 Td
+(GT24 MVP – Projekt-Overview \(Business + Software\)) Tj
+T*
+( ) Tj
+T*
+(1\) Kurzbeschreibung) Tj
+T*
+(- Digitale Fallabwicklung für Gutachter- und Anwaltspfade.) Tj
+T*
+(- Kunden-Zugang ohne Login via Token \(OTP-gesichert\).) Tj
+T*
+(- Admin steuert Assignments, Partner pflegen Status, Kunde sieht Fortschritt.) Tj
+T*
+( ) Tj
+T*
+(2\) Zielgruppen & Rollen) Tj
+T*
+(- Kunde \(tokenbasiert\): Status & Dokumente, Intake, Profil.) Tj
+T*
+(- Gutachter \(GUTACHTER\): Case-Detail, Gutachter-Status, Partner-Uploads.) Tj
+T*
+(- Anwalt \(ANWALT\): Case-Detail, Anwalt-Status, Partner-Uploads.) Tj
+T*
+(- Admin \(ADMIN\): Assignments erstellen, Reassign/Force, volle Einsicht.) Tj
+T*
+( ) Tj
+T*
+(3\) Kern-Flows \(aktuell implementiert\)) Tj
+T*
+(A\) Kunden-Flow \(Public\)) Tj
+T*
+(- /case/[token] Tracker mit OTP-Gate \(register → verify → access\)) Tj
+T*
+(- Intake-Form: Unfall + Versicherungsdaten \(OWN/OPPONENT\)) Tj
+T*
+(- Dokumente: Upload + Download \(sichtbar für Kunde\)) Tj
+T*
+(- Profil: Anzeigen + Edit + Update) Tj
+T*
+( ) Tj
+T*
+(B\) Partner-Flow \(Dashboard\)) Tj
+T*
+(- /dashboard/cases + /dashboard/cases/[id]) Tj
+T*
+(- Rollengetrennter Status-Editor \(Gutachter/Anwalt\)) Tj
+T*
+(- Dokumenten-Panel \(Upload + Liste + Download\)) Tj
+T*
+(- Inbox: Assignments accept/release) Tj
+T*
+( ) Tj
+T*
+(C\) Admin-Flow) Tj
+T*
+(- Assignment erstellen \(ActiveKey-Logik\)) Tj
+T*
+(- Benachrichtigung + Mail bei Assignment) Tj
+T*
+( ) Tj
+T*
+(4\) Dateien & Sichtbarkeiten) Tj
+T*
+(- CaseFileVisibility: CUSTOMER, PARTNERS, CUSTOMER_AND_PARTNERS) Tj
+T*
+(- Customer-List/Download: CUSTOMER + CUSTOMER_AND_PARTNERS) Tj
+T*
+(- Partner-List/Download: PARTNERS + CUSTOMER_AND_PARTNERS) Tj
+T*
+( ) Tj
+T*
+(5\) APIs \(Auszug\)) Tj
+T*
+(- POST /api/cases → Case erstellen + Events) Tj
+T*
+(- PATCH /api/cases/[id] → Status-Update + Event-Log) Tj
+T*
+(- POST /api/cases/[id]/assign → Assignment + Notification + Mail) Tj
+T*
+(- POST /api/cases/[id]/accept | /release) Tj
+T*
+(- /api/case/[token]/otp/* → OTP send/verify/refresh) Tj
+T*
+(- /api/case/[token]/intake → GET/POST) Tj
+T*
+(- /api/case/[token]/files + upload + download) Tj
+T*
+(- /api/cases/[id]/files + upload + download) Tj
+T*
+( ) Tj
+T*
+(6\) Datenmodell \(Prisma\)) Tj
+T*
+(- Case, CaseAssignment, CaseEvent) Tj
+T*
+(- CaseCustomer, CaseIntake, CaseInsurance) Tj
+T*
+(- CaseFile, Notification, Partner, Lead) Tj
+T*
+(- Enums: CaseLane, AssignmentStatus, GutachterCaseStatus, AnwaltCaseStatus,) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 6 0 R /Resources << /Font << /F1 7 0 R >> >> >>
+endobj
+6 0 obj
+<< /Length 1424 >>
+stream
+BT
+/F1 11 Tf
+50 760 Td
+(  CaseFileVisibility, CaseFileCategory, ClaimRoute, InsuranceParty) Tj
+T*
+( ) Tj
+T*
+(7\) Security/Gates) Tj
+T*
+(- OTP Gate: Customer muss registriert + otpVerifiedAt) Tj
+T*
+(- Partner Gate: aktive ACCEPTED Assignment nötig) Tj
+T*
+(- Admin: volle Einsicht) Tj
+T*
+( ) Tj
+T*
+(8\) Aktuelle Stärken) Tj
+T*
+(- End-to-end MVP-Flows für Kunde + Partner + Admin) Tj
+T*
+(- Status-Tracking + Timeline Events) Tj
+T*
+(- Dokumentenfluss inkl. Sichtbarkeiten) Tj
+T*
+(- Assignments mit Accept/Release + Mail) Tj
+T*
+( ) Tj
+T*
+(9\) Offene Punkte / Risiken \(fokussiert\)) Tj
+T*
+(- OTP-Datenmodell doppelt \(CaseCustomer vs CaseCustomerOtp\)) Tj
+T*
+(- Notifications-Helper \(notify.ts\) weicht Schema ab \(ungenutzt\)) Tj
+T*
+(- Storage aktuell lokal \(/uploads\), nicht produktiv) Tj
+T*
+( ) Tj
+T*
+(10\) Roadmap \(Livegang – logisch priorisiert\)) Tj
+T*
+(1. Storage auf Supabase/S3 umstellen \(stabil & skalierbar\)) Tj
+T*
+(2. OTP-Modell konsolidieren \(nur ein Model\)) Tj
+T*
+(3. Assignment Edge-Cases absichern \(Expired/Reassign\)) Tj
+T*
+(4. Monitoring/Logging minimal \(OTP/Upload/Assignment\)) Tj
+T*
+(5. Admin-Operational UI erweitern \(Filter/Reassign ohne Prisma\)) Tj
+T*
+( ) Tj
+T*
+(11\) Mission \(Kurz\)) Tj
+T*
+(Wir schaffen eine transparente, effiziente und rechtssichere) Tj
+T*
+(Fallabwicklung für Kunde, Gutachter und Anwalt – mit minimalem) Tj
+T*
+(manuellen Overhead und klarer Zuständigkeit.) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000121 00000 n 
+0000000247 00000 n 
+0000002751 00000 n 
+0000002877 00000 n 
+0000004353 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+4423
+%%EOF

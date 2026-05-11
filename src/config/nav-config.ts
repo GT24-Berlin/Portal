@@ -39,6 +39,7 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['l', 'l'],
+    access: { role: 'admin' },
     items: []
   },
   {
@@ -96,6 +97,7 @@ export const navItems: NavItem[] = [
     shortcut: ['p', 'p'],
     items: []
   },
+
   {
     title: 'Account',
     url: '#',
@@ -103,16 +105,26 @@ export const navItems: NavItem[] = [
     isActive: true,
     items: [
       {
+        title: 'Partnerprofil',
+        url: '/dashboard/partner-profile',
+        icon: 'profile',
+        shortcut: ['m', 'm'],
+        access: { role: ['gutachter', 'anwalt'] },
+        items: []
+      },
+      {
         title: 'Profile',
         url: '/dashboard/profile',
         icon: 'profile',
-        shortcut: ['m', 'm']
+        access: { role: 'admin' },
+        items: []
       },
       {
         title: 'Logout',
         url: '/sign-in',
         icon: 'login',
-        shortcut: ['o', 'o']
+        shortcut: ['o', 'o'],
+        items: []
       }
     ]
   }

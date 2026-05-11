@@ -1,3 +1,7 @@
+import {
+  expireAssignmentIfNeeded,
+  isAssignmentUsable
+} from '@/lib/assignments';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth, currentUser } from '@clerk/nextjs/server';
@@ -27,7 +31,7 @@ type PatchBody = {
   gutachterStatus?: string;
   anwaltStatus?: string;
   note?: string;
-  occurredAt?: string; // ISO string optional
+  occurredAt?: string;
 };
 
 export async function PATCH(
@@ -35,7 +39,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // --- Auth ---
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json(
@@ -45,7 +48,7 @@ export async function PATCH(
     }
 
     const user = await currentUser();
-    const role = String(user?.publicMetadata?.role ?? '').toUpperCase(); // "GUTACHTER" | "ANWALT" | "ADMIN"
+    const role = String(user?.publicMetadata?.role ?? '').toUpperCase();
 
     const { id } = await params;
     if (!id) {
@@ -71,7 +74,6 @@ export async function PATCH(
     const wantsBoth = Boolean(nextGutachter && nextAnwalt);
 
     if (!isAdmin) {
-      // Welche Lane will der User ändern? (beide gleichzeitig ist für Partner verboten)
       const requiredLane = wantsBoth
         ? null
         : nextGutachter
@@ -92,9 +94,15 @@ export async function PATCH(
           caseId: id,
           role: requiredLane as any,
           assigneeClerkUserId: userId,
-          active: true
+          activeKey: 'ACTIVE'
         },
-        select: { id: true, status: true, expiresAt: true, active: true },
+        select: {
+          id: true,
+          status: true,
+          expiresAt: true,
+          active: true,
+          activeKey: true
+        },
         orderBy: { assignedAt: 'desc' }
       });
 
@@ -105,19 +113,24 @@ export async function PATCH(
         );
       }
 
-      const now = new Date();
-      if (assignment.status === 'PENDING' && assignment.expiresAt <= now) {
-        await prisma.caseAssignment.update({
-          where: { id: assignment.id },
-          data: { status: 'EXPIRED' as any, active: false, activeKey: null }
-        });
+      if (assignment.activeKey !== 'ACTIVE') {
         return NextResponse.json(
           { ok: false, error: 'Not found' },
           { status: 404 }
         );
       }
 
-      if (assignment.status !== 'ACCEPTED') {
+      const now = new Date();
+      const expiredResult = await expireAssignmentIfNeeded(assignment, now);
+
+      if (expiredResult.expired) {
+        return NextResponse.json(
+          { ok: false, error: 'Not found' },
+          { status: 404 }
+        );
+      }
+
+      if (!isAssignmentUsable(assignment) || assignment.status !== 'ACCEPTED') {
         return NextResponse.json(
           { ok: false, error: 'Forbidden: assignment not accepted' },
           { status: 403 }
@@ -125,8 +138,7 @@ export async function PATCH(
       }
     }
 
-    // --- RBAC (server-side, wichtig!) ---
-    if (wantsBoth && role !== 'ADMIN') {
+    if (wantsBoth && !isAdmin) {
       return NextResponse.json(
         { ok: false, error: 'Forbidden: cannot update both lanes' },
         { status: 403 }
@@ -147,7 +159,6 @@ export async function PATCH(
       );
     }
 
-    // Wenn Rolle unbekannt:
     if (role !== 'ANWALT' && role !== 'GUTACHTER' && role !== 'ADMIN') {
       return NextResponse.json(
         { ok: false, error: 'Forbidden: role not allowed' },
@@ -155,7 +166,6 @@ export async function PATCH(
       );
     }
 
-    // --- Validate enum values ---
     if (nextGutachter && !GUTACHTER_STATUS.has(nextGutachter)) {
       return NextResponse.json(
         { ok: false, error: `Invalid gutachterStatus: ${nextGutachter}` },
@@ -173,7 +183,6 @@ export async function PATCH(
     const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date();
     const note = body.note?.trim() || null;
 
-    // Events bauen (WICHTIG: DB erwartet "lane", nicht "track")
     const eventsToCreate: Array<{
       lane: 'GUTACHTER' | 'ANWALT';
       status: string;
@@ -199,7 +208,6 @@ export async function PATCH(
       });
     }
 
-    // Case updaten + Events loggen
     const updated = await prisma.case.update({
       where: { id },
       data: {
@@ -216,7 +224,6 @@ export async function PATCH(
 
     return NextResponse.json({ ok: true, case: updated });
   } catch (err: any) {
-    // Prisma "Record not found"
     if (err?.code === 'P2025') {
       return NextResponse.json(
         { ok: false, error: 'Case not found' },

@@ -57,3 +57,7 @@ next-env.d.ts
 
 # --- Codex local config ---
 .codex/
+
+uploads/
+
+uploads/

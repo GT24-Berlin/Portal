@@ -1,18 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
-import fs from 'fs/promises';
-import path from 'path';
-import { UPLOAD_DIR } from '@/lib/uploads';
 import { CaseFileVisibility } from '@prisma/client';
-
+import { createStoredFileDownloadResponse } from '@/lib/storage';
 export const runtime = 'nodejs';
-
-function parseLocalKey(storageKey: string) {
-  // expected: "local:<filename>"
-  if (!storageKey?.startsWith('local:')) return null;
-  return storageKey.slice('local:'.length);
-}
 
 export async function GET(
   _req: Request,
@@ -77,7 +68,12 @@ export async function GET(
         caseId,
         ...(visibilityFilter ? { visibility: visibilityFilter } : {})
       },
-      select: { filename: true, mimeType: true, storageKey: true }
+      select: {
+        filename: true,
+        mimeType: true,
+        storageKey: true,
+        size: true
+      }
     });
 
     if (!f)
@@ -86,25 +82,11 @@ export async function GET(
         { status: 404 }
       );
 
-    const local = parseLocalKey(f.storageKey);
-    if (!local) {
-      return NextResponse.json(
-        { ok: false, error: 'unsupported storageKey' },
-        { status: 400 }
-      );
-    }
-
-    const absPath = path.join(UPLOAD_DIR, local);
-    const buf = await fs.readFile(absPath);
-
-    const safeName = (f.filename ?? 'download').replace(/[\r\n"]/g, '');
-
-    return new NextResponse(buf, {
-      status: 200,
-      headers: {
-        'Content-Type': f.mimeType ?? 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${safeName}"`
-      }
+    return createStoredFileDownloadResponse({
+      storageKey: f.storageKey,
+      filename: f.filename,
+      mimeType: f.mimeType,
+      size: f.size
     });
   } catch (e: any) {
     return NextResponse.json(

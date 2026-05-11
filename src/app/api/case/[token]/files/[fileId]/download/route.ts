@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import path from 'path';
-import fs from 'fs/promises';
-import { UPLOAD_DIR } from '@/lib/uploads';
+import { createStoredFileDownloadResponse } from '@/lib/storage';
 
 export const runtime = 'nodejs';
-
-function isLocalKey(k: string) {
-  return k.startsWith('local:');
-}
 
 export async function GET(
   _req: Request,
@@ -58,7 +52,8 @@ export async function GET(
       select: {
         filename: true,
         mimeType: true,
-        storageKey: true
+        storageKey: true,
+        size: true
       }
     });
 
@@ -68,25 +63,11 @@ export async function GET(
         { status: 404 }
       );
 
-    if (!isLocalKey(file.storageKey)) {
-      return NextResponse.json(
-        { ok: false, error: 'unsupported storageKey' },
-        { status: 400 }
-      );
-    }
-
-    const storedName = file.storageKey.replace(/^local:/, '');
-    const absPath = path.join(UPLOAD_DIR, storedName);
-
-    const buf = await fs.readFile(absPath);
-
-    return new NextResponse(buf, {
-      status: 200,
-      headers: {
-        'Content-Type': file.mimeType ?? 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${encodeURIComponent(file.filename)}"`,
-        'Cache-Control': 'no-store'
-      }
+    return createStoredFileDownloadResponse({
+      storageKey: file.storageKey,
+      filename: file.filename,
+      mimeType: file.mimeType,
+      size: file.size
     });
   } catch (e: any) {
     return NextResponse.json(

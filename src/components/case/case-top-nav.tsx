@@ -2,7 +2,14 @@ import Link from 'next/link';
 
 export default function CaseTopNav(props: {
   token: string;
-  active: 'status' | 'profile' | 'edit' | 'verify' | 'register' | 'documents';
+  active:
+    | 'status'
+    | 'profile'
+    | 'edit'
+    | 'verify'
+    | 'register'
+    | 'documents'
+    | 'gutachten';
   title?: string; // optional, z.B. "Dein Fallstatus" oder "Profil"
   subtitle?: string; // optional, z.B. "Fall CS-1234"
   showEdit?: boolean; // optional: Bearbeiten-Button zeigen
@@ -36,6 +43,13 @@ export default function CaseTopNav(props: {
           className={active === 'documents' ? activeBtn : baseBtn}
         >
           Dokumente
+        </Link>
+
+        <Link
+          href={`/case/${token}/gutachten`}
+          className={active === 'gutachten' ? activeBtn : baseBtn}
+        >
+          Ihr Gutachten
         </Link>
 
         <Link

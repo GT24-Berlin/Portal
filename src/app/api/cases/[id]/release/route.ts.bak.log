@@ -1,0 +1,232 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@clerk/nextjs/server';
+import { NotificationType } from '@prisma/client';
+import { sendMail } from '@/lib/mailer';
+
+export const runtime = 'nodejs';
+
+type ReleaseResult =
+  | {
+      kind: 'NOT_ASSIGNED';
+    }
+  | {
+      kind: 'ALREADY_INACTIVE';
+      assignment: {
+        id: string;
+        status: string;
+        active: boolean;
+        role: string;
+      };
+    }
+  | {
+      kind: 'RELEASED';
+      assignment: {
+        id: string;
+        status: string;
+        active: boolean;
+        role: string;
+      };
+    };
+
+export async function POST(
+  _req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { userId } = await auth();
+  if (!userId) {
+    return NextResponse.json(
+      { ok: false, error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  const { id: caseId } = await params;
+  if (!caseId) {
+    return NextResponse.json(
+      { ok: false, error: 'Missing case id' },
+      { status: 400 }
+    );
+  }
+
+  const now = new Date();
+
+  const result = await prisma.$transaction(async (tx): Promise<ReleaseResult> => {
+    const activeAssignment = await tx.caseAssignment.findFirst({
+      where: {
+        caseId,
+        assigneeClerkUserId: userId,
+        activeKey: 'ACTIVE'
+      },
+      orderBy: { assignedAt: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        active: true,
+        activeKey: true,
+        role: true
+      }
+    });
+
+    if (activeAssignment) {
+      if (
+        activeAssignment.status === 'RELEASED' ||
+        activeAssignment.status === 'EXPIRED'
+      ) {
+        if (activeAssignment.active || activeAssignment.activeKey === 'ACTIVE') {
+          await tx.caseAssignment.update({
+            where: { id: activeAssignment.id },
+            data: {
+              active: false,
+              activeKey: null
+            }
+          });
+        }
+
+        return {
+          kind: 'ALREADY_INACTIVE',
+          assignment: {
+            id: activeAssignment.id,
+            status: String(activeAssignment.status),
+            active: false,
+            role: String(activeAssignment.role)
+          }
+        };
+      }
+
+      const updated = await tx.caseAssignment.update({
+        where: { id: activeAssignment.id },
+        data: {
+          status: 'RELEASED' as any,
+          active: false,
+          activeKey: null,
+          releasedAt: now
+        },
+        select: {
+          id: true,
+          status: true,
+          active: true,
+          role: true
+        }
+      });
+
+      await tx.notification.create({
+        data: {
+          userId,
+          type: NotificationType.ASSIGNMENT_RELEASED,
+          title: 'Zuweisung freigegeben',
+          body: `Du hast den Fall als ${String(updated.role)} freigegeben.`,
+          href: '/dashboard/inbox',
+          caseId,
+          role: updated.role as any,
+          readAt: null
+        }
+      });
+
+      return {
+        kind: 'RELEASED',
+        assignment: {
+          id: updated.id,
+          status: String(updated.status),
+          active: Boolean(updated.active),
+          role: String(updated.role)
+        }
+      };
+    }
+
+    const lastInactive = await tx.caseAssignment.findFirst({
+      where: {
+        caseId,
+        assigneeClerkUserId: userId
+      },
+      orderBy: { assignedAt: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        active: true,
+        role: true
+      }
+    });
+
+    if (
+      lastInactive &&
+      (lastInactive.status === 'RELEASED' || lastInactive.status === 'EXPIRED')
+    ) {
+      return {
+        kind: 'ALREADY_INACTIVE',
+        assignment: {
+          id: lastInactive.id,
+          status: String(lastInactive.status),
+          active: false,
+          role: String(lastInactive.role)
+        }
+      };
+    }
+
+    return { kind: 'NOT_ASSIGNED' };
+  });
+
+  if (result.kind === 'NOT_ASSIGNED') {
+    return NextResponse.json(
+      { ok: false, error: 'Not assigned' },
+      { status: 404 }
+    );
+  }
+
+  if (result.kind === 'ALREADY_INACTIVE') {
+    return NextResponse.json({
+      ok: true,
+      assignment: {
+        id: result.assignment.id,
+        status: result.assignment.status,
+        active: result.assignment.active
+      }
+    });
+  }
+
+  try {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const adminEmail =
+      process.env.ADMIN_NOTIFY_EMAIL ??
+      process.env.SMTP_USER ??
+      'info@gutachtery.de';
+
+    const c = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { token: true, caseNumber: true }
+    });
+
+    const caseLabel = c?.caseNumber ?? caseId.slice(0, 8);
+    const dashboardUrl = `${appUrl}/dashboard/cases/${caseId}`;
+    const trackerUrl = c?.token ? `${appUrl}/case/${c.token}` : null;
+
+    await sendMail({
+      to: adminEmail,
+      subject: `Gutachtery24 – Fall freigegeben (${result.assignment.role}) – ${caseLabel}`,
+      text:
+        `Der Partner hat den Fall freigegeben.\n\n` +
+        `Role: ${result.assignment.role}\n` +
+        `Case: ${caseLabel}\n` +
+        `Dashboard: ${dashboardUrl}\n` +
+        (trackerUrl ? `Kunden-Tracker: ${trackerUrl}\n` : ''),
+      html: `
+        <p><b>Fall freigegeben</b></p>
+        <p>Role: <b>${result.assignment.role}</b></p>
+        <p>Case: <b>${caseLabel}</b></p>
+        <p><a href="${dashboardUrl}">Dashboard Case öffnen</a></p>
+        ${trackerUrl ? `<p><a href="${trackerUrl}">Kunden-Tracker öffnen</a></p>` : ''}
+      `
+    });
+  } catch (e) {
+    console.error('Email send failed (ASSIGNMENT_RELEASED):', e);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    assignment: {
+      id: result.assignment.id,
+      status: result.assignment.status,
+      active: result.assignment.active
+    }
+  });
+}

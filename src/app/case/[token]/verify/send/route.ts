@@ -14,9 +14,15 @@ function normEmail(v: string) {
 // mappt API-Fehlertext auf kurze error-codes
 function mapSendError(msg: string) {
   const m = String(msg || '').toLowerCase();
+
+  if (m.includes('email required')) return 'email_required';
   if (m.includes('email mismatch')) return 'email_mismatch';
   if (m.includes('customer not registered')) return 'customer_not_registered';
   if (m.includes('case not found')) return 'case_not_found';
+  if (m.includes('token missing')) return 'token_missing';
+  if (m.includes('otp_recently_sent')) return 'otp_recently_sent';
+  if (m.includes('recently sent')) return 'otp_recently_sent';
+
   return 'send_failed';
 }
 

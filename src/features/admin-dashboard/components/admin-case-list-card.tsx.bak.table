@@ -1,0 +1,73 @@
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
+import type { AdminOpsCaseRow } from '../types';
+
+function fmtDate(value: Date) {
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(new Date(value));
+}
+
+export default function AdminCaseListCard(props: {
+  title: string;
+  emptyText: string;
+  items: AdminOpsCaseRow[];
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className='text-base'>{props.title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {props.items.length === 0 ? (
+          <div className='text-muted-foreground text-sm'>{props.emptyText}</div>
+        ) : (
+          <div className='space-y-3'>
+            {props.items.map((item) => (
+              <div key={item.caseId} className='rounded-md border p-3 text-sm'>
+                <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+                  <span className='font-mono text-xs'>
+                    {item.caseNumber ?? item.caseId.slice(0, 8)}
+                  </span>
+                  <span className='text-muted-foreground text-xs'>
+                    Lead: {item.leadExternalId ?? '—'}
+                  </span>
+                  <span className='text-muted-foreground text-xs'>
+                    Updated: {fmtDate(item.updatedAt)}
+                  </span>
+                </div>
+
+                <div className='text-muted-foreground mt-2 space-y-1 text-xs'>
+                  <div>Gutachter: {item.gutachterStatus || '—'}</div>
+                  <div>Anwalt: {item.anwaltStatus || '—'}</div>
+                </div>
+
+                <div className='mt-2 flex gap-3'>
+                  <Link
+                    href={`/dashboard/cases/${item.caseId}`}
+                    className='text-xs underline underline-offset-4'
+                  >
+                    Admin-Fall öffnen
+                  </Link>
+                  <Link
+                    href={`/case/${item.token}`}
+                    target='_blank'
+                    className='text-xs underline underline-offset-4'
+                  >
+                    Kunden-Link
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

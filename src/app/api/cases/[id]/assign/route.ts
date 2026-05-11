@@ -6,6 +6,7 @@ import { NotificationType } from '@prisma/client';
 import { sendMail } from '@/lib/mailer';
 import { getPrimaryEmailForClerkUser } from '@/lib/clerk-email';
 import { requireAdmin } from '@/lib/rbac';
+import { logOperationalEvent } from '@/lib/ops-log';
 
 export const runtime = 'nodejs';
 
@@ -215,6 +216,23 @@ export async function POST(
     });
 
     if (created.kind === 'CREATED') {
+      await logOperationalEvent({
+        caseId,
+        domain: 'ASSIGNMENT',
+        action: 'ASSIGN',
+        result: 'SUCCESS',
+        actorType: 'ADMIN',
+        actorId: userId,
+        message: `Assignment created for role ${assignRole}`,
+        metadata: {
+          role: assignRole,
+          assigneeClerkUserId: assignee,
+          expiresInHours,
+          force,
+          assignmentId: created.assignment.id
+        }
+      });
+
       try {
         const toEmail = await getPrimaryEmailForClerkUser(assignee);
         if (toEmail) {
@@ -241,11 +259,31 @@ export async function POST(
           });
         }
       } catch (e) {
-        console.error('Email send failed (ASSIGNMENT_CREATED):', e);
+        console.warn(
+          'Email send failed (ASSIGNMENT_CREATED): SMTP unavailable'
+        );
       }
     }
 
     if (created.kind === 'ALREADY_ASSIGNED') {
+      await logOperationalEvent({
+        caseId,
+        domain: 'ASSIGNMENT',
+        action: 'ASSIGN',
+        result: 'ALREADY_DONE',
+        actorType: 'ADMIN',
+        actorId: userId,
+        message: `Assignment already active for role ${assignRole}`,
+        metadata: {
+          role: assignRole,
+          assigneeClerkUserId: assignee,
+          expiresInHours,
+          force,
+          activeAssignmentId: created.active.id,
+          activeStatus: created.active.status
+        }
+      });
+
       return NextResponse.json(
         {
           ok: false,
@@ -258,6 +296,19 @@ export async function POST(
 
     return NextResponse.json({ ok: true, assignment: created.assignment });
   } catch (e: any) {
+    await logOperationalEvent({
+      caseId: null,
+      domain: 'ASSIGNMENT',
+      action: 'ASSIGN',
+      result: 'FAILED',
+      actorType: 'ADMIN',
+      actorId: null,
+      message: 'Assignment creation failed',
+      metadata: {
+        error: String(e?.message ?? e)
+      }
+    });
+
     return NextResponse.json(
       { ok: false, error: String(e?.message ?? e) },
       { status: 500 }

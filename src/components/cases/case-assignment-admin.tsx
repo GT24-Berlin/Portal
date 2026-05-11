@@ -65,8 +65,9 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
     try {
       const res = await fetch(`/api/admin/users?limit=200`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok)
+      if (!res.ok) {
         throw new Error(data?.error || `Users fetch failed (${res.status})`);
+      }
       setUsers(data.users ?? []);
     } catch (e: any) {
       setError(e?.message ?? 'Fehler beim Laden der User');
@@ -81,10 +82,11 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
     try {
       const res = await fetch(`/api/cases/${props.caseId}/assignments`);
       const data = await res.json().catch(() => ({}));
-      if (!res.ok)
+      if (!res.ok) {
         throw new Error(
           data?.error || `Assignments fetch failed (${res.status})`
         );
+      }
       setAssignments(data);
     } catch (e: any) {
       setError(e?.message ?? 'Fehler beim Laden der Assignments');
@@ -132,6 +134,24 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
   const currentGutachter = assignments?.current?.GUTACHTER ?? null;
   const currentAnwalt = assignments?.current?.ANWALT ?? null;
 
+  const currentGutachterUser = currentGutachter
+    ? (users.find((u) => u.id === currentGutachter.assigneeClerkUserId) ?? null)
+    : null;
+
+  const currentAnwaltUser = currentAnwalt
+    ? (users.find((u) => u.id === currentAnwalt.assigneeClerkUserId) ?? null)
+    : null;
+
+  const getUserById = (id: string) => users.find((u) => u.id === id) ?? null;
+
+  const recentAssignments = [...(assignments?.assignments ?? [])].sort(
+    (a, b) =>
+      new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime()
+  );
+
+  const fmtDateTime = (value?: string | null) =>
+    value ? new Date(value).toLocaleString('de-DE') : '—';
+
   return (
     <div className='space-y-4 rounded-lg border p-4'>
       <div className='text-sm font-medium'>Case zuweisen (ADMIN)</div>
@@ -172,7 +192,6 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      {/* Gutachter */}
       <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
         <div>
           <div className='text-muted-foreground mb-1 text-xs'>
@@ -201,7 +220,6 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      {/* Anwalt */}
       <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
         <div>
           <div className='text-muted-foreground mb-1 text-xs'>
@@ -230,7 +248,6 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      {/* Preview */}
       <div className='space-y-2 rounded-md border p-3 text-sm'>
         <div className='font-medium'>Aktuelle Zuweisungen (Preview)</div>
 
@@ -241,16 +258,36 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
               <div className='text-muted-foreground'>lädt…</div>
             ) : currentGutachter ? (
               <div className='space-y-1'>
-                <div className='font-mono text-xs'>
-                  assignee: {currentGutachter.assigneeClerkUserId}
+                <div className='text-xs font-medium'>
+                  {currentGutachterUser?.name || 'Unbekannter User'}
                 </div>
+
+                <div className='text-muted-foreground text-xs'>
+                  {currentGutachterUser?.email || '—'}
+                </div>
+
+                <div className='text-muted-foreground text-xs'>
+                  id:{' '}
+                  <span className='font-mono'>
+                    {currentGutachter.assigneeClerkUserId}
+                  </span>
+                </div>
+
                 <div className='text-xs'>
                   status:{' '}
                   <span className='font-mono'>{currentGutachter.status}</span>
                 </div>
+
                 <div className='text-xs'>
-                  expires:{' '}
-                  {new Date(currentGutachter.expiresAt).toLocaleString('de-DE')}
+                  expires: {fmtDateTime(currentGutachter.expiresAt)}
+                </div>
+
+                <div className='text-xs'>
+                  accepted: {fmtDateTime(currentGutachter.acceptedAt)}
+                </div>
+
+                <div className='text-xs'>
+                  released: {fmtDateTime(currentGutachter.releasedAt)}
                 </div>
               </div>
             ) : (
@@ -264,16 +301,36 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
               <div className='text-muted-foreground'>lädt…</div>
             ) : currentAnwalt ? (
               <div className='space-y-1'>
-                <div className='font-mono text-xs'>
-                  assignee: {currentAnwalt.assigneeClerkUserId}
+                <div className='text-xs font-medium'>
+                  {currentAnwaltUser?.name || 'Unbekannter User'}
                 </div>
+
+                <div className='text-muted-foreground text-xs'>
+                  {currentAnwaltUser?.email || '—'}
+                </div>
+
+                <div className='text-muted-foreground text-xs'>
+                  id:{' '}
+                  <span className='font-mono'>
+                    {currentAnwalt.assigneeClerkUserId}
+                  </span>
+                </div>
+
                 <div className='text-xs'>
                   status:{' '}
                   <span className='font-mono'>{currentAnwalt.status}</span>
                 </div>
+
                 <div className='text-xs'>
-                  expires:{' '}
-                  {new Date(currentAnwalt.expiresAt).toLocaleString('de-DE')}
+                  expires: {fmtDateTime(currentAnwalt.expiresAt)}
+                </div>
+
+                <div className='text-xs'>
+                  accepted: {fmtDateTime(currentAnwalt.acceptedAt)}
+                </div>
+
+                <div className='text-xs'>
+                  released: {fmtDateTime(currentAnwalt.releasedAt)}
                 </div>
               </div>
             ) : (
@@ -281,6 +338,53 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
             )}
           </div>
         </div>
+      </div>
+
+      <div className='space-y-2 rounded-md border p-3 text-sm'>
+        <div className='font-medium'>Letzte Zuweisungen</div>
+        <div className='text-muted-foreground text-xs'>
+          Verlauf der letzten Assignment-Einträge dieses Falls
+        </div>
+
+        {loadingAssignments ? (
+          <div className='text-muted-foreground text-sm'>lädt…</div>
+        ) : recentAssignments.length === 0 ? (
+          <div className='text-muted-foreground text-sm'>
+            Noch keine Assignment-Historie.
+          </div>
+        ) : (
+          <div className='space-y-2'>
+            {recentAssignments.map((a) => {
+              const user = getUserById(a.assigneeClerkUserId);
+
+              return (
+                <div key={a.id} className='rounded-md border p-3'>
+                  <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
+                    <span className='font-mono text-xs'>{a.role}</span>
+                    <span className='font-mono text-xs'>{a.status}</span>
+                    <span className='text-muted-foreground text-xs'>
+                      {user?.name || 'Unbekannter User'}
+                    </span>
+                    <span className='text-muted-foreground text-xs'>
+                      {user?.email || '—'}
+                    </span>
+                  </div>
+
+                  <div className='text-muted-foreground mt-2 space-y-1 text-xs'>
+                    <div>
+                      id:{' '}
+                      <span className='font-mono'>{a.assigneeClerkUserId}</span>
+                    </div>
+                    <div>assigned: {fmtDateTime(a.assignedAt)}</div>
+                    <div>expires: {fmtDateTime(a.expiresAt)}</div>
+                    <div>accepted: {fmtDateTime(a.acceptedAt)}</div>
+                    <div>released: {fmtDateTime(a.releasedAt)}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {loadingUsers || loadingAssignments ? (

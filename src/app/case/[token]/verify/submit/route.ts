@@ -90,9 +90,16 @@ export async function POST(
 
       invalid_code: 'invalid_code',
       'invalid code': 'invalid_code',
+      'invalid otp': 'invalid_code',
 
       invalid_code_format: 'code_invalid_format',
-      'invalid code format': 'code_invalid_format'
+      'invalid code format': 'code_invalid_format',
+
+      otp_recently_sent: 'otp_recently_sent',
+      'otp recently sent': 'otp_recently_sent',
+
+      not_verified: 'not_verified',
+      'not verified': 'not_verified'
     };
 
     let key = 'verify_failed';

@@ -47,7 +47,10 @@ export async function GET() {
       where: {
         assigneeClerkUserId: userId,
         role: role as any,
-        active: true
+        activeKey: 'ACTIVE',
+        status: {
+          in: ['PENDING', 'ACCEPTED'] as any
+        }
       },
       orderBy: { assignedAt: 'desc' },
       include: {
@@ -57,7 +60,7 @@ export async function GET() {
             partner: true,
             events: {
               orderBy: { occurredAt: 'desc' },
-              take: 1 // Preview: letztes Event
+              take: 1
             }
           }
         }

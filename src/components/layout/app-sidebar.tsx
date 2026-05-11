@@ -225,11 +225,20 @@ export default function AppSidebar() {
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={() => router.push('/dashboard/profile')}
+                    onClick={() =>
+                      router.push(
+                        user?.publicMetadata?.role === 'ADMIN'
+                          ? '/dashboard/profile'
+                          : '/dashboard/partner-profile'
+                      )
+                    }
                   >
                     <IconUserCircle className='mr-2 h-4 w-4' />
-                    Profile
+                    {user?.publicMetadata?.role === 'ADMIN'
+                      ? 'Profile'
+                      : 'Partnerprofil'}
                   </DropdownMenuItem>
+
                   {organization && (
                     <DropdownMenuItem
                       onClick={() => router.push('/dashboard/billing')}

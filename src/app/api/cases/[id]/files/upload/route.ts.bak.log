@@ -1,0 +1,252 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
+import { putStoredFile } from "@/lib/storage";
+import {
+  CaseFileUploaderType,
+  CaseFileVisibility,
+  CaseFileCategory,
+  CaseLane
+} from '@prisma/client';
+
+export const runtime = 'nodejs';
+
+function clean(v: FormDataEntryValue | null) {
+  return String(v ?? '').trim();
+}
+
+function asVisibility(v: FormDataEntryValue | null): CaseFileVisibility {
+  const s = String(v ?? '')
+    .trim()
+    .toUpperCase();
+
+  // Nur Kunde
+  if (['CUSTOMER', 'NUR_KUNDE', 'NUR KUNDE'].includes(s)) {
+    return CaseFileVisibility.CUSTOMER;
+  }
+
+  // Nur Partner
+  if (
+    [
+      'PARTNERS',
+      'PARTNER',
+      'ONLY_PARTNERS',
+      'NUR_PARTNER',
+      'NUR PARTNER'
+    ].includes(s)
+  ) {
+    return CaseFileVisibility.PARTNERS;
+  }
+
+  // Default (und explizit erlaubt)
+  return CaseFileVisibility.CUSTOMER_AND_PARTNERS;
+}
+function asCategory(v: string): CaseFileCategory {
+  const s = (v || '').toUpperCase().trim();
+
+  // UI-Shortcuts / Legacy-Labels → Enum
+  const map: Record<string, CaseFileCategory> = {
+    REPORT: CaseFileCategory.LAW_DOCS,
+    PHOTO: CaseFileCategory.CUSTOMER_PHOTOS,
+    REGISTRATION_DOC: CaseFileCategory.REGISTRATION_DOCS,
+    INSURANCE_DOC: CaseFileCategory.INSURANCE_DOCS
+  };
+  if (map[s]) return map[s];
+
+  // falls Enum später wächst, bleibt es safe
+  return (Object.values(CaseFileCategory) as string[]).includes(s)
+    ? (s as any)
+    : CaseFileCategory.OTHER;
+}
+
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const guard = await requireRole();
+    if (!guard.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
+        },
+        { status: guard.status }
+      );
+    }
+
+    const { id: caseId } = await params;
+    if (!caseId) {
+      return NextResponse.json(
+        { ok: false, error: 'Missing case id' },
+        { status: 400 }
+      );
+    }
+
+    const role = guard.role;
+    const userId = guard.userId!;
+
+    // Partner dürfen nur, wenn ACCEPTED + active Assignment existiert
+    if (isPartner(role) && !isAdmin(role)) {
+      const a = await prisma.caseAssignment.findFirst({
+        where: {
+          caseId,
+          assigneeClerkUserId: userId,
+          role: role as any,
+          active: true,
+          status: 'ACCEPTED' as any
+        },
+        select: { id: true }
+      });
+
+      if (!a) {
+        return NextResponse.json(
+          { ok: false, error: 'Forbidden' },
+          { status: 403 }
+        );
+      }
+    }
+
+    const form = await req.formData();
+    const file = form.get('file');
+
+    if (!(file instanceof File)) {
+      return NextResponse.json(
+        { ok: false, error: 'file required' },
+        { status: 400 }
+      );
+    }
+
+    const title = clean(form.get('title')) || clean(form.get('label')) || null;
+    const visibility = asVisibility(form.get('visibility'));
+    const category = asCategory(clean(form.get('category')));
+
+    // Case exist check (optional, aber sauber)
+    const c = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { id: true }
+    });
+    if (!c)
+      return NextResponse.json(
+        { ok: false, error: 'case not found' },
+        { status: 404 }
+      );
+
+    // role in CaseFile = Lane (GUTACHTER/ANWALT) wenn Partner; Admin kann null lassen
+    const lane: CaseLane | null =
+      role === 'GUTACHTER'
+        ? CaseLane.GUTACHTER
+        : role === 'ANWALT'
+          ? CaseLane.ANWALT
+          : null;
+    const folder = lane
+      ? `cases/${c.id}/partners/${String(lane).toLowerCase()}`
+      : `cases/${c.id}/partners/admin`;
+
+    const saved = await putStoredFile({
+      file,
+      folder
+    });
+
+    const row = await prisma.caseFile.create({
+      data: {
+        caseId: c.id,
+
+        uploaderType: isAdmin(role)
+          ? CaseFileUploaderType.ADMIN
+          : CaseFileUploaderType.PARTNER,
+        uploaderId: userId,
+        role: lane,
+
+        visibility,
+        category,
+
+        title,
+
+        filename: file.name || saved.originalFilename,
+        mimeType: saved.mimeType ?? null,
+        size: saved.size ?? null,
+
+        storageKey: saved.storageKey
+      } as any,
+      select: {
+        id: true,
+        caseId: true,
+        uploaderType: true,
+        uploaderId: true,
+        role: true,
+        visibility: true,
+        category: true,
+        title: true,
+        filename: true,
+        mimeType: true,
+        size: true,
+        storageKey: true,
+        createdAt: true
+      } as any
+    });
+
+    //Customer Email Notification (nur wenn Datei für Kunde sichtbar ist)
+    try {
+      const isVisibleToCustomer =
+        row.visibility === CaseFileVisibility.CUSTOMER ||
+        row.visibility === CaseFileVisibility.CUSTOMER_AND_PARTNERS;
+
+      if (isVisibleToCustomer) {
+        const caseWithCustomer = await prisma.case.findUnique({
+          where: { id: caseId },
+          select: {
+            token: true,
+            caseNumber: true,
+            customer: { select: { email: true, firstName: true } }
+          }
+        });
+
+        const toEmail = caseWithCustomer?.customer?.email;
+        const token = caseWithCustomer?.token;
+
+        console.log('[MAIL][to-customer] file uploaded:', {
+          caseId,
+          token,
+          toEmail,
+          visibility: row.visibility,
+          title: row.title ?? row.filename
+        });
+
+        if (toEmail && token) {
+          const appUrl =
+            process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+          const docsUrl = `${appUrl}/case/${token}/documents`;
+
+          const label = caseWithCustomer.caseNumber ?? caseId.slice(0, 8);
+
+          // Mail senden (best effort)
+          const { sendMail } = await import('@/lib/mailer');
+
+          await sendMail({
+            to: toEmail,
+            subject: `Gutachtery24 – Neue Dokumente zu Fall ${label}`,
+            text:
+              `Es wurden neue Dokumente zu deinem Fall ${label} hochgeladen.\n\n` +
+              `Dokument: ${row.title ?? row.filename}\n` +
+              `Link: ${docsUrl}\n`,
+            html: `
+              <p>Es wurden neue Dokumente zu deinem Fall <b>${label}</b> hochgeladen.</p>
+              <p><b>Dokument:</b> ${row.title ?? row.filename}</p>
+              <p><a href="${docsUrl}">Meine Dokumente öffnen</a></p>
+            `
+          });
+        }
+      }
+    } catch (e) {
+      console.error('Customer document notification email failed:', e);
+    }
+
+    return NextResponse.json({ ok: true, file: row });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: String(e?.message ?? e) },
+      { status: 500 }
+    );
+  }
+}

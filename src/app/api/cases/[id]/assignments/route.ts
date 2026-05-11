@@ -80,6 +80,7 @@ export async function GET(
         role: true,
         status: true,
         active: true,
+        activeKey: true,
         assignedAt: true,
         expiresAt: true,
         acceptedAt: true,
@@ -91,8 +92,12 @@ export async function GET(
 
     // Optional: Convenience-Summary je Rolle (aktuelles active Assignment)
     const current = {
-      GUTACHTER: rows.find((r) => r.role === 'GUTACHTER' && r.active) ?? null,
-      ANWALT: rows.find((r) => r.role === 'ANWALT' && r.active) ?? null
+      GUTACHTER:
+        rows.find((r) => r.role === 'GUTACHTER' && r.activeKey === 'ACTIVE') ??
+        null,
+      ANWALT:
+        rows.find((r) => r.role === 'ANWALT' && r.activeKey === 'ACTIVE') ??
+        null
     };
 
     return NextResponse.json({ ok: true, current, assignments: rows });

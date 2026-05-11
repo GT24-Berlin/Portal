@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
-import { writeUploadFile } from '@/lib/uploads';
+import { putStoredFile } from '@/lib/storage';
+import { logOperationalEvent } from '@/lib/ops-log';
 import {
   CaseFileUploaderType,
   CaseFileVisibility,
@@ -20,12 +21,10 @@ function asVisibility(v: FormDataEntryValue | null): CaseFileVisibility {
     .trim()
     .toUpperCase();
 
-  // Nur Kunde
   if (['CUSTOMER', 'NUR_KUNDE', 'NUR KUNDE'].includes(s)) {
     return CaseFileVisibility.CUSTOMER;
   }
 
-  // Nur Partner
   if (
     [
       'PARTNERS',
@@ -38,22 +37,21 @@ function asVisibility(v: FormDataEntryValue | null): CaseFileVisibility {
     return CaseFileVisibility.PARTNERS;
   }
 
-  // Default (und explizit erlaubt)
   return CaseFileVisibility.CUSTOMER_AND_PARTNERS;
 }
+
 function asCategory(v: string): CaseFileCategory {
   const s = (v || '').toUpperCase().trim();
 
-  // UI-Shortcuts / Legacy-Labels → Enum
   const map: Record<string, CaseFileCategory> = {
     REPORT: CaseFileCategory.LAW_DOCS,
     PHOTO: CaseFileCategory.CUSTOMER_PHOTOS,
     REGISTRATION_DOC: CaseFileCategory.REGISTRATION_DOCS,
     INSURANCE_DOC: CaseFileCategory.INSURANCE_DOCS
   };
+
   if (map[s]) return map[s];
 
-  // falls Enum später wächst, bleibt es safe
   return (Object.values(CaseFileCategory) as string[]).includes(s)
     ? (s as any)
     : CaseFileCategory.OTHER;
@@ -65,7 +63,24 @@ export async function POST(
 ) {
   try {
     const guard = await requireRole();
+
     if (!guard.ok) {
+      await logOperationalEvent({
+        caseId: null,
+        domain: 'FILE',
+        action: 'UPLOAD',
+        result: 'DENIED',
+        actorType: 'SYSTEM',
+        actorId: null,
+        message:
+          guard.status === 401
+            ? 'Partner/Admin upload denied: unauthorized'
+            : 'Partner/Admin upload denied: forbidden',
+        metadata: {
+          status: guard.status
+        }
+      });
+
       return NextResponse.json(
         {
           ok: false,
@@ -77,6 +92,17 @@ export async function POST(
 
     const { id: caseId } = await params;
     if (!caseId) {
+      await logOperationalEvent({
+        caseId: null,
+        domain: 'FILE',
+        action: 'UPLOAD',
+        result: 'DENIED',
+        actorType: isAdmin(guard.role) ? 'ADMIN' : 'PARTNER',
+        actorId: guard.userId ?? null,
+        message: 'Partner/Admin upload denied: missing case id',
+        metadata: {}
+      });
+
       return NextResponse.json(
         { ok: false, error: 'Missing case id' },
         { status: 400 }
@@ -86,20 +112,32 @@ export async function POST(
     const role = guard.role;
     const userId = guard.userId!;
 
-    // Partner dürfen nur, wenn ACCEPTED + active Assignment existiert
     if (isPartner(role) && !isAdmin(role)) {
       const a = await prisma.caseAssignment.findFirst({
         where: {
           caseId,
           assigneeClerkUserId: userId,
           role: role as any,
-          active: true,
+          activeKey: 'ACTIVE',
           status: 'ACCEPTED' as any
         },
         select: { id: true }
       });
 
       if (!a) {
+        await logOperationalEvent({
+          caseId,
+          domain: 'FILE',
+          action: 'UPLOAD',
+          result: 'DENIED',
+          actorType: 'PARTNER',
+          actorId: userId,
+          message: 'Partner upload denied: no accepted active assignment',
+          metadata: {
+            role
+          }
+        });
+
         return NextResponse.json(
           { ok: false, error: 'Forbidden' },
           { status: 403 }
@@ -111,6 +149,19 @@ export async function POST(
     const file = form.get('file');
 
     if (!(file instanceof File)) {
+      await logOperationalEvent({
+        caseId,
+        domain: 'FILE',
+        action: 'UPLOAD',
+        result: 'DENIED',
+        actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
+        actorId: userId,
+        message: 'Partner/Admin upload denied: file missing',
+        metadata: {
+          role
+        }
+      });
+
       return NextResponse.json(
         { ok: false, error: 'file required' },
         { status: 400 }
@@ -121,22 +172,31 @@ export async function POST(
     const visibility = asVisibility(form.get('visibility'));
     const category = asCategory(clean(form.get('category')));
 
-    // Case exist check (optional, aber sauber)
     const c = await prisma.case.findUnique({
       where: { id: caseId },
       select: { id: true }
     });
-    if (!c)
+
+    if (!c) {
+      await logOperationalEvent({
+        caseId,
+        domain: 'FILE',
+        action: 'UPLOAD',
+        result: 'DENIED',
+        actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
+        actorId: userId,
+        message: 'Partner/Admin upload denied: case not found',
+        metadata: {
+          role
+        }
+      });
+
       return NextResponse.json(
         { ok: false, error: 'case not found' },
         { status: 404 }
       );
+    }
 
-    const buf = Buffer.from(await file.arrayBuffer());
-
-    const saved = await writeUploadFile(buf, file.name);
-
-    // role in CaseFile = Lane (GUTACHTER/ANWALT) wenn Partner; Admin kann null lassen
     const lane: CaseLane | null =
       role === 'GUTACHTER'
         ? CaseLane.GUTACHTER
@@ -144,25 +204,29 @@ export async function POST(
           ? CaseLane.ANWALT
           : null;
 
+    const folder = lane
+      ? `cases/${c.id}/partners/${String(lane).toLowerCase()}`
+      : `cases/${c.id}/partners/admin`;
+
+    const saved = await putStoredFile({
+      file,
+      folder
+    });
+
     const row = await prisma.caseFile.create({
       data: {
         caseId: c.id,
-
         uploaderType: isAdmin(role)
           ? CaseFileUploaderType.ADMIN
           : CaseFileUploaderType.PARTNER,
         uploaderId: userId,
         role: lane,
-
         visibility,
         category,
-
         title,
-
-        filename: saved.filename,
+        filename: file.name || saved.originalFilename,
         mimeType: saved.mimeType ?? null,
         size: saved.size ?? null,
-
         storageKey: saved.storageKey
       } as any,
       select: {
@@ -182,11 +246,33 @@ export async function POST(
       } as any
     });
 
-    //Customer Email Notification (nur wenn Datei für Kunde sichtbar ist)
+    await logOperationalEvent({
+      caseId: c.id,
+      domain: 'FILE',
+      action: 'UPLOAD',
+      result: 'SUCCESS',
+      actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
+      actorId: userId,
+      message: 'Partner/Admin file upload successful',
+      metadata: {
+        role,
+        lane,
+        fileId: row.id,
+        filename: row.filename,
+        title: row.title,
+        mimeType: row.mimeType,
+        size: row.size,
+        visibility: row.visibility,
+        category: row.category,
+        storageKey: row.storageKey
+      }
+    });
+
     try {
+      const visibilityValue = String(row.visibility ?? '');
       const isVisibleToCustomer =
-        row.visibility === CaseFileVisibility.CUSTOMER ||
-        row.visibility === CaseFileVisibility.CUSTOMER_AND_PARTNERS;
+        visibilityValue === CaseFileVisibility.CUSTOMER ||
+        visibilityValue === CaseFileVisibility.CUSTOMER_AND_PARTNERS;
 
       if (isVisibleToCustomer) {
         const caseWithCustomer = await prisma.case.findUnique({
@@ -213,10 +299,8 @@ export async function POST(
           const appUrl =
             process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
           const docsUrl = `${appUrl}/case/${token}/documents`;
-
           const label = caseWithCustomer.caseNumber ?? caseId.slice(0, 8);
 
-          // Mail senden (best effort)
           const { sendMail } = await import('@/lib/mailer');
 
           await sendMail({
@@ -235,11 +319,26 @@ export async function POST(
         }
       }
     } catch (e) {
-      console.error('Customer document notification email failed:', e);
+      console.warn(
+        'Customer document notification email failed: SMTP unavailable'
+      );
     }
 
     return NextResponse.json({ ok: true, file: row });
   } catch (e: any) {
+    await logOperationalEvent({
+      caseId: null,
+      domain: 'FILE',
+      action: 'UPLOAD',
+      result: 'FAILED',
+      actorType: 'SYSTEM',
+      actorId: null,
+      message: 'Partner/Admin file upload failed',
+      metadata: {
+        error: String(e?.message ?? e)
+      }
+    });
+
     return NextResponse.json(
       { ok: false, error: String(e?.message ?? e) },
       { status: 500 }

@@ -22,6 +22,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
   // Header filter (Status)
   const [gutachterFilter, setGutachterFilter] = useState<string>('ALL');
   const [anwaltFilter, setAnwaltFilter] = useState<string>('ALL');
+  const [opsFilter, setOpsFilter] = useState<string>('ALL');
 
   // Users
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -153,12 +154,34 @@ export default function AdminCasesTable(props: { cases: any[] }) {
         gutachterFilter === 'ALL'
           ? true
           : (g?.status ?? '') === gutachterFilter;
+
       const aOk =
         anwaltFilter === 'ALL' ? true : (a?.status ?? '') === anwaltFilter;
 
-      return gOk && aOk;
+      const hasProblem =
+        assignments.some(
+          (x: any) => x.status === 'EXPIRED' || x.status === 'RELEASED'
+        ) ?? false;
+
+      const hasPending =
+        assignments.some((x: any) => x.status === 'PENDING') ?? false;
+
+      const opsOk =
+        opsFilter === 'ALL'
+          ? true
+          : opsFilter === 'NO_GUTACHTER'
+            ? !g
+            : opsFilter === 'NO_ANWALT'
+              ? !a
+              : opsFilter === 'PENDING'
+                ? hasPending
+                : opsFilter === 'PROBLEM'
+                  ? hasProblem
+                  : true;
+
+      return gOk && aOk && opsOk;
     });
-  }, [props.cases, gutachterFilter, anwaltFilter]);
+  }, [props.cases, gutachterFilter, anwaltFilter, opsFilter]);
 
   async function assign(caseId: string, role: 'GUTACHTER' | 'ANWALT') {
     setError(null);
@@ -230,6 +253,18 @@ export default function AdminCasesTable(props: { cases: any[] }) {
             onChangeGutachter={setGutachterFilter}
             onChangeAnwalt={setAnwaltFilter}
           />
+          <select
+            className='bg-background w-full rounded-md border px-2 py-1 text-xs'
+            value={opsFilter}
+            onChange={(e) => setOpsFilter(e.target.value)}
+            title='Operativer Schnellfilter'
+          >
+            <option value='ALL'>Ops: Alle</option>
+            <option value='NO_GUTACHTER'>Ops: ohne Gutachter</option>
+            <option value='NO_ANWALT'>Ops: ohne Anwalt</option>
+            <option value='PENDING'>Ops: mit PENDING</option>
+            <option value='PROBLEM'>Ops: EXPIRED/RELEASED</option>
+          </select>
         </div>
 
         <div>Updated</div>

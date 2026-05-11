@@ -6,6 +6,10 @@ import { cookies } from 'next/headers';
 import CaseOtpCookieRefresh from '@/components/case/case-otp-cookie-refresh';
 import CaseTopNav from '@/components/case/case-top-nav';
 import CaseCustomerUploadsMini from '@/components/case/case-customer-uploads-mini';
+import DatabaseUnavailableState from '@/components/system/database-unavailable';
+import { isDatabaseUnavailableError } from '@/lib/database-error';
+import CustomerJourneyCard from '@/features/customer-journey/components/customer-journey-card';
+import { getCustomerJourney } from '@/features/customer-journey/lib/get-customer-journey';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -100,191 +104,214 @@ export default async function CaseTokenPage({
 }: {
   params: Promise<{ token: string }>;
 }) {
-  //  Next 16: params ist Promise → MUSS awaited werden
-  const { token } = await params;
+  try {
+    //  Next 16: params ist Promise → MUSS awaited werden
+    const { token } = await params;
 
-  if (!token) notFound();
+    if (!token) notFound();
 
-  const found = await prisma.case.findUnique({
-    where: { token },
-    include: {
-      customer: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          otpVerifiedAt: true
+    const found = await prisma.case.findUnique({
+      where: { token },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            otpVerifiedAt: true
+          }
+        },
+        intake: true,
+        events: {
+          orderBy: { occurredAt: 'asc' }
         }
-      },
-      intake: true,
-      events: {
-        orderBy: { occurredAt: 'asc' }
       }
+    });
+
+    if (!found) notFound();
+
+    // 1) Registrierung-Gate
+    if (!found.customer) {
+      redirect(`/case/${token}/register`);
     }
-  });
 
-  if (!found) notFound();
+    // 2) OTP-Gate: wenn noch NICHT verified -> verify page
+    if (!found.customer.otpVerifiedAt) {
+      redirect(`/case/${token}/verify`);
+    }
 
-  // 1) Registrierung-Gate
-  if (!found.customer) {
-    redirect(`/case/${token}/register`);
-  }
+    // 3) OPTIONAL: Cookie-Gate nur als Zusatzschutz (nicht mehr Pflicht)
+    const jar = await cookies();
+    const hasAccess = jar.get(`case_access_${token}`)?.value === '1';
 
-  // 2) OTP-Gate: wenn noch NICHT verified -> verify page
-  if (!found.customer.otpVerifiedAt) {
-    redirect(`/case/${token}/verify`);
-  }
+    // Wenn verified aber Cookie fehlt -> NICHT mehr blocken (kein Redirect!)
 
-  // 3) OPTIONAL: Cookie-Gate nur als Zusatzschutz (nicht mehr Pflicht)
-  const jar = await cookies();
-  const hasAccess = jar.get(`case_access_${token}`)?.value === '1';
+    const events = (found.events ?? []).map((e) => ({
+      lane: e.lane as 'GUTACHTER' | 'ANWALT',
+      status: e.status,
+      occurredAt: e.occurredAt
+    }));
 
-  // Wenn verified aber Cookie fehlt -> NICHT mehr blocken (kein Redirect!)
+    const gutachterTimeline = buildTimeline(
+      GUTACHTER_FLOW,
+      found.gutachterStatus,
+      events,
+      'GUTACHTER'
+    );
 
-  const events = (found.events ?? []).map((e) => ({
-    lane: e.lane as 'GUTACHTER' | 'ANWALT',
-    status: e.status,
-    occurredAt: e.occurredAt
-  }));
+    const anwaltTimeline = buildTimeline(
+      ANWALT_FLOW,
+      found.anwaltStatus,
+      events,
+      'ANWALT'
+    );
 
-  const gutachterTimeline = buildTimeline(
-    GUTACHTER_FLOW,
-    found.gutachterStatus,
-    events,
-    'GUTACHTER'
-  );
+    const lastEvent = found.events?.length
+      ? found.events[found.events.length - 1]
+      : null;
 
-  const anwaltTimeline = buildTimeline(
-    ANWALT_FLOW,
-    found.anwaltStatus,
-    events,
-    'ANWALT'
-  );
+    const journey = getCustomerJourney({
+      gutachterStatus: String(found.gutachterStatus),
+      anwaltStatus: String(found.anwaltStatus)
+    });
 
-  const lastEvent = found.events?.length
-    ? found.events[found.events.length - 1]
-    : null;
-
-  return (
-    <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
-      <div className='mx-auto max-w-5xl space-y-6 px-4 py-10 pb-24'>
-        <div className='flex items-start justify-between gap-4'>
-          <CaseTopNav
-            token={token}
-            active='status'
-            title='Dein Fallstatus'
-            subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
-            showEdit
-          />
-        </div>
-
-        <div className='bg-card flex flex-col gap-2 rounded-xl border px-5 py-5 md:flex-row md:items-center md:justify-between'>
-          <div>
-            <p className='text-muted-foreground text-sm'>Letztes Update</p>
-            <p className='font-medium'>
-              {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
-            </p>
+    return (
+      <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
+        <div className='mx-auto max-w-5xl space-y-6 px-4 py-10 pb-24'>
+          <div className='flex items-start justify-between gap-4'>
+            <CaseTopNav
+              token={token}
+              active='status'
+              title='Dein Fallstatus'
+              subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
+              showEdit
+            />
           </div>
-          <div className='text-muted-foreground text-sm'>
-            Gutachter:{' '}
-            <span className='text-foreground'>
-              {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
-                ?.label ?? found.gutachterStatus}
-            </span>
-            {' · '}
-            Anwalt:{' '}
-            <span className='text-foreground'>
-              {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)?.label ??
-                found.anwaltStatus}
-            </span>
-          </div>
-        </div>
 
-        <div className='grid gap-4 md:grid-cols-2'>
-          <div className='bg-card rounded-xl border px-5 py-6'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-muted-foreground text-sm'>Track</p>
-                <h2 className='text-xl font-semibold'>Gutachter</h2>
-                <p className='text-muted-foreground text-sm'>
-                  Status:{' '}
-                  <span className='text-foreground font-medium'>
-                    {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
-                      ?.label ?? found.gutachterStatus}
-                  </span>
-                </p>
+          <CustomerJourneyCard data={journey} />
+
+          <div className='bg-card flex flex-col gap-2 rounded-xl border px-5 py-5 md:flex-row md:items-center md:justify-between'>
+            <div>
+              <p className='text-muted-foreground text-sm'>Letztes Update</p>
+              <p className='font-medium'>
+                {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
+              </p>
+            </div>
+            <div className='text-muted-foreground text-sm'>
+              Gutachter:{' '}
+              <span className='text-foreground'>
+                {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
+                  ?.label ?? found.gutachterStatus}
+              </span>
+              {' · '}
+              Anwalt:{' '}
+              <span className='text-foreground'>
+                {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)?.label ??
+                  found.anwaltStatus}
+              </span>
+            </div>
+          </div>
+
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div className='bg-card rounded-xl border px-5 py-6'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-muted-foreground text-sm'>Track</p>
+                  <h2 className='text-xl font-semibold'>Gutachter</h2>
+                  <p className='text-muted-foreground text-sm'>
+                    Status:{' '}
+                    <span className='text-foreground font-medium'>
+                      {GUTACHTER_FLOW.find(
+                        (x) => x.key === found.gutachterStatus
+                      )?.label ?? found.gutachterStatus}
+                    </span>
+                  </p>
+                </div>
+                <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
               </div>
-              <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
-            </div>
-            <div className='mt-5'>
-              <Timeline steps={gutachterTimeline} />
-            </div>
-
-            {found.gutachtenPdfUrl ? (
               <div className='mt-5'>
-                <a
-                  className='hover:bg-muted inline-flex items-center rounded-lg border px-4 py-2 text-sm'
-                  href={found.gutachtenPdfUrl}
-                  target='_blank'
-                  rel='noreferrer'
-                >
-                  Gutachten PDF öffnen
-                </a>
+                <Timeline steps={gutachterTimeline} />
               </div>
-            ) : null}
+
+              {found.gutachtenPdfUrl ? (
+                <div className='mt-5'>
+                  <a
+                    className='hover:bg-muted inline-flex items-center rounded-lg border px-4 py-2 text-sm'
+                    href={found.gutachtenPdfUrl}
+                    target='_blank'
+                    rel='noreferrer'
+                  >
+                    Gutachten PDF öffnen
+                  </a>
+                </div>
+              ) : null}
+            </div>
+
+            <div className='bg-card rounded-xl border p-5'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-muted-foreground text-sm'>Track</p>
+                  <h2 className='text-xl font-semibold'>Anwalt</h2>
+                  <p className='text-muted-foreground text-sm'>
+                    Status:{' '}
+                    <span className='text-foreground font-medium'>
+                      {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
+                        ?.label ?? found.anwaltStatus}
+                    </span>
+                  </p>
+                </div>
+                <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
+              </div>
+              <div className='mt-5'>
+                <Timeline steps={anwaltTimeline} />
+              </div>
+            </div>
           </div>
 
-          <div className='bg-card rounded-xl border p-5'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-muted-foreground text-sm'>Track</p>
-                <h2 className='text-xl font-semibold'>Anwalt</h2>
-                <p className='text-muted-foreground text-sm'>
-                  Status:{' '}
-                  <span className='text-foreground font-medium'>
-                    {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
-                      ?.label ?? found.anwaltStatus}
-                  </span>
-                </p>
-              </div>
-              <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
-            </div>
-            <div className='mt-5'>
-              <Timeline steps={anwaltTimeline} />
+          <CaseIntakeForm token={token} />
+
+          <CaseCustomerUploadsMini token={token} />
+
+          <div className='bg-card space-y-3 rounded-xl border p-5'>
+            <h3 className='text-lg font-semibold'>Fragen?</h3>
+            <p className='text-muted-foreground text-sm'>
+              Antworte einfach auf die Nachricht mit deinem Link oder
+              kontaktiere uns.
+            </p>
+            <div className='flex flex-wrap gap-2'>
+              <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
+                Anrufen
+              </button>
+              <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
+                WhatsApp (später)
+              </button>
+              <Link
+                className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'
+                href='/dashboard/overview'
+              >
+                Partner-Portal
+              </Link>
             </div>
           </div>
-        </div>
 
-        <CaseIntakeForm token={token} />
-
-        <CaseCustomerUploadsMini token={token} />
-
-        <div className='bg-card space-y-3 rounded-xl border p-5'>
-          <h3 className='text-lg font-semibold'>Fragen?</h3>
-          <p className='text-muted-foreground text-sm'>
-            Antworte einfach auf die Nachricht mit deinem Link oder kontaktiere
-            uns.
+          <p className='text-muted-foreground text-xs'>
+            Hinweis: MVP-Demo — Änderungen werden noch nicht gespeichert.
           </p>
-          <div className='flex flex-wrap gap-2'>
-            <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-              Anrufen
-            </button>
-            <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-              WhatsApp (später)
-            </button>
-            <Link
-              className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'
-              href='/dashboard/overview'
-            >
-              Partner-Portal
-            </Link>
-          </div>
         </div>
-
-        <p className='text-muted-foreground text-xs'>
-          Hinweis: MVP-Demo — Änderungen werden noch nicht gespeichert.
-        </p>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      return (
+        <DatabaseUnavailableState
+          title='Fallstatus temporär nicht verfügbar'
+          description='Die Fallansicht konnte gerade nicht geladen werden, weil die Datenbankverbindung aktuell nicht erreichbar ist.'
+          retryHref='/dashboard/overview'
+          retryLabel='Zum Dashboard'
+        />
+      );
+    }
+
+    throw error;
+  }
 }

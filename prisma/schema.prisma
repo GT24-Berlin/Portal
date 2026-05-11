@@ -145,6 +145,27 @@ model Notification {
   @@index([userId, readAt, createdAt])
   @@index([caseId])
 }
+model OperationalEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  caseId String?
+  case   Case? @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  domain String
+  action String
+  result String
+
+  actorType String?
+  actorId   String?
+
+  message  String?
+  metadata Json?
+
+  @@index([caseId, createdAt])
+  @@index([domain, action, createdAt])
+  @@index([result, createdAt])
+}
 
 model CaseFile {
   id        String   @id @default(cuid())
@@ -170,18 +191,61 @@ model CaseFile {
   // Verweis in Storage (Supabase Storage / S3 / lokal)
   storageKey String @db.Text
 
+  parsedText String? @db.Text
+
   // Optional: original URL cache (nicht zwingend)
   // url String? @db.Text
+
+  gutachtenInsights CaseGutachtenInsight[]
 
   @@index([caseId, createdAt])
   @@index([uploaderType, createdAt])
   @@index([visibility, category])
 }
 
+model CaseGutachtenInsight {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caseId String @unique
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  sourceCaseFileId String?
+  sourceCaseFile   CaseFile? @relation(fields: [sourceCaseFileId], references: [id], onDelete: SetNull)
+
+  status String @default("NOT_AVAILABLE")
+
+  summaryShort String?
+
+  schadenshoeheNetto Decimal? @db.Decimal(12, 2)
+  schadenshoeheBrutto Decimal? @db.Decimal(12, 2)
+  geschaetzterAnspruch Decimal? @db.Decimal(12, 2)
+
+  reparaturkostenNetto Decimal? @db.Decimal(12, 2)
+  reparaturkostenBrutto Decimal? @db.Decimal(12, 2)
+  wiederbeschaffungswert Decimal? @db.Decimal(12, 2)
+  restwert Decimal? @db.Decimal(12, 2)
+  wertminderung Decimal? @db.Decimal(12, 2)
+
+  nutzungsausfallProTag Decimal? @db.Decimal(12, 2)
+  reparaturdauerArbeitstage Int?
+
+  abrechnungsart String?
+  mietwagenklasse String?
+  reparaturwuerdig Boolean?
+
+  notes String?
+  rawExtractionJson Json?
+
+  extractedAt DateTime?
+}
+
 model Partner {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  profiles PartnerProfile[]
 
   type   PartnerType
   name   String
@@ -192,6 +256,37 @@ model Partner {
   cases Case[] @relation("CasePartner")
 }
 
+model PartnerProfile {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clerkUserId String @unique
+
+  role PartnerType
+
+  companyName   String?
+  legalForm     String?
+  contactPerson String?
+  email         String?
+  phone         String?
+  website       String?
+  logoUrl       String? @db.Text
+
+  street      String?
+  houseNumber String?
+  zipCode     String?
+  city        String?
+  country     String?
+  region      String?
+
+  partnerId String?
+  partner   Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+
+  @@index([role])
+  @@index([partnerId])
+}
+
 model Lead {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
@@ -199,6 +294,14 @@ model Lead {
 
   externalId String?    @unique // z.B. "LD-1001" (optional)
   name       String
+  firstName  String?
+  lastName   String?
+  email      String?
+  phone      String?
+  street     String?
+  houseNumber String?
+  zipCode    String?
+  city       String?
   region     String?
   source     String?
   status     LeadStatus @default(NEW)
@@ -220,6 +323,7 @@ model Case {
   customer      CaseCustomer?
   intake        CaseIntake?
   files         CaseFile[]
+  gutachtenInsights CaseGutachtenInsight[]
 
   // Case Token ohne Login (Link wie /case/<token>)
   token String @unique
@@ -241,6 +345,7 @@ model Case {
 
   // Timeline-Events (historisch)
   events           CaseEvent[]
+  operationalEvents OperationalEvent[]
   caseCustomerOtps CaseCustomerOtp[]
 }
 
@@ -287,6 +392,7 @@ model CaseCustomerOtp {
 
   // Rate limit / Sicherheit
   attempts Int @default(0)
+  lastSentAt DateTime?
 
   // falls erfolgreich verifiziert
   verifiedAt DateTime?
