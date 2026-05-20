@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
 import { putStoredFile } from '@/lib/storage';
 import { logOperationalEvent } from '@/lib/ops-log';
+import { processCaseFile } from '@/features/gutachten-insights/lib/process-case-file';
 import {
   CaseFileUploaderType,
   CaseFileVisibility,
@@ -213,7 +214,7 @@ export async function POST(
       folder
     });
 
-    const row = await prisma.caseFile.create({
+    const createdFile = await prisma.caseFile.create({
       data: {
         caseId: c.id,
         uploaderType: isAdmin(role)
@@ -246,6 +247,8 @@ export async function POST(
       } as any
     });
 
+    const createdFileId = String(createdFile.id);
+
     await logOperationalEvent({
       caseId: c.id,
       domain: 'FILE',
@@ -257,19 +260,41 @@ export async function POST(
       metadata: {
         role,
         lane,
-        fileId: row.id,
-        filename: row.filename,
-        title: row.title,
-        mimeType: row.mimeType,
-        size: row.size,
-        visibility: row.visibility,
-        category: row.category,
-        storageKey: row.storageKey
+        fileId: createdFileId,
+        filename: createdFile.filename,
+        title: createdFile.title,
+        mimeType: createdFile.mimeType,
+        size: createdFile.size,
+        visibility: createdFile.visibility,
+        category: createdFile.category,
+        storageKey: createdFile.storageKey
       }
     });
 
+    let processingResult: Awaited<ReturnType<typeof processCaseFile>> | null =
+      null;
+
+    if (
+      String(createdFile.mimeType ?? '')
+        .toLowerCase()
+        .includes('pdf')
+    ) {
+      try {
+        processingResult = await processCaseFile({
+          caseId: c.id,
+          fileId: createdFileId
+        });
+      } catch (error) {
+        console.warn('[file-upload] post-process degraded', {
+          caseId: c.id,
+          fileId: createdFileId,
+          message: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+
     try {
-      const visibilityValue = String(row.visibility ?? '');
+      const visibilityValue = String(createdFile.visibility ?? '');
       const isVisibleToCustomer =
         visibilityValue === CaseFileVisibility.CUSTOMER ||
         visibilityValue === CaseFileVisibility.CUSTOMER_AND_PARTNERS;
@@ -291,8 +316,8 @@ export async function POST(
           caseId,
           token,
           toEmail,
-          visibility: row.visibility,
-          title: row.title ?? row.filename
+          visibility: createdFile.visibility,
+          title: createdFile.title ?? createdFile.filename
         });
 
         if (toEmail && token) {
@@ -308,11 +333,11 @@ export async function POST(
             subject: `Gutachtery24 – Neue Dokumente zu Fall ${label}`,
             text:
               `Es wurden neue Dokumente zu deinem Fall ${label} hochgeladen.\n\n` +
-              `Dokument: ${row.title ?? row.filename}\n` +
+              `Dokument: ${createdFile.title ?? createdFile.filename}\n` +
               `Link: ${docsUrl}\n`,
             html: `
               <p>Es wurden neue Dokumente zu deinem Fall <b>${label}</b> hochgeladen.</p>
-              <p><b>Dokument:</b> ${row.title ?? row.filename}</p>
+              <p><b>Dokument:</b> ${createdFile.title ?? createdFile.filename}</p>
               <p><a href="${docsUrl}">Meine Dokumente öffnen</a></p>
             `
           });
@@ -324,7 +349,11 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ ok: true, file: row });
+    return NextResponse.json({
+      ok: true,
+      file: createdFile,
+      processing: processingResult
+    });
   } catch (e: any) {
     await logOperationalEvent({
       caseId: null,

@@ -6,6 +6,9 @@ type CaseFileLike = {
   category: string;
   visibility?: string | null;
   createdAt: Date;
+  documentType?: string | null;
+  classificationStatus?: string | null;
+  classificationConfidence?: string | null;
 };
 
 function includesGutachten(value: string | null | undefined) {
@@ -20,12 +23,21 @@ function isPdfMime(value: string | null | undefined) {
     .includes('pdf');
 }
 
+function isClassifiedMainGutachten(file: CaseFileLike) {
+  return (
+    file.documentType === 'GUTACHTEN_MAIN' &&
+    file.classificationStatus === 'CLASSIFIED' &&
+    file.classificationConfidence !== 'LOW'
+  );
+}
+
 export function findCaseGutachtenFile(files: CaseFileLike[]) {
   const sorted = [...files].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   return (
+    sorted.find((f) => isClassifiedMainGutachten(f)) ??
     sorted.find(
       (f) =>
         includesGutachten(f.title) &&

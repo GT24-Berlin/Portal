@@ -12,6 +12,11 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import CaseFilesUpload from '@/components/cases/case-files-upload';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
+import CaseOperationsLogAccordion from '@/features/case-detail/components/case-operations-log-accordion';
+import CaseCustomerInfoCard from '@/features/case-detail/components/case-customer-info-card';
+import CaseAccidentDataCard from '@/features/case-detail/components/case-accident-data-card';
+import CasePhotoGallery from '@/features/case-detail/components/case-photo-gallery';
+import { getCasePhotoFiles } from '@/features/case-detail/lib/get-case-photo-files';
 
 export const runtime = 'nodejs';
 
@@ -77,8 +82,47 @@ export default async function CaseDetailPage({
     const c = await prisma.case.findUnique({
       where: { id },
       include: {
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true
+          }
+        },
+        intake: {
+          include: {
+            ownInsurance: {
+              select: {
+                name: true,
+                email: true,
+                phone: true,
+                policyNumber: true,
+                claimNumber: true,
+                contactPerson: true
+              }
+            },
+            opponentInsurance: {
+              select: {
+                name: true,
+                email: true,
+                phone: true,
+                policyNumber: true,
+                claimNumber: true,
+                contactPerson: true
+              }
+            }
+          }
+        },
         events: { orderBy: { occurredAt: 'asc' } },
-        lead: true,
+        lead: {
+          select: {
+            street: true,
+            houseNumber: true,
+            zipCode: true,
+            city: true
+          }
+        },
         partner: true,
         operationalEvents: {
           orderBy: { createdAt: 'desc' },
@@ -104,6 +148,72 @@ export default async function CaseDetailPage({
         visibility: true
       }
     });
+
+    const customerInfo = c.customer
+      ? {
+          firstName: c.customer.firstName,
+          lastName: c.customer.lastName,
+          email: c.customer.email,
+          phone: c.customer.phone,
+          street: c.lead?.street ?? null,
+          houseNumber: c.lead?.houseNumber ?? null,
+          zipCode: c.lead?.zipCode ?? null,
+          city: c.lead?.city ?? null,
+          country: null
+        }
+      : null;
+
+    const accidentData = c.intake
+      ? {
+          claimRoute: c.intake.claimRoute,
+          accidentDescription: c.intake.accidentDescription,
+          accidentDate: c.intake.accidentDate,
+          accidentLocation: c.intake.accidentLocation,
+
+          driverIsHolder: c.intake.driverIsHolder,
+          driverName: c.intake.driverName,
+          driverPhone: c.intake.driverPhone,
+
+          ownPlateNumber: c.intake.ownPlateNumber,
+          ownCarMake: c.intake.ownCarMake,
+          ownCarModel: c.intake.ownCarModel,
+          ownCarYear: c.intake.ownCarYear,
+          ownerName: c.intake.ownerName,
+
+          opponentPlateNumber: c.intake.opponentPlateNumber,
+          opponentCarMake: c.intake.opponentCarMake,
+          opponentCarModel: c.intake.opponentCarModel,
+
+          policeInvolved: c.intake.policeInvolved,
+          policeReportNumber: c.intake.policeReportNumber,
+          witnessesPresent: c.intake.witnessesPresent,
+          witnessContact: c.intake.witnessContact,
+
+          ownInsurance: c.intake.ownInsurance
+            ? {
+                name: c.intake.ownInsurance.name,
+                email: c.intake.ownInsurance.email,
+                phone: c.intake.ownInsurance.phone,
+                policyNumber: c.intake.ownInsurance.policyNumber,
+                claimNumber: c.intake.ownInsurance.claimNumber,
+                contactPerson: c.intake.ownInsurance.contactPerson
+              }
+            : null,
+
+          opponentInsurance: c.intake.opponentInsurance
+            ? {
+                name: c.intake.opponentInsurance.name,
+                email: c.intake.opponentInsurance.email,
+                phone: c.intake.opponentInsurance.phone,
+                policyNumber: c.intake.opponentInsurance.policyNumber,
+                claimNumber: c.intake.opponentInsurance.claimNumber,
+                contactPerson: c.intake.opponentInsurance.contactPerson
+              }
+            : null
+        }
+      : null;
+
+    const photoFiles = getCasePhotoFiles(files);
 
     const canUpload = canEdit;
     return (
@@ -203,48 +313,13 @@ export default async function CaseDetailPage({
             )}
           </div>
 
-          <div className='rounded-lg border p-4'>
-            <div className='mb-3'>
-              <div className='text-sm font-medium'>Operations Log</div>
-              <div className='text-muted-foreground text-xs'>
-                Letzte technische/operative Ereignisse zu diesem Fall
-              </div>
-            </div>
+          <CaseCustomerInfoCard customer={customerInfo} />
 
-            {c.operationalEvents.length === 0 ? (
-              <div className='text-muted-foreground text-sm'>
-                Noch keine operativen Events.
-              </div>
-            ) : (
-              <div className='space-y-2'>
-                {c.operationalEvents.map((op) => (
-                  <div key={op.id} className='rounded-md border p-3 text-sm'>
-                    <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
-                      <span className='font-mono text-xs opacity-80'>
-                        {new Date(op.createdAt).toLocaleString('de-DE')}
-                      </span>
-                      <span className='font-mono text-xs'>{op.domain}</span>
-                      <span className='font-mono text-xs'>{op.action}</span>
-                      <span className='font-mono text-xs'>{op.result}</span>
-                      <span className='text-muted-foreground text-xs'>
-                        {op.actorType ?? '—'}
-                      </span>
-                    </div>
+          <CaseAccidentDataCard intake={accidentData} />
 
-                    {op.message ? (
-                      <div className='mt-2'>{op.message}</div>
-                    ) : null}
+          <CasePhotoGallery caseId={c.id} items={photoFiles} />
 
-                    {op.actorId ? (
-                      <div className='text-muted-foreground mt-1 text-xs'>
-                        actorId: <span className='font-mono'>{op.actorId}</span>
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <CaseOperationsLogAccordion items={c.operationalEvents} />
 
           <div className='rounded-lg border p-4'>
             <div className='mb-3 text-sm font-medium'>Events</div>

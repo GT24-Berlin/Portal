@@ -35,7 +35,13 @@ export async function POST(
           visibility: true,
           createdAt: true,
           storageKey: true,
-          parsedText: true
+          parsedText: true,
+          documentType: true,
+          classificationStatus: true,
+          classificationConfidence: true,
+          classificationSource: true,
+          classificationSignals: true,
+          classifiedAt: true
         }
       }
     }
@@ -57,6 +63,50 @@ export async function POST(
   }
 
   const sourceRow = found.files.find((f) => f.id === gutachtenFile.id);
+
+  if (!sourceRow) {
+    return NextResponse.json(
+      { ok: false, error: 'Gutachten file row not found' },
+      { status: 404 }
+    );
+  }
+
+  if (sourceRow.documentType !== 'GUTACHTEN_MAIN') {
+    return NextResponse.json({
+      ok: false,
+      degraded: true,
+      error: 'Document is not classified as main gutachten',
+      status: 'WRONG_DOCUMENT_TYPE',
+      documentType: sourceRow.documentType,
+      classificationStatus: sourceRow.classificationStatus,
+      classificationConfidence: sourceRow.classificationConfidence
+    });
+  }
+
+  if (sourceRow.classificationStatus !== 'CLASSIFIED') {
+    return NextResponse.json({
+      ok: false,
+      degraded: true,
+      error: 'Document classification is not ready',
+      status: 'CLASSIFICATION_NOT_READY',
+      documentType: sourceRow.documentType,
+      classificationStatus: sourceRow.classificationStatus,
+      classificationConfidence: sourceRow.classificationConfidence
+    });
+  }
+
+  if (sourceRow.classificationConfidence === 'LOW') {
+    return NextResponse.json({
+      ok: false,
+      degraded: true,
+      error: 'Document classification confidence too low',
+      status: 'CLASSIFICATION_LOW_CONFIDENCE',
+      documentType: sourceRow.documentType,
+      classificationStatus: sourceRow.classificationStatus,
+      classificationConfidence: sourceRow.classificationConfidence
+    });
+  }
+
   const text = String(sourceRow?.parsedText ?? '').trim();
 
   if (!text.trim()) {

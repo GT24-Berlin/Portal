@@ -77,7 +77,7 @@ export default function PartnerCollaborationList(props: {
                     </div>
                   </div>
 
-                  <div className='text-xs font-medium'>
+                  <div className='text-xs font-medium whitespace-nowrap'>
                     {item.counterpartRole}
                   </div>
 
@@ -105,9 +105,17 @@ export default function PartnerCollaborationList(props: {
                     </span>
                   </div>
 
-                  <div className='text-xs'>{item.gutachterStatus || '—'}</div>
+                  <div className='min-w-0 text-xs'>
+                    <span className='block truncate'>
+                      {item.gutachterStatus || '—'}
+                    </span>
+                  </div>
 
-                  <div className='text-xs'>{item.anwaltStatus || '—'}</div>
+                  <div className='min-w-0 text-xs'>
+                    <span className='block truncate'>
+                      {item.anwaltStatus || '—'}
+                    </span>
+                  </div>
 
                   <div className='text-muted-foreground text-xs'>
                     {fmtDate(item.updatedAt)}

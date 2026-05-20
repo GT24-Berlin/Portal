@@ -7,6 +7,7 @@ import { CaseFileVisibility } from '@prisma/client';
 import CaseFilesUploader from '@/components/case/case-files-uploader';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
+import CaseFileDocumentBadge from '@/features/case-file-classification/components/case-file-document-badge';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -96,7 +97,10 @@ export default async function CaseDocumentsPage({
         filename: true,
         mimeType: true,
         size: true,
-        storageKey: true
+        storageKey: true,
+        documentType: true,
+        classificationStatus: true,
+        classificationConfidence: true
       },
       take: 200
     });
@@ -119,7 +123,7 @@ export default async function CaseDocumentsPage({
     };
 
     return (
-      <div className='bg-background text-foreground min-h-[100dvh]'>
+      <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
         <div className='mx-auto max-w-5xl space-y-6 px-4 py-8'>
           <CaseTopNav
             token={token}
@@ -188,6 +192,14 @@ export default async function CaseDocumentsPage({
                           <div className='truncate font-medium'>
                             {f.title ?? f.filename}
                           </div>
+
+                          <CaseFileDocumentBadge
+                            documentType={f.documentType}
+                            classificationStatus={f.classificationStatus}
+                            classificationConfidence={
+                              f.classificationConfidence
+                            }
+                          />
 
                           <div className='text-muted-foreground mt-0.5 text-xs'>
                             <span className='truncate'>{f.filename}</span>

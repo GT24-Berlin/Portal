@@ -8,6 +8,7 @@ import { isDatabaseUnavailableError } from '@/lib/database-error';
 import { getGutachtenInsightsState } from '@/features/gutachten-insights/lib/get-gutachten-insights-state';
 import type { GutachtenInsights } from '@/features/gutachten-insights/types';
 import { getCaseGutachtenInsights } from '@/features/gutachten-insights/lib/get-case-gutachten-insights';
+import { buildGutachtenSummary } from '@/features/gutachten-insights/lib/build-gutachten-summary';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -60,7 +61,10 @@ export default async function CaseGutachtenPage({
             mimeType: true,
             category: true,
             visibility: true,
-            createdAt: true
+            createdAt: true,
+            documentType: true,
+            classificationStatus: true,
+            classificationConfidence: true
           }
         }
       }
@@ -83,9 +87,17 @@ export default async function CaseGutachtenPage({
       caseId: found.id,
       gutachtenFileId: gutachtenFile?.id ?? null
     });
+    const summaryLines = buildGutachtenSummary(insights);
+
+    const gutachtenInfoText =
+      insights.status === 'PARSED'
+        ? 'Das Gutachten wurde erfolgreich ausgewertet. Die wichtigsten Kennzahlen wurden übernommen.'
+        : insights.status === 'AVAILABLE_UNPARSED'
+          ? 'Das Gutachten liegt bereits vor. Die strukturierte Aufbereitung der Inhalte ist noch nicht abgeschlossen. Bis dahin werden die wichtigsten Kennzahlen aus dem Dokument noch nicht vollständig angezeigt. Du kannst das Originaldokument aber direkt öffnen.'
+          : '';
 
     return (
-      <div className='bg-background text-foreground min-h-[100dvh]'>
+      <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
         <div className='mx-auto max-w-5xl space-y-6 px-4 py-10 pb-24'>
           <CaseTopNav
             token={token}
@@ -93,6 +105,28 @@ export default async function CaseGutachtenPage({
             title='Ihr Gutachten'
             subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
           />
+
+          {insights.status === 'PARSED' && summaryLines.length > 0 ? (
+            <section className='bg-card rounded-2xl border p-5 md:p-6'>
+              <div className='space-y-2'>
+                <p className='text-muted-foreground text-sm'>Kurzübersicht</p>
+                <h2 className='text-xl font-semibold'>
+                  Das Wichtigste aus dem Gutachten
+                </h2>
+              </div>
+
+              <div className='mt-4 space-y-3'>
+                {summaryLines.map((line, index) => (
+                  <div
+                    key={index}
+                    className='bg-muted/40 rounded-xl border px-4 py-3 text-sm md:text-base'
+                  >
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className='rounded-[30px] border border-black/5 bg-white p-6 shadow-sm md:p-8'>
             <div className='space-y-6'>
@@ -104,8 +138,8 @@ export default async function CaseGutachtenPage({
                   Überblick zu Ihrem Gutachten
                 </h2>
                 <p className='max-w-2xl text-sm leading-6 text-neutral-600 md:text-[15px]'>
-                  Hier zeigen wir Ihnen künftig die wichtigsten Inhalte aus
-                  Ihrem Gutachten in verständlicher Kurzform.
+                  Hier finden Sie die wichtigsten Inhalte und Kennzahlen aus
+                  Ihrem Gutachten in verständlicher Form zusammengefasst.
                 </p>
               </div>
 
@@ -256,11 +290,7 @@ export default async function CaseGutachtenPage({
                         Hochgeladen am {fmt(gutachtenFile.createdAt)}
                       </div>
                       <div className='text-sm leading-6 text-neutral-600'>
-                        Das Gutachten liegt bereits vor. Die strukturierte
-                        Aufbereitung der Inhalte ist noch nicht abgeschlossen.
-                        Deshalb werden Schadenshöhe und geschätzter Anspruch
-                        aktuell noch nicht angezeigt. Bis dahin kannst du das
-                        Originaldokument direkt öffnen.
+                        {gutachtenInfoText}
                       </div>
                     </div>
 

@@ -88,6 +88,31 @@ enum CaseFileCategory {
   OTHER
 }
 
+enum CaseFileDocumentType {
+  GUTACHTEN_MAIN
+  GUTACHTEN_ANLAGE_FOTOS
+  GUTACHTEN_MINDERWERTREPORT
+  GUTACHTEN_AUFTRAG
+  RECHNUNG
+  ACHSVERMESSUNG
+  VERSICHERUNGSDOKUMENT
+  FAHRZEUGDOKUMENT
+  SONSTIGES
+}
+
+enum CaseFileClassificationStatus {
+  PENDING
+  CLASSIFIED
+  FAILED
+  MANUAL_OVERRIDE
+}
+
+enum CaseFileClassificationConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model CaseAssignment {
   id                  String         @id @default(cuid())
   caseId              String
@@ -195,6 +220,14 @@ model CaseFile {
 
   // Optional: original URL cache (nicht zwingend)
   // url String? @db.Text
+
+  documentType CaseFileDocumentType?
+  classificationStatus CaseFileClassificationStatus @default(PENDING)
+  classificationConfidence CaseFileClassificationConfidence?
+  classificationSource String?
+  classificationSignals Json?
+  classifiedAt DateTime?
+
 
   gutachtenInsights CaseGutachtenInsight[]
 

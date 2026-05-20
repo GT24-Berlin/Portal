@@ -25,6 +25,29 @@ function matchText(content: string, label: RegExp): string | null {
   return m?.[1]?.trim() ?? null;
 }
 
+function matchTextUntilNextLabel(
+  content: string,
+  label: RegExp,
+  stopLabels: RegExp[]
+): string | null {
+  const m = content.match(label);
+  if (!m || typeof m.index !== 'number') return null;
+
+  const afterLabel = content.slice(m.index + m[0].length).trim();
+  if (!afterLabel) return null;
+
+  const stopIndex = stopLabels
+    .map((stopLabel) => afterLabel.search(stopLabel))
+    .filter((index) => index >= 0)
+    .sort((a, b) => a - b)[0];
+
+  const rawValue =
+    typeof stopIndex === 'number' ? afterLabel.slice(0, stopIndex) : afterLabel;
+
+  const value = rawValue.replace(/\s+/g, ' ').trim();
+  return value || null;
+}
+
 export function extractGutachtenInsightsFromText(
   content: string
 ): GutachtenInsights {
@@ -63,7 +86,22 @@ export function extractGutachtenInsightsFromText(
       /Reparaturdauer\s*\(Arbeitstage\)[^\n\r]*?(\d+)\s*Arb\.-Tage/i
     ) ?? matchInt(content, /vorraussichtlich\s+(\d+)\s*Arb\.-Tage/i);
 
-  const abrechnungsart = matchText(content, /Art der Abrechnung\s*([^\n\r]+)/i);
+  const abrechnungsart = matchTextUntilNextLabel(
+    content,
+    /Art der Abrechnung\s*/i,
+    [
+      /\bReparaturkosten netto\b/i,
+      /\bReparaturkosten brutto\b/i,
+      /\bWiederbeschaffungswert\b/i,
+      /\bWertminderung\b/i,
+      /\bNutzungsausfallentschädigung pro Kalendertag\b/i,
+      /\bReparaturdauer\b/i,
+      /\bMietwagenklasse\b/i,
+      /\bReparaturwürdigkeit\b/i,
+      /\bDieses Gutachten umfasst\b/i,
+      /\bGutachten-Nr\.\b/i
+    ]
+  );
 
   const mietwagenklasse = matchText(
     content,

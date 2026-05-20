@@ -28,7 +28,7 @@ export default async function PartnerProfilePage() {
       pageTitle='Partnerprofil'
       pageDescription='Verwalte deine Unternehmensdaten und deine Fallpartner'
     >
-      <div className='space-y-6'>
+      <div className='min-w-0 space-y-6 overflow-x-auto'>
         <PartnerProfileForm />
 
         <div id='partner-collaboration-section'>

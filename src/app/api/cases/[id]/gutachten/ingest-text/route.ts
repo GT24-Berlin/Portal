@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
-import { readStoredFileToBuffer } from '@/lib/storage';
 import { findCaseGutachtenFile } from '@/features/gutachten-insights/lib/find-case-gutachten-file';
-import { extractPdfTextFromBuffer } from '@/features/gutachten-insights/lib/extract-pdf-text';
+import { processCaseFile } from '@/features/gutachten-insights/lib/process-case-file';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +11,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
+
   if (!userId) {
     return NextResponse.json(
       { ok: false, error: 'Unauthorized' },
@@ -35,7 +35,10 @@ export async function POST(
           visibility: true,
           createdAt: true,
           storageKey: true,
-          parsedText: true
+          parsedText: true,
+          documentType: true,
+          classificationStatus: true,
+          classificationConfidence: true
         }
       }
     }
@@ -57,50 +60,12 @@ export async function POST(
     );
   }
 
-  const fileRow = found.files.find((f) => f.id === gutachtenFile.id);
+  const result = await processCaseFile({
+    caseId: found.id,
+    fileId: gutachtenFile.id
+  });
 
-  if (!fileRow) {
-    return NextResponse.json(
-      { ok: false, error: 'Gutachten file row not found' },
-      { status: 404 }
-    );
-  }
-
-  const mime = String(fileRow.mimeType ?? '').toLowerCase();
-  if (!mime.includes('pdf')) {
-    return NextResponse.json(
-      { ok: false, error: 'Gutachten file is not a PDF' },
-      { status: 400 }
-    );
-  }
-
-  const buffer = await readStoredFileToBuffer(fileRow.storageKey);
-
-  let parsedText = '';
-  try {
-    parsedText = await extractPdfTextFromBuffer(buffer);
-  } catch (error) {
-    console.warn('[gutachten] ingest-text degraded', {
-      caseId,
-      fileId: fileRow.id,
-      message: error instanceof Error ? error.message : String(error)
-    });
-    parsedText = '';
-  }
-
-  if (parsedText) {
-    await prisma.caseFile.update({
-      where: { id: fileRow.id },
-      data: {
-        parsedText
-      }
-    });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    degraded: parsedText.length === 0,
-    fileId: fileRow.id,
-    parsedTextLength: parsedText.length
+  return NextResponse.json(result, {
+    status: 200
   });
 }
