@@ -31,7 +31,11 @@ function toCaseRow(c: any): AdminOpsCaseRow {
     caseNumber: c.caseNumber ?? null,
     token: c.token,
     updatedAt: c.updatedAt,
-    leadExternalId: c.lead?.externalId ?? null,
+    customerName:
+      [c.customer?.firstName, c.customer?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || null,
     gutachterStatus: String(c.gutachterStatus ?? ''),
     anwaltStatus: String(c.anwaltStatus ?? '')
   };
@@ -201,7 +205,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       orderBy: { updatedAt: 'desc' },
       take: 8,
       include: {
-        lead: true
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
       }
     }),
 
@@ -217,7 +226,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       orderBy: { updatedAt: 'desc' },
       take: 8,
       include: {
-        lead: true
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
       }
     }),
 
@@ -233,7 +247,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       orderBy: { updatedAt: 'desc' },
       take: 8,
       include: {
-        lead: true
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        }
       }
     }),
 

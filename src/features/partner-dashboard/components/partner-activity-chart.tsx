@@ -10,39 +10,58 @@ export default function PartnerActivityChart(props: {
   );
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className='text-base'>Aktivität letzte 7 Tage</CardTitle>
+    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Operationsrhythmus
+          </div>
+          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+            Aktivität letzte 7 Tage
+          </CardTitle>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className='space-y-4'>
         <div className='space-y-4'>
           {props.items.map((item) => (
-            <div key={item.dateLabel} className='space-y-2'>
-              <div className='text-xs font-medium'>{item.dateLabel}</div>
+            <div
+              key={item.dateLabel}
+              className='border-border/60 bg-background/80 space-y-3 rounded-2xl border p-4 shadow-sm'
+            >
+              <div className='flex items-center justify-between gap-3'>
+                <div className='text-foreground text-sm font-medium'>
+                  {item.dateLabel}
+                </div>
+                <div className='text-muted-foreground text-xs tracking-[0.12em] uppercase'>
+                  7 Tage
+                </div>
+              </div>
 
-              <div className='space-y-1'>
+              <div className='space-y-1.5'>
                 <div className='flex items-center justify-between text-xs'>
                   <span>Uploads</span>
-                  <span className='text-muted-foreground'>{item.uploads}</span>
+                  <span className='text-muted-foreground tabular-nums'>
+                    {item.uploads}
+                  </span>
                 </div>
-                <div className='bg-muted h-2 rounded-full'>
+                <div className='bg-muted/70 h-2 rounded-full shadow-inner'>
                   <div
-                    className='bg-foreground h-full rounded-full'
+                    className='bg-primary/80 h-full rounded-full'
                     style={{ width: `${(item.uploads / max) * 100}%` }}
                   />
                 </div>
               </div>
 
-              <div className='space-y-1'>
+              <div className='space-y-1.5'>
                 <div className='flex items-center justify-between text-xs'>
                   <span>Case-Events</span>
-                  <span className='text-muted-foreground'>
+                  <span className='text-muted-foreground tabular-nums'>
                     {item.caseEvents}
                   </span>
                 </div>
-                <div className='bg-muted h-2 rounded-full'>
+                <div className='bg-muted/70 h-2 rounded-full shadow-inner'>
                   <div
-                    className='bg-foreground h-full rounded-full opacity-60'
+                    className='bg-foreground/50 h-full rounded-full'
                     style={{ width: `${(item.caseEvents / max) * 100}%` }}
                   />
                 </div>

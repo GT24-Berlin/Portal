@@ -133,6 +133,11 @@ export default async function CaseDetailPage({
 
     if (!c) notFound();
 
+    const customerName = [c.customer?.firstName, c.customer?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+
     const files = await prisma.caseFile.findMany({
       where: { caseId: c.id }, // oder einfach { caseId: id }
       orderBy: { createdAt: 'desc' },
@@ -219,23 +224,58 @@ export default async function CaseDetailPage({
     return (
       <PageContainer
         pageTitle='Case Detail'
-        pageDescription={c.caseNumber ?? c.id}
+        pageDescription={
+          customerName
+            ? `Kunde: ${customerName} · Fallnummer: ${c.caseNumber ?? '—'}`
+            : `Fallnummer: ${c.caseNumber ?? '—'}`
+        }
       >
         <div className='space-y-6'>
-          <div className='flex flex-col gap-3 rounded-lg border p-4 text-sm md:flex-row md:justify-between'>
-            <div>
-              <div className='text-muted-foreground text-xs'>Case</div>
-              <div className='font-mono'>{c.caseNumber ?? c.id}</div>
+          <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+            <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-6 md:grid-cols-[1.4fr_0.6fr] md:p-8'>
+              <div className='space-y-2'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Case Detail
+                </div>
+                <h1 className='font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl'>
+                  {c.caseNumber ?? '—'}
+                </h1>
+                <p className='text-muted-foreground max-w-3xl text-sm leading-6 md:text-[15px]'>
+                  {customerName
+                    ? `Kunde: ${customerName}`
+                    : 'Kundeninformationen werden ergänzt, sobald sie verfügbar sind.'}
+                </p>
+              </div>
+
+              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+                  Summary
+                </div>
+                <div className='grid gap-2 text-sm'>
+                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                    <div className='text-muted-foreground text-xs'>
+                      Fallnummer
+                    </div>
+                    <div className='text-foreground font-mono text-sm font-medium'>
+                      {c.caseNumber ?? '—'}
+                    </div>
+                  </div>
+                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                    <div className='text-muted-foreground text-xs'>Kunde</div>
+                    <div className='text-foreground font-medium'>
+                      {customerName || '—'}
+                    </div>
+                  </div>
+                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                    <div className='text-muted-foreground text-xs'>Partner</div>
+                    <div className='text-foreground font-medium'>
+                      {c.partner?.name ?? '—'}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <div className='text-muted-foreground text-xs'>Token</div>
-              <div className='font-mono break-all'>{c.token}</div>
-            </div>
-            <div>
-              <div className='text-muted-foreground text-xs'>Rolle</div>
-              <div className='font-mono'>{role || 'UNSET'}</div>
-            </div>
-          </div>
+          </section>
 
           {isAdmin ? <CaseAssignmentAdmin caseId={c.id} /> : null}
 
@@ -248,10 +288,15 @@ export default async function CaseDetailPage({
           />
 
           {/* Dokumente (Case Files) */}
-          <div className='bg-card space-y-3 rounded-xl border p-6'>
-            <div className='flex items-start justify-between gap-3'>
-              <div>
-                <h3 className='text-lg font-semibold'>Dokumente</h3>
+          <div className='bg-card/95 border-border/60 space-y-3 overflow-hidden rounded-[28px] border p-6 shadow-sm'>
+            <div className='border-border/60 flex flex-wrap items-start justify-between gap-3 border-b pb-3'>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Hauptfläche
+                </p>
+                <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+                  Dokumente
+                </h3>
                 <p className='text-muted-foreground text-xs'>
                   Uploads vom Kunden & Partner (je nach Sichtbarkeit)
                 </p>
@@ -269,7 +314,7 @@ export default async function CaseDetailPage({
             </div>
 
             {files.length === 0 ? (
-              <p className='text-muted-foreground text-sm'>
+              <p className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
                 Noch keine Dokumente.
               </p>
             ) : (
@@ -277,19 +322,19 @@ export default async function CaseDetailPage({
                 {files.map((f) => (
                   <div
                     key={f.id}
-                    className='flex items-center justify-between rounded-md border px-3 py-2 text-sm'
+                    className='border-border/60 bg-background/80 hover:bg-muted/20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm transition-colors'
                   >
                     <div className='min-w-0'>
-                      <div className='truncate font-medium'>
+                      <div className='text-foreground truncate font-medium'>
                         {f.title ? f.title : f.filename}
                       </div>
 
-                      <div className='text-muted-foreground text-xs'>
+                      <div className='text-muted-foreground text-xs leading-5'>
                         {f.filename} · {String(f.uploaderType)} ·{' '}
                         {String(f.visibility)}
                       </div>
 
-                      <div className='text-muted-foreground text-xs'>
+                      <div className='text-muted-foreground text-xs leading-5'>
                         {new Intl.DateTimeFormat('de-DE', {
                           dateStyle: 'medium',
                           timeStyle: 'short'
@@ -300,7 +345,7 @@ export default async function CaseDetailPage({
                     </div>
 
                     <a
-                      className='hover:bg-muted shrink-0 rounded-md border px-3 py-1 text-xs'
+                      className='hover:bg-muted border-border/60 bg-background/90 decoration-muted-foreground/40 hover:decoration-foreground/70 shrink-0 rounded-full border px-3 py-1.5 text-xs underline underline-offset-4 transition-colors'
                       href={`/api/cases/${c.id}/files/${f.id}/download`}
                       target='_blank'
                       rel='noreferrer'
@@ -321,14 +366,24 @@ export default async function CaseDetailPage({
 
           <CaseOperationsLogAccordion items={c.operationalEvents} />
 
-          <div className='rounded-lg border p-4'>
-            <div className='mb-3 text-sm font-medium'>Events</div>
+          <div className='border-border/60 bg-card/95 rounded-[28px] border p-5 shadow-sm'>
+            <div className='mb-3 space-y-1'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                Supporting Context
+              </div>
+              <div className='font-heading text-lg font-semibold tracking-tight'>
+                Events
+              </div>
+            </div>
             <div className='space-y-2 text-sm'>
               {c.events.length === 0 ? (
                 <div className='text-muted-foreground'>Noch keine Events.</div>
               ) : (
                 c.events.map((e) => (
-                  <div key={e.id} className='rounded-md border p-3'>
+                  <div
+                    key={e.id}
+                    className='border-border/60 bg-background/80 hover:bg-muted/20 rounded-2xl border p-3 shadow-sm transition-colors'
+                  >
                     <div className='flex flex-wrap gap-x-3 gap-y-1'>
                       <span className='font-mono text-xs opacity-80'>
                         {String((e as any).lane)}

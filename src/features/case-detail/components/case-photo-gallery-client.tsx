@@ -39,40 +39,45 @@ export default function CasePhotoGalleryClient(props: {
 
   return (
     <>
-      <section className='rounded-2xl border bg-white p-6 shadow-sm'>
-        <div className='mb-4'>
-          <h2 className='text-lg font-semibold'>Schadenfotos</h2>
-          <p className='text-sm text-neutral-600'>
+      <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+        <div className='border-border/60 bg-muted/15 border-b p-6'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Medien
+          </div>
+          <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Schadenfotos
+          </h2>
+          <p className='text-muted-foreground text-sm'>
             Bilddateien zum Fall in kompakter Übersicht.
           </p>
         </div>
 
         {items.length === 0 ? (
-          <div className='text-sm text-neutral-600'>
+          <div className='text-muted-foreground p-6 text-sm'>
             Noch keine Bilder zum Schaden vorhanden.
           </div>
         ) : (
-          <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+          <div className='grid gap-3 p-6 sm:grid-cols-2 lg:grid-cols-3'>
             {items.map((item) => (
               <button
                 key={item.id}
                 type='button'
                 onClick={() => setActiveId(item.id)}
-                className='group overflow-hidden rounded-xl border border-black/5 bg-neutral-50 text-left'
+                className='group border-border/60 bg-background/80 overflow-hidden rounded-2xl border text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md'
               >
-                <div className='aspect-[4/3] bg-neutral-100'>
+                <div className='bg-muted/20 relative h-52 sm:h-44 lg:h-48'>
                   <img
                     src={`/api/cases/${caseId}/files/${item.id}/download`}
                     alt={item.title ?? item.filename}
-                    className='h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]'
+                    className='absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]'
                   />
                 </div>
 
                 <div className='space-y-1 p-3'>
-                  <div className='truncate text-sm font-medium text-neutral-900'>
+                  <div className='text-foreground truncate text-sm font-medium'>
                     {item.title ?? item.filename}
                   </div>
-                  <div className='text-xs text-neutral-500'>
+                  <div className='text-muted-foreground text-xs'>
                     {fmtDate(item.createdAt)}
                   </div>
                 </div>

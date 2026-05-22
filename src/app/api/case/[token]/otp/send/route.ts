@@ -211,7 +211,7 @@ export async function POST(
     });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const label = c.caseNumber ?? c.id.slice(0, 8);
+    const label = c.caseNumber ?? 'Fall ohne Nummer';
 
     await sendMail({
       to: email,

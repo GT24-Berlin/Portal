@@ -30,28 +30,30 @@ export default function PartnerCollaborationList(props: {
   const { data } = props;
 
   return (
-    <div className='space-y-4 rounded-lg border p-6'>
-      <div className='flex flex-wrap items-start justify-between gap-3'>
+    <div className='border-border/60 bg-card/95 space-y-4 overflow-hidden rounded-2xl border p-6 shadow-sm'>
+      <div className='border-border/60 flex flex-wrap items-start justify-between gap-3 border-b pb-4'>
         <div>
-          <div className='text-sm font-medium'>Fallpartner</div>
+          <div className='font-heading text-foreground text-sm font-medium tracking-tight'>
+            Fallpartner
+          </div>
           <div className='text-muted-foreground text-xs'>
             Übersicht über die Gegenpartei in deinen aktuell zugeordneten Fällen
           </div>
         </div>
 
-        <div className='text-muted-foreground text-xs'>
+        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
           Fälle: <span className='font-mono'>{data.items.length}</span>
         </div>
       </div>
 
       {data.items.length === 0 ? (
-        <div className='text-muted-foreground rounded-md border p-4 text-sm'>
+        <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed p-4 text-sm shadow-sm'>
           Aktuell sind keine Fallpartner-Daten verfügbar.
         </div>
       ) : (
         <div className='overflow-x-auto'>
           <div className='min-w-[1080px]'>
-            <div className='text-muted-foreground grid grid-cols-8 gap-3 border-b pb-2 text-xs font-medium'>
+            <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-8 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.14em] uppercase'>
               <div>Case</div>
               <div>Gegenpart-Rolle</div>
               <div>Gegenpart</div>
@@ -66,38 +68,33 @@ export default function PartnerCollaborationList(props: {
               {data.items.map((item) => (
                 <div
                   key={item.caseId}
-                  className='grid grid-cols-8 gap-3 py-3 text-sm'
+                  className='hover:bg-muted/20 grid grid-cols-8 gap-3 px-4 py-4 text-sm transition-colors'
                 >
                   <div className='min-w-0'>
-                    <div className='font-mono'>
-                      {item.caseNumber ?? item.caseId.slice(0, 8)}
+                    <div className='text-foreground font-mono text-sm font-medium'>
+                      {item.caseNumber ?? '—'}
                     </div>
-                    <div className='text-muted-foreground mt-1 text-xs'>
-                      {item.caseId.slice(0, 12)}
+                    <div className='text-muted-foreground mt-1 truncate text-xs'>
+                      {item.customerName ?? 'Kunde unbekannt'}
                     </div>
                   </div>
 
-                  <div className='text-xs font-medium whitespace-nowrap'>
+                  <div className='text-muted-foreground text-xs font-medium tracking-[0.12em] whitespace-nowrap uppercase'>
                     {item.counterpartRole}
                   </div>
 
                   <div className='min-w-0 space-y-1 text-xs'>
-                    <div className='truncate font-medium'>
-                      {item.counterpartName ??
-                        item.counterpartClerkUserId ??
-                        '—'}
+                    <div className='text-foreground truncate font-medium'>
+                      {item.counterpartName ?? '—'}
                     </div>
                     <div className='text-muted-foreground truncate'>
                       {item.counterpartEmail ?? '—'}
-                    </div>
-                    <div className='text-muted-foreground truncate font-mono'>
-                      {item.counterpartClerkUserId ?? '—'}
                     </div>
                   </div>
 
                   <div className='text-xs'>
                     <span
-                      className={`inline-flex rounded-full border px-2 py-1 text-xs font-medium ${statusClass(
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium shadow-sm ${statusClass(
                         item.ownAssignmentStatus || ''
                       )}`}
                     >
@@ -106,13 +103,13 @@ export default function PartnerCollaborationList(props: {
                   </div>
 
                   <div className='min-w-0 text-xs'>
-                    <span className='block truncate'>
+                    <span className='text-foreground block truncate'>
                       {item.gutachterStatus || '—'}
                     </span>
                   </div>
 
                   <div className='min-w-0 text-xs'>
-                    <span className='block truncate'>
+                    <span className='text-foreground block truncate'>
                       {item.anwaltStatus || '—'}
                     </span>
                   </div>
@@ -124,7 +121,7 @@ export default function PartnerCollaborationList(props: {
                   <div className='flex justify-end text-xs'>
                     <Link
                       href={`/dashboard/cases/${item.caseId}`}
-                      className='underline underline-offset-4'
+                      className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-sm transition-colors'
                     >
                       Fall öffnen
                     </Link>

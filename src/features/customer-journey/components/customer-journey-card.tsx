@@ -6,64 +6,73 @@ export default function CustomerJourneyCard(props: {
   const { data } = props;
 
   return (
-    <section className='rounded-[30px] border border-black/5 bg-white p-6 shadow-sm md:p-8'>
+    <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border p-6 shadow-sm md:p-8'>
       <div className='space-y-8'>
-        <div className='flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between'>
-          <div className='max-w-3xl'>
-            <div className='text-[11px] font-semibold tracking-[0.18em] text-neutral-500 uppercase'>
+        <div className='grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.7fr)]'>
+          <div className='border-border/60 bg-muted/10 rounded-3xl border p-5 shadow-sm md:p-6'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
               Fortschritt
             </div>
 
-            <h2 className='mt-3 text-2xl font-semibold tracking-tight text-neutral-950 md:text-4xl'>
+            <h2 className='font-heading text-foreground mt-3 text-2xl font-semibold tracking-tight md:text-4xl'>
               {data.currentLabel}
             </h2>
 
-            <p className='mt-3 max-w-2xl text-sm leading-6 text-neutral-600 md:text-[15px]'>
+            <p className='text-muted-foreground mt-3 max-w-2xl text-sm leading-6 md:text-[15px]'>
               {data.summary}
             </p>
           </div>
 
-          <div className='w-full max-w-xs shrink-0'>
+          <div className='border-border/60 bg-background/80 rounded-3xl border p-5 shadow-sm'>
             <div className='flex items-center justify-between text-sm'>
-              <span className='text-neutral-500'>Bearbeitungsstand</span>
-              <span className='font-semibold text-neutral-950'>
+              <span className='text-muted-foreground'>Bearbeitungsstand</span>
+              <span className='font-heading text-foreground text-lg font-semibold tabular-nums'>
                 {data.progressPercent}%
               </span>
             </div>
 
-            <div className='mt-3 h-2.5 overflow-hidden rounded-full bg-neutral-200'>
+            <div className='bg-muted/70 mt-4 h-2.5 overflow-hidden rounded-full shadow-inner'>
               <div
-                className='h-full rounded-full bg-neutral-950 transition-all duration-500'
+                className='bg-primary h-full rounded-full transition-all duration-500'
                 style={{ width: `${data.progressPercent}%` }}
               />
+            </div>
+
+            <div className='text-muted-foreground mt-4 grid gap-2 text-xs'>
+              <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                Aktueller Schritt: {data.currentLabel}
+              </div>
+              <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                Nächster Schritt: {data.nextLabel ?? 'Keiner offen'}
+              </div>
             </div>
           </div>
         </div>
 
         <div className='grid gap-3 md:grid-cols-3'>
-          <div className='rounded-2xl bg-neutral-50 p-4'>
-            <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
               Kurzstatus
             </div>
-            <div className='mt-2 text-sm font-semibold text-neutral-950'>
+            <div className='text-foreground mt-2 text-sm font-semibold'>
               {data.shortStatus}
             </div>
           </div>
 
-          <div className='rounded-2xl bg-neutral-50 p-4'>
-            <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
               Als Nächstes
             </div>
-            <div className='mt-2 text-sm font-semibold text-neutral-950'>
+            <div className='text-foreground mt-2 text-sm font-semibold'>
               {data.nextStepHint}
             </div>
           </div>
 
-          <div className='rounded-2xl bg-neutral-50 p-4'>
-            <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
               Für dich wichtig
             </div>
-            <div className='mt-2 text-sm font-semibold text-neutral-950'>
+            <div className='text-foreground mt-2 text-sm font-semibold'>
               {data.customerAction ??
                 'Aktuell ist keine weitere Aktion erforderlich.'}
             </div>
@@ -71,30 +80,30 @@ export default function CustomerJourneyCard(props: {
         </div>
 
         <div className='space-y-4'>
-          <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
-            Customer Journey
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+            Fallfortschritt
           </div>
 
-          <div className='flex flex-wrap gap-3'>
+          <div className='grid gap-3 xl:grid-cols-3'>
             {data.steps.map((step, index) => (
               <div
                 key={step.key}
-                className={`min-w-[220px] flex-1 rounded-3xl border p-4 transition-colors ${
+                className={`rounded-3xl border p-4 shadow-sm transition-colors ${
                   step.active
-                    ? 'border-neutral-900 bg-neutral-900 text-white shadow-sm'
+                    ? 'border-foreground bg-foreground text-background'
                     : step.done
-                      ? 'border-neutral-200 bg-neutral-50 text-neutral-900'
-                      : 'border-neutral-200 bg-white text-neutral-400'
+                      ? 'border-border/60 bg-muted/10 text-foreground'
+                      : 'border-border/60 bg-background text-muted-foreground'
                 }`}
               >
                 <div className='flex items-start gap-3'>
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
                       step.active
-                        ? 'bg-white text-neutral-950'
+                        ? 'bg-background text-foreground'
                         : step.done
-                          ? 'bg-neutral-900 text-white'
-                          : 'bg-neutral-200 text-neutral-500'
+                          ? 'bg-foreground text-background'
+                          : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {index + 1}
@@ -107,10 +116,10 @@ export default function CustomerJourneyCard(props: {
                     <div
                       className={`text-xs ${
                         step.active
-                          ? 'text-white/70'
+                          ? 'text-background/70'
                           : step.done
-                            ? 'text-neutral-500'
-                            : 'text-neutral-400'
+                            ? 'text-muted-foreground'
+                            : 'text-muted-foreground/70'
                       }`}
                     >
                       {step.active

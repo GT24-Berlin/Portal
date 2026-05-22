@@ -15,19 +15,23 @@ export default function AdminCaseListCard(props: {
   items: AdminOpsCaseRow[];
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className='text-base'>{props.title}</CardTitle>
+    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+        <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+          {props.title}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {props.items.length === 0 ? (
-          <div className='text-muted-foreground text-sm'>{props.emptyText}</div>
+          <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
+            {props.emptyText}
+          </div>
         ) : (
           <div className='overflow-x-auto'>
             <div className='min-w-[760px]'>
-              <div className='text-muted-foreground grid grid-cols-6 gap-3 border-b pb-2 text-xs font-medium'>
+              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-6 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.14em] uppercase'>
                 <div>Case</div>
-                <div>Lead</div>
+                <div>Kunde</div>
                 <div>Gutachter</div>
                 <div>Anwalt</div>
                 <div>Updated</div>
@@ -38,19 +42,23 @@ export default function AdminCaseListCard(props: {
                 {props.items.map((item) => (
                   <div
                     key={item.caseId}
-                    className='grid grid-cols-6 gap-3 py-3 text-sm'
+                    className='hover:bg-muted/20 grid grid-cols-6 gap-3 px-4 py-4 text-sm transition-colors'
                   >
-                    <div className='font-mono'>
-                      {item.caseNumber ?? item.caseId.slice(0, 8)}
+                    <div className='text-foreground font-mono text-sm font-medium'>
+                      {item.caseNumber ?? '—'}
                     </div>
 
-                    <div className='text-muted-foreground text-xs'>
-                      {item.leadExternalId ?? '—'}
+                    <div className='text-foreground truncate text-sm font-medium'>
+                      {item.customerName ?? '—'}
                     </div>
 
-                    <div className='text-xs'>{item.gutachterStatus || '—'}</div>
+                    <div className='text-foreground text-sm'>
+                      {item.gutachterStatus || '—'}
+                    </div>
 
-                    <div className='text-xs'>{item.anwaltStatus || '—'}</div>
+                    <div className='text-foreground text-sm'>
+                      {item.anwaltStatus || '—'}
+                    </div>
 
                     <div className='text-muted-foreground text-xs'>
                       {fmtDate(item.updatedAt)}
@@ -59,14 +67,14 @@ export default function AdminCaseListCard(props: {
                     <div className='flex justify-end gap-3 text-xs'>
                       <Link
                         href={`/dashboard/cases/${item.caseId}`}
-                        className='underline underline-offset-4'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Admin-Fall
                       </Link>
                       <Link
                         href={`/case/${item.token}`}
                         target='_blank'
-                        className='underline underline-offset-4'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Kunden-Link
                       </Link>

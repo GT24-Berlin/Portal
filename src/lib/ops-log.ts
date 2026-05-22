@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 
-export type OperationalDomain = 'OTP' | 'FILE' | 'ASSIGNMENT';
+export type OperationalDomain = 'OTP' | 'FILE' | 'ASSIGNMENT' | 'SCHEDULING';
 
 export type OperationalResult =
   | 'SUCCESS'

@@ -21,7 +21,7 @@ type Row = {
     token: string;
     gutachterStatus: string;
     anwaltStatus: string;
-    lead?: { id: string; externalId?: string | null } | null;
+    customer?: { firstName: string | null; lastName: string | null } | null;
   };
 };
 
@@ -98,7 +98,7 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
 
   if (rows.length === 0) {
     return (
-      <div className='text-muted-foreground text-sm'>
+      <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
         Keine zugewiesenen Cases.
       </div>
     );
@@ -113,9 +113,12 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
         const left = msLeft(expiresAt);
         const expired = r.status === 'PENDING' && left <= 0;
 
-        const title = r.case.caseNumber ?? r.case.id.slice(0, 8);
-        const leadLabel =
-          r.case.lead?.externalId ?? r.case.lead?.id?.slice(0, 8) ?? '—';
+        const title = r.case.caseNumber ?? '—';
+        const customerLabel =
+          [r.case.customer?.firstName, r.case.customer?.lastName]
+            .filter(Boolean)
+            .join(' ')
+            .trim() || '—';
 
         const laneStatus =
           props.role === 'GUTACHTER'
@@ -123,29 +126,40 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
             : r.case.anwaltStatus;
 
         return (
-          <div key={r.id} className='rounded-lg border p-4'>
-            <div className='flex flex-col gap-2 md:flex-row md:items-start md:justify-between'>
+          <div
+            key={r.id}
+            className='border-border/60 bg-card/95 hover:bg-muted/10 rounded-2xl border p-4 shadow-sm transition-colors'
+          >
+            <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
               <div className='space-y-1'>
-                <div className='text-sm font-medium'>
+                <div className='text-foreground text-sm font-medium'>
                   <Link
-                    className='underline underline-offset-4'
+                    className='decoration-muted-foreground/40 hover:decoration-foreground/70 underline underline-offset-4'
                     href={`/dashboard/cases/${r.caseId}`}
                   >
                     Case {title}
                   </Link>
                   <span className='text-muted-foreground ml-2 text-xs'>
-                    Lead: {leadLabel}
+                    Kunde: {customerLabel}
                   </span>
                 </div>
 
                 <div className='text-muted-foreground text-xs'>
-                  Status: <span className='font-mono'>{r.status}</span> · Lane:{' '}
-                  <span className='font-mono'>{props.role}</span>
+                  Status:{' '}
+                  <span className='border-border/60 bg-background/80 rounded-full border px-2 py-1 font-mono'>
+                    {r.status}
+                  </span>{' '}
+                  · Lane:{' '}
+                  <span className='border-border/60 bg-background/80 rounded-full border px-2 py-1 font-mono'>
+                    {props.role}
+                  </span>
                 </div>
 
                 <div className='text-muted-foreground text-xs'>
                   Dein Fortschritt:{' '}
-                  <span className='font-mono'>{laneStatus}</span>
+                  <span className='text-foreground font-mono'>
+                    {laneStatus}
+                  </span>
                 </div>
 
                 <div className='text-muted-foreground text-xs'>
@@ -162,7 +176,7 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
               </div>
               <div className='flex gap-2 md:justify-end'>
                 <button
-                  className='rounded-md border px-3 py-2 text-sm disabled:opacity-60'
+                  className='border-border/60 bg-background/80 hover:bg-muted rounded-full border px-3 py-2 text-sm shadow-sm transition-colors disabled:opacity-60'
                   onClick={() => release(r.caseId)}
                   disabled={
                     (busy !== null && busy !== r.caseId) ||
@@ -175,14 +189,14 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
 
                 {r.status === 'ACCEPTED' ? (
                   <Link
-                    className='bg-foreground text-background rounded-md px-3 py-2 text-sm hover:opacity-90'
+                    className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm hover:opacity-90'
                     href={`/dashboard/cases/${r.caseId}`}
                   >
                     Öffnen
                   </Link>
                 ) : (
                   <button
-                    className='bg-foreground text-background rounded-md px-3 py-2 text-sm disabled:opacity-60'
+                    className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm disabled:opacity-60'
                     onClick={() => accept(r.caseId)}
                     disabled={
                       (busy !== null && busy !== r.caseId) ||

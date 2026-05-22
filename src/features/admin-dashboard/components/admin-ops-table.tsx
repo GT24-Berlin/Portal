@@ -46,15 +46,17 @@ export default function AdminOpsTable(props: {
   }, [tab, props.withoutGutachter, props.withoutAnwalt, props.pendingCases]);
 
   return (
-    <Card>
-      <CardHeader className='space-y-3'>
-        <CardTitle className='text-base'>{current.title}</CardTitle>
+    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 space-y-3 border-b'>
+        <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+          {current.title}
+        </CardTitle>
 
         <div className='flex flex-wrap gap-2'>
           <button
             type='button'
-            className={`rounded-md border px-3 py-1.5 text-xs ${
-              tab === 'WITHOUT_GUTACHTER' ? 'bg-muted' : ''
+            className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
+              tab === 'WITHOUT_GUTACHTER' ? 'bg-muted' : 'bg-background/80'
             }`}
             onClick={() => setTab('WITHOUT_GUTACHTER')}
           >
@@ -63,8 +65,8 @@ export default function AdminOpsTable(props: {
 
           <button
             type='button'
-            className={`rounded-md border px-3 py-1.5 text-xs ${
-              tab === 'WITHOUT_ANWALT' ? 'bg-muted' : ''
+            className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
+              tab === 'WITHOUT_ANWALT' ? 'bg-muted' : 'bg-background/80'
             }`}
             onClick={() => setTab('WITHOUT_ANWALT')}
           >
@@ -73,8 +75,8 @@ export default function AdminOpsTable(props: {
 
           <button
             type='button'
-            className={`rounded-md border px-3 py-1.5 text-xs ${
-              tab === 'PENDING' ? 'bg-muted' : ''
+            className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
+              tab === 'PENDING' ? 'bg-muted' : 'bg-background/80'
             }`}
             onClick={() => setTab('PENDING')}
           >
@@ -85,15 +87,15 @@ export default function AdminOpsTable(props: {
 
       <CardContent>
         {current.items.length === 0 ? (
-          <div className='text-muted-foreground text-sm'>
+          <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
             {current.emptyText}
           </div>
         ) : (
           <div className='overflow-x-auto'>
             <div className='min-w-[760px]'>
-              <div className='text-muted-foreground grid grid-cols-6 gap-3 border-b pb-2 text-xs font-medium'>
+              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-6 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.14em] uppercase'>
                 <div>Case</div>
-                <div>Lead</div>
+                <div>Kunde</div>
                 <div>Gutachter</div>
                 <div>Anwalt</div>
                 <div>Updated</div>
@@ -104,19 +106,23 @@ export default function AdminOpsTable(props: {
                 {current.items.map((item) => (
                   <div
                     key={item.caseId}
-                    className='grid grid-cols-6 gap-3 py-3 text-sm'
+                    className='hover:bg-muted/20 grid grid-cols-6 gap-3 px-4 py-4 text-sm transition-colors'
                   >
-                    <div className='font-mono'>
-                      {item.caseNumber ?? item.caseId.slice(0, 8)}
+                    <div className='text-foreground font-mono text-sm font-medium'>
+                      {item.caseNumber ?? '—'}
                     </div>
 
-                    <div className='text-muted-foreground text-xs'>
-                      {item.leadExternalId ?? '—'}
+                    <div className='text-foreground truncate text-sm font-medium'>
+                      {item.customerName ?? '—'}
                     </div>
 
-                    <div className='text-xs'>{item.gutachterStatus || '—'}</div>
+                    <div className='text-foreground text-sm'>
+                      {item.gutachterStatus || '—'}
+                    </div>
 
-                    <div className='text-xs'>{item.anwaltStatus || '—'}</div>
+                    <div className='text-foreground text-sm'>
+                      {item.anwaltStatus || '—'}
+                    </div>
 
                     <div className='text-muted-foreground text-xs'>
                       {fmtDate(item.updatedAt)}
@@ -125,14 +131,14 @@ export default function AdminOpsTable(props: {
                     <div className='flex justify-end gap-3 text-xs'>
                       <Link
                         href={`/dashboard/cases/${item.caseId}`}
-                        className='underline underline-offset-4'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Admin-Fall
                       </Link>
                       <Link
                         href={`/case/${item.token}`}
                         target='_blank'
-                        className='underline underline-offset-4'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Kunden-Link
                       </Link>

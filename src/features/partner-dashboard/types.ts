@@ -16,7 +16,7 @@ export type PartnerCaseRow = {
   caseNumber: string | null;
   token: string;
   updatedAt: Date;
-  leadExternalId: string | null;
+  customerName: string | null;
   gutachterStatus: string;
   anwaltStatus: string;
   assignmentStatus: string;

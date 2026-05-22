@@ -38,6 +38,7 @@ export type PartnerCollaborationRow = {
   caseNumber: string | null;
   token: string;
   updatedAt: Date;
+  customerName: string | null;
   ownRole: 'GUTACHTER' | 'ANWALT';
   ownAssignmentStatus: string;
   counterpartRole: 'GUTACHTER' | 'ANWALT';

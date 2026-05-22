@@ -50,17 +50,17 @@ export default function CaseFilesUploader({ token }: { token: string }) {
   }
 
   return (
-    <div className='bg-card space-y-3 rounded-xl border p-4'>
+    <div className='bg-card/95 border-border/60 space-y-3 rounded-2xl border p-4 shadow-sm'>
       <div className='text-sm font-medium'>Datei hochladen</div>
 
       {msg ? (
-        <div className='rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800'>
+        <div className='rounded-2xl border border-green-300/70 bg-green-50/70 px-3 py-2 text-sm text-green-800'>
           {msg}
         </div>
       ) : null}
 
       {err ? (
-        <div className='rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800'>
+        <div className='rounded-2xl border border-red-300/70 bg-red-50/70 px-3 py-2 text-sm text-red-800'>
           {err}
         </div>
       ) : null}
@@ -75,7 +75,7 @@ export default function CaseFilesUploader({ token }: { token: string }) {
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder='z.B. Fahrzeugschein'
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+              className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             />
           </div>
 
@@ -85,7 +85,7 @@ export default function CaseFilesUploader({ token }: { token: string }) {
               type='file'
               accept='.pdf,.png,.jpg,.jpeg,.webp'
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+              className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             />
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function CaseFilesUploader({ token }: { token: string }) {
         <button
           type='submit'
           disabled={loading}
-          className='bg-primary text-primary-foreground inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium disabled:opacity-60'
+          className='bg-primary text-primary-foreground inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60'
         >
           {loading ? 'Lade hoch…' : 'Hochladen'}
         </button>

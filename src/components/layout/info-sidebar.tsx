@@ -39,9 +39,9 @@ export function InfoSidebar({
 
   return (
     <Infobar {...props}>
-      <InfobarHeader className='flex flex-row items-start justify-between gap-2 border-b px-3 py-3'>
+      <InfobarHeader className='bg-background/80 flex flex-row items-start justify-between gap-2 border-b px-3 py-3 backdrop-blur-sm'>
         <div className='min-w-0 flex-1'>
-          <h2 className='text-lg font-semibold wrap-break-word'>
+          <h2 className='font-heading text-lg font-semibold tracking-tight wrap-break-word'>
             {data.title}
           </h2>
         </div>
@@ -57,7 +57,7 @@ export function InfoSidebar({
                 data.sections.map((section, index) => (
                   <div key={index} className='flex flex-col gap-3'>
                     {section.title && (
-                      <h3 className='text-foreground text-sm font-semibold'>
+                      <h3 className='font-heading text-foreground text-sm font-semibold tracking-tight'>
                         {section.title}
                       </h3>
                     )}

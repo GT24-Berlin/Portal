@@ -5,7 +5,7 @@ import type { InfobarContent } from '@/components/ui/infobar';
 
 function PageSkeleton() {
   return (
-    <div className='flex flex-1 animate-pulse flex-col gap-4 p-4 md:px-6'>
+    <div className='flex flex-1 animate-pulse flex-col gap-4 p-5 md:px-8 md:py-6'>
       <div className='flex items-center justify-between'>
         <div>
           <div className='bg-muted mb-2 h-8 w-48 rounded' />
@@ -55,8 +55,8 @@ export default function PageContainer({
 
   return scrollable ? (
     <ScrollArea className='h-[calc(100dvh-52px)]'>
-      <div className='flex flex-1 flex-col p-4 md:px-6'>
-        <div className='mb-4 flex items-start justify-between'>
+      <div className='flex flex-1 flex-col px-5 py-5 md:px-8 md:py-7'>
+        <div className='mb-6 flex items-start justify-between gap-4'>
           <Heading
             title={pageTitle ?? ''}
             description={pageDescription ?? ''}
@@ -68,8 +68,8 @@ export default function PageContainer({
       </div>
     </ScrollArea>
   ) : (
-    <div className='flex flex-1 flex-col p-4 md:px-6'>
-      <div className='mb-4 flex items-start justify-between'>
+    <div className='flex flex-1 flex-col px-5 py-5 md:px-8 md:py-7'>
+      <div className='mb-6 flex items-start justify-between gap-4'>
         <Heading
           title={pageTitle ?? ''}
           description={pageDescription ?? ''}

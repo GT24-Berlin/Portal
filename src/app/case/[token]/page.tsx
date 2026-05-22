@@ -10,12 +10,18 @@ import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
 import CustomerJourneyCard from '@/features/customer-journey/components/customer-journey-card';
 import { getCustomerJourney } from '@/features/customer-journey/lib/get-customer-journey';
+import { getPartnerProfile } from '@/features/partner-profile/lib/get-partner-profile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 type TimelineStep = { label: string; done: boolean; date?: string };
+
+type PartnerContactSummary = {
+  name: string;
+  companyName: string;
+};
 
 const GUTACHTER_FLOW = [
   { key: 'EINGEGANGEN', label: 'Eingegangen' },
@@ -44,6 +50,29 @@ function fmt(dt?: Date | null) {
     hour: '2-digit',
     minute: '2-digit'
   }).format(dt);
+}
+
+function buildCustomerName(input: {
+  firstName?: string | null;
+  lastName?: string | null;
+}) {
+  return [input.firstName, input.lastName].filter(Boolean).join(' ').trim();
+}
+
+function buildPartnerSummary(input: {
+  contactPerson?: string | null;
+  companyName?: string | null;
+  partnerName?: string | null;
+  fallbackLabel: string;
+}): PartnerContactSummary {
+  return {
+    name:
+      input.contactPerson?.trim() ||
+      input.partnerName?.trim() ||
+      input.companyName?.trim() ||
+      input.fallbackLabel,
+    companyName: input.companyName?.trim() || ''
+  };
 }
 
 function Timeline({ steps }: { steps: TimelineStep[] }) {
@@ -122,6 +151,16 @@ export default async function CaseTokenPage({
           }
         },
         intake: true,
+        assignments: {
+          orderBy: { assignedAt: 'desc' },
+          select: {
+            role: true,
+            assigneeClerkUserId: true,
+            activeKey: true,
+            active: true,
+            status: true
+          }
+        },
         events: {
           orderBy: { occurredAt: 'asc' }
         }
@@ -152,6 +191,56 @@ export default async function CaseTokenPage({
       occurredAt: e.occurredAt
     }));
 
+    const [gutachterAssignmentRaw, anwaltAssignmentRaw] = [
+      found.assignments.find(
+        (assignment) =>
+          assignment.role === 'GUTACHTER' &&
+          assignment.active === true &&
+          assignment.activeKey === 'ACTIVE'
+      ) ?? null,
+      found.assignments.find(
+        (assignment) =>
+          assignment.role === 'ANWALT' &&
+          assignment.active === true &&
+          assignment.activeKey === 'ACTIVE'
+      ) ?? null
+    ];
+
+    const [gutachterProfile, anwaltProfile] = await Promise.all([
+      gutachterAssignmentRaw?.assigneeClerkUserId
+        ? getPartnerProfile({
+            clerkUserId: gutachterAssignmentRaw.assigneeClerkUserId,
+            role: 'GUTACHTER'
+          })
+        : Promise.resolve(null),
+      anwaltAssignmentRaw?.assigneeClerkUserId
+        ? getPartnerProfile({
+            clerkUserId: anwaltAssignmentRaw.assigneeClerkUserId,
+            role: 'ANWALT'
+          })
+        : Promise.resolve(null)
+    ]);
+
+    const customerName = buildCustomerName(found.customer);
+    const gutachterSummary = gutachterProfile
+      ? buildPartnerSummary({
+          contactPerson: gutachterProfile.contactPerson,
+          companyName: gutachterProfile.companyName,
+          fallbackLabel: 'Wird zugewiesen'
+        })
+      : buildPartnerSummary({
+          fallbackLabel: 'Wird zugewiesen'
+        });
+    const anwaltSummary = anwaltProfile
+      ? buildPartnerSummary({
+          contactPerson: anwaltProfile.contactPerson,
+          companyName: anwaltProfile.companyName,
+          fallbackLabel: 'Wird zugewiesen'
+        })
+      : buildPartnerSummary({
+          fallbackLabel: 'Wird zugewiesen'
+        });
+
     const gutachterTimeline = buildTimeline(
       GUTACHTER_FLOW,
       found.gutachterStatus,
@@ -177,125 +266,215 @@ export default async function CaseTokenPage({
 
     return (
       <div className='bg-background text-foreground h-[100dvh] overflow-y-auto'>
-        <div className='mx-auto max-w-5xl space-y-6 px-4 py-10 pb-24'>
-          <div className='flex items-start justify-between gap-4'>
-            <CaseTopNav
-              token={token}
-              active='status'
-              title='Dein Fallstatus'
-              subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
-              showEdit
-            />
-          </div>
+        <div className='mx-auto max-w-5xl space-y-8 px-4 py-8 pb-24'>
+          <CaseTopNav
+            token={token}
+            active='status'
+            title='Dein Fallstatus'
+            subtitle={`Fallnummer: ${found.caseNumber ?? '—'} · Kunde: ${
+              customerName || '—'
+            }`}
+            showEdit
+          />
 
-          <CustomerJourneyCard data={journey} />
-
-          <div className='bg-card flex flex-col gap-2 rounded-xl border px-5 py-5 md:flex-row md:items-center md:justify-between'>
-            <div>
-              <p className='text-muted-foreground text-sm'>Letztes Update</p>
-              <p className='font-medium'>
-                {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
-              </p>
-            </div>
-            <div className='text-muted-foreground text-sm'>
-              Gutachter:{' '}
-              <span className='text-foreground'>
-                {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
-                  ?.label ?? found.gutachterStatus}
-              </span>
-              {' · '}
-              Anwalt:{' '}
-              <span className='text-foreground'>
-                {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)?.label ??
-                  found.anwaltStatus}
-              </span>
-            </div>
-          </div>
-
-          <div className='grid gap-4 md:grid-cols-2'>
-            <div className='bg-card rounded-xl border px-5 py-6'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-muted-foreground text-sm'>Track</p>
-                  <h2 className='text-xl font-semibold'>Gutachter</h2>
-                  <p className='text-muted-foreground text-sm'>
-                    Status:{' '}
-                    <span className='text-foreground font-medium'>
-                      {GUTACHTER_FLOW.find(
-                        (x) => x.key === found.gutachterStatus
-                      )?.label ?? found.gutachterStatus}
+          <div className='bg-card/95 border-border/60 space-y-5 rounded-[28px] border p-6 shadow-sm md:p-8'>
+            <div className='flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between'>
+              <div className='space-y-3'>
+                <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Fallübersicht
+                </p>
+                <div className='space-y-2'>
+                  <h1 className='font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl'>
+                    Dein Fallstatus
+                  </h1>
+                  <p className='text-muted-foreground max-w-2xl text-sm leading-6 md:text-[15px]'>
+                    Hier siehst du die wichtigsten Eckdaten, die aktuelle
+                    Bearbeitung und die Ansprechpartner für deinen Fall in einer
+                    ruhigen Übersicht.
+                  </p>
+                  <div className='flex flex-wrap gap-2 pt-1'>
+                    <span className='border-border/60 bg-background/80 text-foreground rounded-full border px-3 py-1 text-xs shadow-sm'>
+                      Aktueller Schritt:{' '}
+                      {journey.currentLabel ?? 'In Bearbeitung'}
                     </span>
+                    <span className='border-border/60 bg-background/80 text-muted-foreground rounded-full border px-3 py-1 text-xs shadow-sm'>
+                      Nächster Schritt: {journey.nextLabel ?? 'Keiner offen'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className='grid gap-3 sm:grid-cols-3 lg:min-w-[420px] lg:grid-cols-1 xl:grid-cols-3'>
+                <div className='border-border/60 bg-foreground/5 rounded-2xl border p-4 shadow-sm'>
+                  <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Fallnummer
+                  </p>
+                  <p className='text-foreground font-mono text-lg font-semibold'>
+                    {found.caseNumber ?? '—'}
                   </p>
                 </div>
-                <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
-              </div>
-              <div className='mt-5'>
-                <Timeline steps={gutachterTimeline} />
-              </div>
 
-              {found.gutachtenPdfUrl ? (
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Ihr Gutachter
+                  </p>
+                  <p className='text-foreground font-medium'>
+                    {gutachterSummary.name}
+                  </p>
+                  {gutachterSummary.companyName ? (
+                    <p className='text-muted-foreground text-xs'>
+                      {gutachterSummary.companyName}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Ihr Anwalt
+                  </p>
+                  <p className='text-foreground font-medium'>
+                    {anwaltSummary.name}
+                  </p>
+                  {anwaltSummary.companyName ? (
+                    <p className='text-muted-foreground text-xs'>
+                      {anwaltSummary.companyName}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,0.92fr)]'>
+            <div className='space-y-6'>
+              <CustomerJourneyCard data={journey} />
+
+              <div className='bg-card/95 border-border/60 flex flex-col gap-3 rounded-2xl border px-5 py-5 shadow-sm md:flex-row md:items-center md:justify-between'>
+                <div>
+                  <p className='text-muted-foreground text-sm'>
+                    Letztes Update
+                  </p>
+                  <p className='text-foreground font-medium'>
+                    {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
+                  </p>
+                </div>
+                <div className='text-muted-foreground text-sm'>
+                  Gutachter:{' '}
+                  <span className='text-foreground'>
+                    {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
+                      ?.label ?? found.gutachterStatus}
+                  </span>
+                  {' · '}
+                  Anwalt:{' '}
+                  <span className='text-foreground'>
+                    {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
+                      ?.label ?? found.anwaltStatus}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className='space-y-4'>
+              <div className='bg-card/95 border-border/60 rounded-[28px] border px-5 py-6 shadow-sm'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-muted-foreground text-sm'>Track</p>
+                    <h2 className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+                      Gutachter
+                    </h2>
+                    <p className='text-muted-foreground text-sm'>
+                      Status:{' '}
+                      <span className='text-foreground font-medium'>
+                        {GUTACHTER_FLOW.find(
+                          (x) => x.key === found.gutachterStatus
+                        )?.label ?? found.gutachterStatus}
+                      </span>
+                    </p>
+                  </div>
+                  <p className='text-muted-foreground text-sm'>
+                    In Bearbeitung
+                  </p>
+                </div>
                 <div className='mt-5'>
-                  <a
-                    className='hover:bg-muted inline-flex items-center rounded-lg border px-4 py-2 text-sm'
-                    href={found.gutachtenPdfUrl}
-                    target='_blank'
-                    rel='noreferrer'
-                  >
-                    Gutachten PDF öffnen
-                  </a>
+                  <Timeline steps={gutachterTimeline} />
                 </div>
-              ) : null}
-            </div>
 
-            <div className='bg-card rounded-xl border p-5'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-muted-foreground text-sm'>Track</p>
-                  <h2 className='text-xl font-semibold'>Anwalt</h2>
+                {found.gutachtenPdfUrl ? (
+                  <div className='mt-5'>
+                    <a
+                      className='hover:bg-muted border-border/60 bg-background/80 inline-flex items-center rounded-full border px-4 py-2 text-sm shadow-sm'
+                      href={found.gutachtenPdfUrl}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      Gutachten PDF öffnen
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className='bg-card/95 border-border/60 rounded-[28px] border px-5 py-6 shadow-sm'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-muted-foreground text-sm'>Track</p>
+                    <h2 className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+                      Anwalt
+                    </h2>
+                    <p className='text-muted-foreground text-sm'>
+                      Status:{' '}
+                      <span className='text-foreground font-medium'>
+                        {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
+                          ?.label ?? found.anwaltStatus}
+                      </span>
+                    </p>
+                  </div>
                   <p className='text-muted-foreground text-sm'>
-                    Status:{' '}
-                    <span className='text-foreground font-medium'>
-                      {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
-                        ?.label ?? found.anwaltStatus}
-                    </span>
+                    In Bearbeitung
                   </p>
                 </div>
-                <p className='text-muted-foreground text-sm'>In Bearbeitung</p>
-              </div>
-              <div className='mt-5'>
-                <Timeline steps={anwaltTimeline} />
+                <div className='mt-5'>
+                  <Timeline steps={anwaltTimeline} />
+                </div>
               </div>
             </div>
           </div>
 
-          <CaseIntakeForm token={token} />
+          <div className='grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]'>
+            <div className='space-y-6'>
+              <CaseIntakeForm token={token} />
+            </div>
 
-          <CaseCustomerUploadsMini token={token} />
+            <div className='space-y-6'>
+              <CaseCustomerUploadsMini token={token} />
 
-          <div className='bg-card space-y-3 rounded-xl border p-5'>
-            <h3 className='text-lg font-semibold'>Fragen?</h3>
-            <p className='text-muted-foreground text-sm'>
-              Antworte einfach auf die Nachricht mit deinem Link oder
-              kontaktiere uns.
-            </p>
-            <div className='flex flex-wrap gap-2'>
-              <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-                Anrufen
-              </button>
-              <button className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'>
-                WhatsApp (später)
-              </button>
-              <Link
-                className='hover:bg-muted rounded-lg border px-4 py-2 text-sm'
-                href='/dashboard/overview'
-              >
-                Partner-Portal
-              </Link>
+              <div className='bg-card/95 border-border/60 space-y-3 rounded-2xl border p-5 shadow-sm'>
+                <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+                  Fragen?
+                </h3>
+                <p className='text-muted-foreground text-sm'>
+                  Antworte einfach auf die Nachricht mit deinem Link oder
+                  kontaktiere uns.
+                </p>
+                <div className='flex flex-wrap gap-2'>
+                  <button className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-4 py-2 text-sm shadow-sm'>
+                    Anrufen
+                  </button>
+                  <button className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-4 py-2 text-sm shadow-sm'>
+                    Nachricht senden
+                  </button>
+                  <Link
+                    className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-4 py-2 text-sm shadow-sm'
+                    href='/dashboard/overview'
+                  >
+                    Dein Partnerteam
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
 
           <p className='text-muted-foreground text-xs'>
-            Hinweis: MVP-Demo — Änderungen werden noch nicht gespeichert.
+            Hinweis: Deine Angaben werden im laufenden Fallkontext verwendet.
           </p>
         </div>
       </div>

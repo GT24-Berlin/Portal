@@ -274,7 +274,7 @@ export async function POST(
           const appUrl =
             process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
           const docsUrl = `${appUrl}/case/${caseToken}/documents`;
-          const labelCase = caseWithCustomer?.caseNumber ?? c.id.slice(0, 8);
+          const labelCase = caseWithCustomer?.caseNumber ?? 'Fall ohne Nummer';
 
           const { sendMail } = await import('@/lib/mailer');
 

@@ -29,26 +29,33 @@ const chartData = [
 
 const chartConfig = {
   visitors: {
-    label: 'Visitors'
+    label: 'Fälle'
   },
   desktop: {
-    label: 'Desktop',
+    label: 'Offen',
     color: 'var(--primary)'
   },
   mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)'
+    label: 'Abgeschlossen',
+    color: 'var(--muted-foreground)'
   }
 } satisfies ChartConfig;
 
 export function AreaGraph() {
   return (
-    <Card className='@container/card'>
-      <CardHeader>
-        <CardTitle>Area Chart - Stacked</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
+    <Card className='border-border/60 bg-card/95 @container/card overflow-hidden shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Verlauf
+          </div>
+          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+            Fallverlauf - gestapelt
+          </CardTitle>
+          <CardDescription className='text-muted-foreground'>
+            Entwicklung der Fälle in den letzten 6 Monaten
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
@@ -88,7 +95,11 @@ export function AreaGraph() {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid
+              vertical={false}
+              stroke='var(--border)'
+              strokeDasharray='3 6'
+            />
             <XAxis
               dataKey='month'
               tickLine={false}
@@ -118,15 +129,15 @@ export function AreaGraph() {
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
+      <CardFooter className='border-border/60 bg-muted/10 border-t'>
         <div className='flex w-full items-start gap-2 text-sm'>
           <div className='grid gap-2'>
             <div className='flex items-center gap-2 leading-none font-medium'>
-              Trending up by 5.2% this month{' '}
+              Der Verlauf entwickelt sich stabil{' '}
               <IconTrendingUp className='h-4 w-4' />
             </div>
             <div className='text-muted-foreground flex items-center gap-2 leading-none'>
-              January - June 2024
+              Januar - Juni 2024
             </div>
           </div>
         </div>

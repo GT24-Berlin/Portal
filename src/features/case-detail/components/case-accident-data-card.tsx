@@ -72,18 +72,18 @@ function InfoRow(props: { label: string; value?: string | null }) {
   if (!value || !value.trim()) return null;
 
   return (
-    <div className='flex flex-col gap-1 rounded-xl border border-black/5 bg-neutral-50 p-3'>
-      <div className='text-xs font-medium tracking-wide text-neutral-500 uppercase'>
+    <div className='border-border/60 bg-background/80 hover:bg-muted/20 flex flex-col gap-1 rounded-2xl border p-3 shadow-sm transition-colors'>
+      <div className='text-muted-foreground text-xs font-medium tracking-[0.14em] uppercase'>
         {label}
       </div>
-      <div className='text-sm text-neutral-900'>{value}</div>
+      <div className='text-foreground text-sm'>{value}</div>
     </div>
   );
 }
 
 function SectionTitle(props: { children: React.ReactNode }) {
   return (
-    <div className='pt-2 text-sm font-semibold text-neutral-900'>
+    <div className='text-foreground pt-2 text-sm font-semibold tracking-tight'>
       {props.children}
     </div>
   );
@@ -96,10 +96,12 @@ export default function CaseAccidentDataCard(props: {
 
   if (!intake) {
     return (
-      <section className='rounded-2xl border bg-white p-6 shadow-sm'>
+      <section className='border-border/60 bg-card/95 rounded-2xl border p-6 shadow-sm'>
         <div className='mb-3'>
-          <h2 className='text-lg font-semibold'>Unfalldaten</h2>
-          <p className='text-sm text-neutral-600'>
+          <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Unfalldaten
+          </h2>
+          <p className='text-muted-foreground text-sm'>
             Noch keine Unfalldaten vorhanden.
           </p>
         </div>
@@ -119,16 +121,21 @@ export default function CaseAccidentDataCard(props: {
   ]);
 
   return (
-    <section className='rounded-2xl border bg-white p-6 shadow-sm'>
-      <div className='mb-4'>
-        <h2 className='text-lg font-semibold'>Unfalldaten</h2>
-        <p className='text-sm text-neutral-600'>
+    <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+      <div className='border-border/60 bg-muted/15 border-b p-6'>
+        <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+          Kontext
+        </div>
+        <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+          Unfalldaten
+        </h2>
+        <p className='text-muted-foreground text-sm'>
           Angaben des Kunden zum Unfallhergang und zu den beteiligten
           Fahrzeugen.
         </p>
       </div>
 
-      <div className='space-y-4'>
+      <div className='space-y-4 p-6'>
         <div className='grid gap-3 md:grid-cols-2'>
           <InfoRow label='Regulierungsweg' value={intake.claimRoute ?? null} />
           <InfoRow label='Unfalldatum' value={fmtDate(intake.accidentDate)} />

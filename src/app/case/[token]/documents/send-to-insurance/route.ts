@@ -119,7 +119,7 @@ export async function POST(
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-    const labelCase = found.caseNumber ?? found.id.slice(0, 8);
+    const labelCase = found.caseNumber ?? 'Fall';
 
     // Links zeigen auf Customer-Download-Route (token-basiert)
     const linesText = files

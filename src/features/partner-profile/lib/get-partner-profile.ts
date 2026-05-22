@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { emptyPartnerProfile, type PartnerProfileDto } from '../types';
+import { ensurePartnerRecordForProfile } from './ensure-partner-record';
 
 export async function getPartnerProfile(input: {
   clerkUserId: string;
@@ -11,6 +12,7 @@ export async function getPartnerProfile(input: {
         clerkUserId: input.clerkUserId
       },
       select: {
+        id: true,
         clerkUserId: true,
         role: true,
         partnerId: true,
@@ -34,10 +36,20 @@ export async function getPartnerProfile(input: {
       return emptyPartnerProfile(input.role, input.clerkUserId);
     }
 
+    const partnerId = await ensurePartnerRecordForProfile({
+      profileId: row.id,
+      partnerId: row.partnerId ?? null,
+      role: input.role,
+      companyName: row.companyName ?? '',
+      contactPerson: row.contactPerson ?? '',
+      email: row.email ?? '',
+      region: row.region ?? ''
+    });
+
     return {
       clerkUserId: row.clerkUserId,
       role: row.role as 'GUTACHTER' | 'ANWALT',
-      partnerId: row.partnerId ?? null,
+      partnerId,
       companyName: row.companyName ?? '',
       legalForm: row.legalForm ?? '',
       contactPerson: row.contactPerson ?? '',

@@ -62,6 +62,12 @@ export default async function CasesPage({
       adminCases = await prisma.case.findMany({
         orderBy: { updatedAt: 'desc' },
         include: {
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          },
           lead: true,
           partner: true,
           assignments: {
@@ -103,7 +109,17 @@ export default async function CasesPage({
           }
         },
         orderBy: { updatedAt: 'desc' },
-        include: { lead: true, partner: true, assignments: true },
+        include: {
+          customer: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          },
+          lead: true,
+          partner: true,
+          assignments: true
+        },
         take: 50
       });
 
@@ -145,7 +161,7 @@ export default async function CasesPage({
             <div className='rounded-lg border'>
               <div className='grid grid-cols-6 gap-2 border-b p-3 text-sm font-medium'>
                 <div>Case</div>
-                <div>Lead</div>
+                <div>Kunde</div>
                 <div>Gutachter</div>
                 <div>Anwalt</div>
                 <div>Updated</div>
@@ -167,11 +183,14 @@ export default async function CasesPage({
                         className='underline underline-offset-4 hover:opacity-80'
                         href={`/dashboard/cases/${c.id}`}
                       >
-                        {c.caseNumber ?? c.id.slice(0, 8)}
+                        {c.caseNumber ?? '—'}
                       </Link>
                     </div>
-                    <div className='font-mono'>
-                      {c.lead?.externalId ?? c.lead?.id?.slice(0, 8) ?? '—'}
+                    <div className='truncate text-xs'>
+                      {[c.customer?.firstName, c.customer?.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || '—'}
                     </div>
                     <div>{labelGutachter(String(c.gutachterStatus))}</div>
                     <div>{labelAnwalt(String(c.anwaltStatus))}</div>
@@ -194,7 +213,7 @@ export default async function CasesPage({
             <div className='rounded-lg border'>
               <div className='grid grid-cols-6 gap-2 border-b p-3 text-sm font-medium'>
                 <div>Case</div>
-                <div>Lead</div>
+                <div>Kunde</div>
                 <div>Gutachter</div>
                 <div>Anwalt</div>
                 <div>Updated</div>
@@ -216,11 +235,14 @@ export default async function CasesPage({
                         className='underline underline-offset-4 hover:opacity-80'
                         href={`/dashboard/cases/${c.id}`}
                       >
-                        {c.caseNumber ?? c.id.slice(0, 8)}
+                        {c.caseNumber ?? '—'}
                       </Link>
                     </div>
-                    <div className='font-mono'>
-                      {c.lead?.externalId ?? c.lead?.id?.slice(0, 8) ?? '—'}
+                    <div className='truncate text-xs'>
+                      {[c.customer?.firstName, c.customer?.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || '—'}
                     </div>
                     <div>{labelGutachter(String(c.gutachterStatus))}</div>
                     <div>{labelAnwalt(String(c.anwaltStatus))}</div>

@@ -70,40 +70,61 @@ export default async function CaseProfilePage({
     const _jar = await cookies();
     void _jar;
 
-    const label = found.caseNumber ?? found.id.slice(0, 8);
+    const label = found.caseNumber ?? '—';
     const customer = found.customer; // ab hier sicher vorhanden
 
     return (
       <div className='bg-background text-foreground min-h-[100dvh]'>
         <div className='mx-auto max-w-5xl space-y-6 px-4 py-8'>
           {/* Header */}
-          <div className='flex items-center justify-between'>
-            <div className='space-y-1'>
-              <p className='text-muted-foreground text-sm'>
-                Gutachtery24 · Case Tracker
-              </p>
-              <h1 className='text-2xl font-semibold'>Profil</h1>
-              <p className='text-muted-foreground text-sm'>Fall {label}</p>
+          <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+            <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-5 md:grid-cols-[1.2fr_0.8fr] md:p-6'>
+              <div className='space-y-1'>
+                <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Gutachtery24 · Kundenportal
+                </p>
+                <h1 className='font-heading text-foreground text-2xl font-semibold tracking-tight'>
+                  Profil
+                </h1>
+                <p className='text-muted-foreground text-sm'>
+                  Fallnummer {label}
+                </p>
+              </div>
+              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+                  Für dich wichtig
+                </div>
+                <div className='text-foreground text-sm font-medium'>
+                  Deine Kontaktdaten für den laufenden Fall.
+                </div>
+              </div>
             </div>
 
-            <div className='flex gap-2'>
+            <div className='flex flex-wrap gap-2 p-5 md:p-6'>
               <Link
                 href={`/case/${token}`}
-                className='hover:bg-muted rounded-md border px-3 py-2 text-sm'
+                className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-3 py-2 text-sm shadow-sm transition-colors'
               >
                 Fallstatus
               </Link>
 
               <Link
                 href={`/case/${token}/profile/edit`}
-                className='hover:bg-muted rounded-md border px-3 py-2 text-sm'
+                className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-3 py-2 text-sm shadow-sm transition-colors'
               >
                 Bearbeiten
               </Link>
 
               <Link
+                href={`/case/${token}/appointments`}
+                className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-3 py-2 text-sm shadow-sm transition-colors'
+              >
+                Termin planen
+              </Link>
+
+              <Link
                 href={`/case/${token}/profile`}
-                className='bg-foreground text-background rounded-md px-3 py-2 text-sm hover:opacity-90'
+                className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm hover:opacity-90'
               >
                 Profil
               </Link>
@@ -111,39 +132,51 @@ export default async function CaseProfilePage({
           </div>
 
           {/* Content */}
-          <div className='bg-card space-y-4 rounded-xl border p-6'>
-            {saved ? (
-              <div className='rounded-md border border-green-300 bg-green-50 px-3 py-2 text-sm text-green-800'>
-                Profil gespeichert.
+          <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+            <div className='border-border/60 bg-muted/15 border-b p-6'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                Profildaten
               </div>
-            ) : null}
-
-            {errorMessage ? (
-              <div className='rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800'>
-                {errorMessage}
-              </div>
-            ) : null}
-            <div className='grid grid-cols-1 gap-4 text-sm md:grid-cols-2'>
-              <div>
-                <div className='text-muted-foreground'>Vorname</div>
-                <div className='font-medium'>{customer.firstName}</div>
-              </div>
-              <div>
-                <div className='text-muted-foreground'>Nachname</div>
-                <div className='font-medium'>{customer.lastName}</div>
-              </div>
-              <div>
-                <div className='text-muted-foreground'>E-Mail</div>
-                <div className='font-medium break-all'>{customer.email}</div>
-              </div>
-              <div>
-                <div className='text-muted-foreground'>Telefon</div>
-                <div className='font-medium'>{customer.phone}</div>
-              </div>
+              <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+                Persönliche Angaben
+              </h2>
             </div>
 
-            <div className='text-muted-foreground text-xs'>
-              Bearbeiten bauen wir als nächsten Schritt (Button + Form + POST).
+            <div className='space-y-4 p-6'>
+              {saved ? (
+                <div className='rounded-xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
+                  Profil gespeichert.
+                </div>
+              ) : null}
+
+              {errorMessage ? (
+                <div className='rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
+                  {errorMessage}
+                </div>
+              ) : null}
+              <div className='grid grid-cols-1 gap-4 text-sm md:grid-cols-2'>
+                <div>
+                  <div className='text-muted-foreground'>Vorname</div>
+                  <div className='font-medium'>{customer.firstName}</div>
+                </div>
+                <div>
+                  <div className='text-muted-foreground'>Nachname</div>
+                  <div className='font-medium'>{customer.lastName}</div>
+                </div>
+                <div>
+                  <div className='text-muted-foreground'>E-Mail</div>
+                  <div className='font-medium break-all'>{customer.email}</div>
+                </div>
+                <div>
+                  <div className='text-muted-foreground'>Telefon</div>
+                  <div className='font-medium'>{customer.phone}</div>
+                </div>
+              </div>
+
+              <div className='text-muted-foreground text-xs'>
+                Deine Angaben kannst du jederzeit über die Profilbearbeitung
+                aktualisieren.
+              </div>
             </div>
           </div>
         </div>

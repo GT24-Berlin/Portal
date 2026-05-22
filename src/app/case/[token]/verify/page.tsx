@@ -68,106 +68,120 @@ export default async function CaseVerifyPage({
     // falls bereits verified -> direkt tracker
     if (c.customer.otpVerifiedAt) redirect(`/case/${token}`);
 
-    const label = c.caseNumber ?? c.id.slice(0, 8);
+    const label = c.caseNumber ?? '—';
 
     return (
       <PageContainer
         pageTitle='Code bestätigen'
         pageDescription={`Fall ${label} – bitte OTP bestätigen, um fortzufahren.`}
       >
-        <div className='max-w-xl space-y-4 rounded-lg border p-6'>
-          {/* Status Banner */}
-          {errorRaw ? (
-            <div className='rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800'>
-              {niceError(errorNorm)}
+        <div className='border-border/60 bg-card/95 mx-auto max-w-xl overflow-hidden rounded-[28px] border shadow-sm'>
+          <div className='border-border/60 bg-muted/15 border-b p-5'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+              Kundenportal
             </div>
-          ) : sent ? (
-            <div className='rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm text-emerald-800'>
-              Code wurde gesendet. Bitte prüfe dein Postfach.
-            </div>
-          ) : null}
+            <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+              Code bestätigen
+            </h2>
+            <p className='text-muted-foreground text-sm'>
+              Fall {label} – bitte OTP bestätigen, um fortzufahren.
+            </p>
+          </div>
 
-          <p className='text-muted-foreground text-sm'>
-            Wir senden dir einen 6-stelligen Code per E-Mail. Danach kannst du
-            deinen Fallstatus öffnen.
-          </p>
+          <div className='space-y-4 p-6'>
+            {/* Status Banner */}
+            {errorRaw ? (
+              <div className='rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
+                {niceError(errorNorm)}
+              </div>
+            ) : sent ? (
+              <div className='rounded-xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
+                Code wurde gesendet. Bitte prüfe dein Postfach.
+              </div>
+            ) : null}
 
-          {/* 1) Code senden */}
-          <form
-            action={`/case/${token}/verify/send`}
-            method='post'
-            className='space-y-3'
-          >
-            <div className='space-y-1'>
-              <label className='text-sm font-medium'>E-Mail *</label>
-              <input
-                type='email'
-                name='email'
-                defaultValue={c.customer.email ?? ''}
-                className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-                required
-              />
-            </div>
+            <p className='text-muted-foreground text-sm'>
+              Wir senden dir einen 6-stelligen Code per E-Mail. Danach kannst du
+              deinen Fallstatus öffnen.
+            </p>
 
-            <button
-              type='submit'
-              className='inline-flex w-full items-center justify-center rounded-md border px-3 py-2 text-sm font-medium'
+            {/* 1) Code senden */}
+            <form
+              action={`/case/${token}/verify/send`}
+              method='post'
+              className='space-y-3'
             >
-              Code senden
-            </button>
-          </form>
-
-          <div className='bg-border h-px w-full' />
-
-          {/* 2) Code verifizieren */}
-          <form
-            action={`/case/${token}/verify/submit`}
-            method='post'
-            className='space-y-3'
-          >
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='col-span-2 space-y-1'>
+              <div className='space-y-1'>
                 <label className='text-sm font-medium'>E-Mail *</label>
                 <input
                   type='email'
                   name='email'
                   defaultValue={c.customer.email ?? ''}
-                  className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>
 
-              <div className='col-span-2 space-y-1'>
-                <label className='text-sm font-medium'>
-                  6-stelliger Code *
-                </label>
-                <input
-                  name='code'
-                  inputMode='numeric'
-                  pattern='[0-9]{6}'
-                  maxLength={6}
-                  className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-                  placeholder='z.B. 123456'
-                  required
-                />
+              <button
+                type='submit'
+                className='border-border/60 bg-background/80 hover:bg-muted inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors'
+              >
+                Code senden
+              </button>
+            </form>
+
+            <div className='bg-border h-px w-full' />
+
+            {/* 2) Code verifizieren */}
+            <form
+              action={`/case/${token}/verify/submit`}
+              method='post'
+              className='space-y-3'
+            >
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='col-span-2 space-y-1'>
+                  <label className='text-sm font-medium'>E-Mail *</label>
+                  <input
+                    type='email'
+                    name='email'
+                    defaultValue={c.customer.email ?? ''}
+                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    required
+                  />
+                </div>
+
+                <div className='col-span-2 space-y-1'>
+                  <label className='text-sm font-medium'>
+                    6-stelliger Code *
+                  </label>
+                  <input
+                    name='code'
+                    inputMode='numeric'
+                    pattern='[0-9]{6}'
+                    maxLength={6}
+                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    placeholder='z.B. 123456'
+                    required
+                  />
+                </div>
               </div>
+
+              <button
+                type='submit'
+                className='bg-foreground text-background inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium shadow-sm'
+              >
+                Code bestätigen
+              </button>
+            </form>
+
+            <div className='text-muted-foreground text-xs'>
+              <Link
+                className='underline underline-offset-4'
+                href={`/case/${token}`}
+              >
+                Zurück (Tracker)
+              </Link>
             </div>
-
-            <button
-              type='submit'
-              className='bg-primary text-primary-foreground inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-medium'
-            >
-              Code bestätigen
-            </button>
-          </form>
-
-          <div className='text-muted-foreground text-xs'>
-            <Link
-              className='underline underline-offset-4'
-              href={`/case/${token}`}
-            >
-              Zurück (Tracker)
-            </Link>
           </div>
         </div>
       </PageContainer>

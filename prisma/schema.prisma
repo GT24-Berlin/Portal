@@ -61,6 +61,30 @@ enum AssignmentStatus {
   EXPIRED
 }
 
+enum CaseAppointmentRole {
+  GUTACHTER
+  ANWALT
+}
+
+enum CaseAppointmentType {
+  PHONE
+  IN_PERSON
+}
+
+enum CaseAppointmentDuration {
+  MINUTES_15
+  MINUTES_30
+}
+
+enum CaseAppointmentRequestStatus {
+  REQUESTED
+  CONFIRMED
+  DECLINED
+  ALTERNATIVE_PROPOSED
+  EXPIRED
+  CANCELLED
+}
+
 enum ClaimRoute {
   OPPONENT_LIABILITY
   OWN_CASCO
@@ -143,6 +167,10 @@ enum NotificationType {
   ASSIGNMENT_ACCEPTED
   ASSIGNMENT_RELEASED
   ASSIGNMENT_EXPIRED
+  APPOINTMENT_REQUEST_CREATED
+  APPOINTMENT_REQUEST_CONFIRMED
+  APPOINTMENT_REQUEST_DECLINED
+  APPOINTMENT_REQUEST_ALTERNATIVE_PROPOSED
 }
 
 model Notification {
@@ -287,6 +315,8 @@ model Partner {
 
   leads Lead[]
   cases Case[] @relation("CasePartner")
+  availabilitySlots PartnerAvailabilitySlot[]
+  appointmentRequests CaseAppointmentRequest[]
 }
 
 model PartnerProfile {
@@ -380,6 +410,12 @@ model Case {
   events           CaseEvent[]
   operationalEvents OperationalEvent[]
   caseCustomerOtps CaseCustomerOtp[]
+  appointmentRequests CaseAppointmentRequest[]
+}
+
+model CaseNumberSequence {
+  id           String @id
+  currentValue Int    @default(0)
 }
 
 model CaseCustomer {
@@ -546,4 +582,75 @@ model CaseEvent {
   occurredAt DateTime @default(now())
 
   @@index([caseId, lane, occurredAt])
+}
+
+model PartnerAvailabilitySlot {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  role           CaseAppointmentRole
+  appointmentType CaseAppointmentType
+  duration       CaseAppointmentDuration
+  weekday        Int
+  startTime      String
+  endTime        String
+  bufferMinutes  Int     @default(15)
+  isActive       Boolean @default(true)
+
+  @@index([partnerId])
+  @@index([partnerId, role, isActive])
+}
+
+model CaseAppointmentRequest {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  caseId String
+  case   Case @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  role            CaseAppointmentRole
+  appointmentType CaseAppointmentType
+  duration        CaseAppointmentDuration
+  status          CaseAppointmentRequestStatus @default(REQUESTED)
+  requestedStartAt DateTime
+  requestedEndAt   DateTime
+  expiresAt        DateTime
+  customerNote     String?
+  partnerResponseNote String?
+  confirmedAt      DateTime?
+  declinedAt       DateTime?
+  cancelledAt      DateTime?
+
+  proposals CaseAppointmentProposal[]
+
+  @@index([caseId])
+  @@index([partnerId])
+  @@index([status])
+  @@index([requestedStartAt])
+}
+
+model CaseAppointmentProposal {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointmentRequestId String
+  appointmentRequest   CaseAppointmentRequest @relation(fields: [appointmentRequestId], references: [id], onDelete: Cascade)
+
+  proposedStartAt DateTime
+  proposedEndAt   DateTime
+  note            String?
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+
+  @@index([appointmentRequestId])
+  @@index([proposedStartAt])
 }

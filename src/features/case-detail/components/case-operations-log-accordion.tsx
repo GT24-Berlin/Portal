@@ -27,46 +27,56 @@ export default function CaseOperationsLogAccordion(props: {
   const { items } = props;
 
   return (
-    <details className='rounded-2xl border bg-white p-6 shadow-sm'>
-      <summary className='flex cursor-pointer list-none items-center justify-between gap-4'>
-        <div>
-          <h2 className='text-lg font-semibold'>Operations Log</h2>
-          <p className='text-sm text-neutral-600'>
+    <details className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border p-6 shadow-sm'>
+      <summary className='border-border/60 flex cursor-pointer list-none items-center justify-between gap-4 border-b pb-4'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Audit Trail
+          </div>
+          <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Operations Log
+          </h2>
+          <p className='text-muted-foreground text-sm'>
             {items.length} Eintrag{items.length === 1 ? '' : 'e'}
           </p>
         </div>
 
-        <span className='rounded-md border px-3 py-1.5 text-xs text-neutral-700'>
+        <span className='border-border/60 bg-background/80 text-foreground rounded-full border px-3 py-1.5 text-xs shadow-sm'>
           Aufklappen
         </span>
       </summary>
 
       <div className='mt-5 space-y-3'>
         {items.length === 0 ? (
-          <div className='rounded-xl border p-4 text-sm text-neutral-600'>
+          <div className='border-border/60 bg-muted/10 text-muted-foreground rounded-2xl border border-dashed p-4 text-sm shadow-sm'>
             Noch keine Einträge vorhanden.
           </div>
         ) : (
           items.map((item) => (
             <div
               key={item.id}
-              className='rounded-xl border border-black/5 bg-neutral-50 p-4'
+              className='border-border/60 bg-background/80 hover:bg-muted/20 rounded-2xl border p-4 shadow-sm transition-colors'
             >
-              <div className='flex flex-wrap items-center gap-2 text-xs text-neutral-500'>
-                <span>{fmtDate(item.createdAt)}</span>
-                <span>·</span>
-                <span>{item.domain}</span>
-                <span>·</span>
-                <span>{item.action}</span>
-                <span>·</span>
-                <span>{item.result}</span>
+              <div className='text-muted-foreground flex flex-wrap items-center gap-2 text-xs'>
+                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                  {fmtDate(item.createdAt)}
+                </span>
+                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                  {item.domain}
+                </span>
+                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                  {item.action}
+                </span>
+                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                  {item.result}
+                </span>
               </div>
 
-              <div className='mt-2 text-sm font-medium text-neutral-900'>
+              <div className='text-foreground mt-3 text-sm font-medium'>
                 {item.message}
               </div>
 
-              <div className='mt-1 text-xs text-neutral-500'>
+              <div className='text-muted-foreground mt-2 text-xs'>
                 {item.actorType}
                 {item.actorId ? ` · ${item.actorId}` : ''}
               </div>

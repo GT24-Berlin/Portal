@@ -93,7 +93,7 @@ export function OrgSwitcher() {
           <SidebarMenuButton
             size='lg'
             onClick={() => router.push('/dashboard/workspaces')}
-            className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+            className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-xl'
           >
             <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
               <Plus className='size-4' />
@@ -180,7 +180,7 @@ export function OrgSwitcher() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className='w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg'
+            className='bg-popover/95 w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-xl border shadow-lg backdrop-blur-sm'
             align='start'
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}

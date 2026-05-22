@@ -115,19 +115,19 @@ const chartData = [
 
 const chartConfig = {
   views: {
-    label: 'Page Views'
+    label: 'Fallvolumen'
   },
   desktop: {
-    label: 'Desktop',
+    label: 'Offen',
     color: 'var(--primary)'
   },
   mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)'
+    label: 'Abgeschlossen',
+    color: 'var(--muted-foreground)'
   },
   error: {
-    label: 'Error',
-    color: 'var(--primary)'
+    label: 'Rückfrage',
+    color: 'var(--foreground)'
   }
 } satisfies ChartConfig;
 
@@ -160,15 +160,20 @@ export function BarGraph() {
   }
 
   return (
-    <Card className='@container/card !pt-3'>
-      <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
-        <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
-          <CardTitle>Bar Chart - Interactive</CardTitle>
-          <CardDescription>
+    <Card className='border-border/60 bg-card/95 @container/card overflow-hidden !pt-3 shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+        <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Entwicklung
+          </div>
+          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+            Fallvolumen - interaktiv
+          </CardTitle>
+          <CardDescription className='text-muted-foreground'>
             <span className='hidden @[540px]/card:block'>
-              Total for the last 3 months
+              Gesamt der letzten 3 Monate
             </span>
-            <span className='@[540px]/card:hidden'>Last 3 months</span>
+            <span className='@[540px]/card:hidden'>Letzte 3 Monate</span>
           </CardDescription>
         </div>
         <div className='flex'>
@@ -179,13 +184,13 @@ export function BarGraph() {
               <button
                 key={chart}
                 data-active={activeChart === chart}
-                className='data-[active=true]:bg-primary/5 hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left transition-colors duration-200 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
+                className='data-[active=true]:bg-primary/5 hover:bg-primary/5 border-border/60 relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left transition-colors duration-200 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
                 onClick={() => setActiveChart(chart)}
               >
-                <span className='text-muted-foreground text-xs'>
+                <span className='text-muted-foreground text-xs tracking-[0.12em] uppercase'>
                   {chartConfig[chart].label}
                 </span>
-                <span className='text-lg leading-none font-bold sm:text-3xl'>
+                <span className='text-lg leading-none font-semibold tracking-tight sm:text-3xl'>
                   {total[key as keyof typeof total]?.toLocaleString()}
                 </span>
               </button>
@@ -219,7 +224,11 @@ export function BarGraph() {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid
+              vertical={false}
+              stroke='var(--border)'
+              strokeDasharray='3 6'
+            />
             <XAxis
               dataKey='date'
               tickLine={false}

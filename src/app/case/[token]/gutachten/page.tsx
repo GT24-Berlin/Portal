@@ -103,135 +103,156 @@ export default async function CaseGutachtenPage({
             token={token}
             active='gutachten'
             title='Ihr Gutachten'
-            subtitle={`Case ID: ${found.caseNumber ?? found.id} · Token: ${found.token}`}
+            subtitle={`Fallnummer: ${found.caseNumber ?? '—'} · ${
+              [found.customer.firstName, found.customer.lastName]
+                .filter(Boolean)
+                .join(' ')
+                .trim() || 'Kunde'
+            }`}
           />
 
-          {insights.status === 'PARSED' && summaryLines.length > 0 ? (
-            <section className='bg-card rounded-2xl border p-5 md:p-6'>
+          <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+            <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-6 md:grid-cols-[1.35fr_0.65fr] md:p-8'>
               <div className='space-y-2'>
-                <p className='text-muted-foreground text-sm'>Kurzübersicht</p>
-                <h2 className='text-xl font-semibold'>
-                  Das Wichtigste aus dem Gutachten
-                </h2>
-              </div>
-
-              <div className='mt-4 space-y-3'>
-                {summaryLines.map((line, index) => (
-                  <div
-                    key={index}
-                    className='bg-muted/40 rounded-xl border px-4 py-3 text-sm md:text-base'
-                  >
-                    {line}
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className='rounded-[30px] border border-black/5 bg-white p-6 shadow-sm md:p-8'>
-            <div className='space-y-6'>
-              <div className='space-y-2'>
-                <div className='text-[11px] font-semibold tracking-[0.18em] text-neutral-500 uppercase'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                   Gutachten
                 </div>
-                <h2 className='text-2xl font-semibold tracking-tight text-neutral-950 md:text-3xl'>
+                <h2 className='font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl'>
                   Überblick zu Ihrem Gutachten
                 </h2>
-                <p className='max-w-2xl text-sm leading-6 text-neutral-600 md:text-[15px]'>
+                <p className='text-muted-foreground max-w-2xl text-sm leading-6 md:text-[15px]'>
                   Hier finden Sie die wichtigsten Inhalte und Kennzahlen aus
                   Ihrem Gutachten in verständlicher Form zusammengefasst.
                 </p>
               </div>
 
+              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+                  Service
+                </div>
+                <div className='text-foreground text-sm font-medium'>
+                  Fallnummer {found.caseNumber ?? '—'}
+                </div>
+                <div className='text-muted-foreground text-sm'>
+                  {found.customer.firstName} {found.customer.lastName}
+                </div>
+              </div>
+            </div>
+
+            <div className='space-y-6 p-6 md:p-8'>
+              {insights.status === 'PARSED' && summaryLines.length > 0 ? (
+                <section className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm md:p-6'>
+                  <div className='space-y-2'>
+                    <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                      Kurzübersicht
+                    </p>
+                    <h2 className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+                      Das Wichtigste aus dem Gutachten
+                    </h2>
+                  </div>
+
+                  <div className='mt-4 space-y-3'>
+                    {summaryLines.map((line, index) => (
+                      <div
+                        key={index}
+                        className='bg-background/80 border-border/60 text-foreground rounded-2xl border px-4 py-3 text-sm shadow-sm md:text-base'
+                      >
+                        {line}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+
               <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
-                <div className='rounded-2xl bg-neutral-50 p-4'>
-                  <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Schadenshöhe
                   </div>
-                  <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                  <div className='text-foreground mt-2 text-sm font-semibold'>
                     {fmtMoney(insights.schadenshoeheBrutto)}
                   </div>
-                  <div className='mt-1 text-xs text-neutral-500'>
+                  <div className='text-muted-foreground mt-1 text-xs'>
                     Reparaturkosten brutto
                   </div>
                 </div>
 
-                <div className='rounded-2xl bg-neutral-50 p-4'>
-                  <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Wiederbeschaffungswert
                   </div>
-                  <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                  <div className='text-foreground mt-2 text-sm font-semibold'>
                     {fmtMoney(insights.wiederbeschaffungswert)}
                   </div>
-                  <div className='mt-1 text-xs text-neutral-500'>
+                  <div className='text-muted-foreground mt-1 text-xs'>
                     Marktwert eines gleichwertigen Fahrzeugs
                   </div>
                 </div>
 
-                <div className='rounded-2xl bg-neutral-50 p-4'>
-                  <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Wertminderung
                   </div>
-                  <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                  <div className='text-foreground mt-2 text-sm font-semibold'>
                     {fmtMoney(insights.wertminderung)}
                   </div>
-                  <div className='mt-1 text-xs text-neutral-500'>
+                  <div className='text-muted-foreground mt-1 text-xs'>
                     Zusätzlicher merkantiler Minderwert
                   </div>
                 </div>
 
-                <div className='rounded-2xl bg-neutral-50 p-4'>
-                  <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Nutzungsausfall
                   </div>
-                  <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                  <div className='text-foreground mt-2 text-sm font-semibold'>
                     {typeof insights.nutzungsausfallProTag === 'number' &&
                     Number.isFinite(insights.nutzungsausfallProTag)
                       ? `${insights.nutzungsausfallProTag.toLocaleString('de-DE')} € / Tag`
                       : 'Daten noch nicht vorhanden'}
                   </div>
-                  <div className='mt-1 text-xs text-neutral-500'>
+                  <div className='text-muted-foreground mt-1 text-xs'>
                     Mögliche Entschädigung pro Kalendertag
                   </div>
                 </div>
               </div>
 
-              <div className='rounded-2xl border border-neutral-200 bg-neutral-50 p-5'>
+              <div className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm'>
                 <div className='space-y-4'>
                   <div>
-                    <div className='text-sm font-medium text-neutral-950'>
+                    <div className='text-foreground text-sm font-medium'>
                       Weitere Kennzahlen aus dem Gutachten
                     </div>
-                    <div className='mt-1 text-sm text-neutral-600'>
+                    <div className='text-muted-foreground mt-1 text-sm'>
                       Sobald die Auswertung vorliegt, zeigen wir dir hier die
                       wichtigsten Werte in verständlicher Form.
                     </div>
                   </div>
 
                   <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-5'>
-                    <div className='rounded-2xl bg-white p-4'>
-                      <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturkosten netto
                       </div>
-                      <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                      <div className='text-foreground mt-2 text-sm font-semibold'>
                         {fmtMoney(insights.reparaturkostenNetto)}
                       </div>
                     </div>
 
-                    <div className='rounded-2xl bg-white p-4'>
-                      <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturkosten brutto
                       </div>
-                      <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                      <div className='text-foreground mt-2 text-sm font-semibold'>
                         {fmtMoney(insights.reparaturkostenBrutto)}
                       </div>
                     </div>
 
-                    <div className='rounded-2xl bg-white p-4'>
-                      <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturdauer
                       </div>
-                      <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                      <div className='text-foreground mt-2 text-sm font-semibold'>
                         {typeof insights.reparaturdauerArbeitstage ===
                           'number' &&
                         Number.isFinite(insights.reparaturdauerArbeitstage)
@@ -240,32 +261,32 @@ export default async function CaseGutachtenPage({
                       </div>
                     </div>
 
-                    <div className='rounded-2xl bg-white p-4'>
-                      <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Abrechnungsart
                       </div>
-                      <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                      <div className='text-foreground mt-2 text-sm font-semibold'>
                         {insights.abrechnungsart ??
                           'Daten noch nicht vorhanden'}
                       </div>
                     </div>
 
-                    <div className='rounded-2xl bg-white p-4'>
-                      <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Mietwagenklasse
                       </div>
-                      <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                      <div className='text-foreground mt-2 text-sm font-semibold'>
                         {insights.mietwagenklasse ??
                           'Daten noch nicht vorhanden'}
                       </div>
                     </div>
                   </div>
 
-                  <div className='rounded-2xl bg-white p-4'>
-                    <div className='text-[11px] font-semibold tracking-[0.14em] text-neutral-500 uppercase'>
+                  <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                    <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                       Reparaturstatus
                     </div>
-                    <div className='mt-2 text-sm font-semibold text-neutral-950'>
+                    <div className='text-foreground mt-2 text-sm font-semibold'>
                       {insights.reparaturwuerdig == null
                         ? 'Daten noch nicht vorhanden'
                         : insights.reparaturwuerdig
@@ -277,19 +298,19 @@ export default async function CaseGutachtenPage({
               </div>
 
               {gutachtenFile ? (
-                <div className='rounded-2xl border border-neutral-200 bg-neutral-50 p-5'>
+                <div className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm'>
                   <div className='space-y-4'>
                     <div className='space-y-2'>
-                      <div className='text-sm font-medium text-neutral-950'>
+                      <div className='text-foreground text-sm font-medium'>
                         Vorhandenes Gutachten
                       </div>
-                      <div className='text-sm text-neutral-700'>
+                      <div className='text-foreground text-sm'>
                         {gutachtenFile.title || gutachtenFile.filename}
                       </div>
-                      <div className='text-xs text-neutral-500'>
+                      <div className='text-muted-foreground text-xs'>
                         Hochgeladen am {fmt(gutachtenFile.createdAt)}
                       </div>
-                      <div className='text-sm leading-6 text-neutral-600'>
+                      <div className='text-muted-foreground text-sm leading-6'>
                         {gutachtenInfoText}
                       </div>
                     </div>
@@ -299,14 +320,14 @@ export default async function CaseGutachtenPage({
                         href={`/api/case/${token}/files/${gutachtenFile.id}/download`}
                         target='_blank'
                         rel='noreferrer'
-                        className='inline-flex rounded-lg border px-4 py-2 text-sm hover:bg-neutral-100'
+                        className='border-border/60 bg-background/80 hover:bg-muted inline-flex rounded-full border px-4 py-2 text-sm shadow-sm'
                       >
                         Gutachten öffnen
                       </a>
 
                       <a
                         href={`/case/${token}/documents`}
-                        className='inline-flex rounded-lg border px-4 py-2 text-sm hover:bg-neutral-100'
+                        className='border-border/60 bg-background/80 hover:bg-muted inline-flex rounded-full border px-4 py-2 text-sm shadow-sm'
                       >
                         Zu den Dokumenten
                       </a>
@@ -314,12 +335,12 @@ export default async function CaseGutachtenPage({
                   </div>
                 </div>
               ) : (
-                <div className='rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6'>
+                <div className='border-border/60 bg-muted/10 rounded-2xl border border-dashed p-6 shadow-sm'>
                   <div className='space-y-2'>
-                    <div className='text-sm font-medium text-neutral-950'>
+                    <div className='text-foreground text-sm font-medium'>
                       Daten noch nicht vorhanden
                     </div>
-                    <div className='max-w-2xl text-sm leading-6 text-neutral-600'>
+                    <div className='text-muted-foreground max-w-2xl text-sm leading-6'>
                       Sobald Ihr Gutachten vorliegt, zeigen wir Ihnen hier die
                       wichtigsten Werte und eine verständliche Zusammenfassung.
                       Bis dahin werden noch keine Schadenshöhe und kein

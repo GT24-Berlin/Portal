@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
-import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/rbac';
 import { LeadStatus } from '@prisma/client';
+import { getNextCaseNumber } from '@/features/case-number/server/get-next-case-number';
+import { createCaseWithUniqueToken } from '@/features/case-token/server/case-token';
 
 export const runtime = 'nodejs';
-
-function makeToken() {
-  return crypto.randomBytes(16).toString('hex');
-}
 
 export async function POST(
   _req: Request,
@@ -64,29 +61,34 @@ export async function POST(
     }
 
     const created = await prisma.$transaction(async (tx) => {
-      const caseRecord = await tx.case.create({
-        data: {
-          token: makeToken(),
-          leadId,
-          events: {
-            create: [
-              {
-                lane: 'GUTACHTER',
-                status: 'EINGEGANGEN',
-                note: 'Case erstellt aus Lead',
-                occurredAt: new Date()
-              },
-              {
-                lane: 'ANWALT',
-                status: 'FALL_EINGEGANGEN',
-                note: 'Case erstellt aus Lead',
-                occurredAt: new Date()
-              }
-            ]
-          }
-        },
-        include: { events: { orderBy: { occurredAt: 'asc' } } }
-      });
+      const caseNumber = await getNextCaseNumber(tx);
+
+      const caseRecord = await createCaseWithUniqueToken((token) =>
+        tx.case.create({
+          data: {
+            token,
+            caseNumber,
+            leadId,
+            events: {
+              create: [
+                {
+                  lane: 'GUTACHTER',
+                  status: 'EINGEGANGEN',
+                  note: 'Case erstellt aus Lead',
+                  occurredAt: new Date()
+                },
+                {
+                  lane: 'ANWALT',
+                  status: 'FALL_EINGEGANGEN',
+                  note: 'Case erstellt aus Lead',
+                  occurredAt: new Date()
+                }
+              ]
+            }
+          },
+          include: { events: { orderBy: { occurredAt: 'asc' } } }
+        })
+      );
 
       await tx.lead.update({
         where: { id: leadId },

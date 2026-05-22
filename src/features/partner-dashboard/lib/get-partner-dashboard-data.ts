@@ -42,7 +42,11 @@ function toPartnerCaseRow(
     caseNumber: c.caseNumber ?? null,
     token: c.token,
     updatedAt: c.updatedAt,
-    leadExternalId: c.lead?.externalId ?? null,
+    customerName:
+      [c.customer?.firstName, c.customer?.lastName]
+        .filter(Boolean)
+        .join(' ')
+        .trim() || null,
     gutachterStatus: String(c.gutachterStatus ?? ''),
     anwaltStatus: String(c.anwaltStatus ?? ''),
     assignmentStatus: String(assignment?.status ?? ''),
@@ -164,6 +168,12 @@ export async function getPartnerDashboardData(input: {
       take: 8,
       include: {
         lead: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        },
         assignments: true
       }
     }),
@@ -183,6 +193,12 @@ export async function getPartnerDashboardData(input: {
       take: 8,
       include: {
         lead: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        },
         assignments: true
       }
     }),

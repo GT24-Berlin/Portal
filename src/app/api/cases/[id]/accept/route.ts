@@ -268,7 +268,7 @@ export async function POST(
         select: { token: true, caseNumber: true }
       });
 
-      const caseLabel = c?.caseNumber ?? caseId.slice(0, 8);
+      const caseLabel = c?.caseNumber ?? 'Fall ohne Nummer';
       const dashboardUrl = `${appUrl}/dashboard/cases/${caseId}`;
       const trackerUrl = c?.token ? `${appUrl}/case/${c.token}` : null;
 

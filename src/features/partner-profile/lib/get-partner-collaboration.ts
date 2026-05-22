@@ -33,6 +33,12 @@ export async function getPartnerCollaboration(input: {
         caseNumber: true,
         token: true,
         updatedAt: true,
+        customer: {
+          select: {
+            firstName: true,
+            lastName: true
+          }
+        },
         gutachterStatus: true,
         anwaltStatus: true,
         assignments: {
@@ -129,6 +135,11 @@ export async function getPartnerCollaboration(input: {
         caseNumber: c.caseNumber ?? null,
         token: c.token,
         updatedAt: c.updatedAt,
+        customerName:
+          [c.customer?.firstName, c.customer?.lastName]
+            .filter(Boolean)
+            .join(' ')
+            .trim() || null,
         ownRole: input.role,
         ownAssignmentStatus: String(ownAssignment?.status ?? ''),
         counterpartRole,

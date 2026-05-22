@@ -11,10 +11,52 @@ export default function AdminDashboardView(props: {
   const { data } = props;
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-8'>
+      <div className='bg-card/95 border-border/60 space-y-4 rounded-[28px] border p-6 shadow-sm md:p-8'>
+        <div className='space-y-2'>
+          <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Admin Dashboard
+          </p>
+          <h1 className='font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl'>
+            Operative Steuerzentrale
+          </h1>
+          <p className='text-muted-foreground max-w-3xl text-sm leading-6 md:text-[15px]'>
+            Fälle, Zuweisungen, Events und aktuelle Auslastung in einer klaren
+            Management-Übersicht.
+          </p>
+        </div>
+      </div>
+
+      <div className='border-border/60 bg-card/95 grid grid-cols-1 gap-4 rounded-[28px] border p-5 shadow-sm md:grid-cols-3 md:p-6'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            KPI Layer
+          </div>
+          <div className='text-foreground text-sm font-medium'>
+            Kompakte Betriebskennzahlen
+          </div>
+        </div>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Fokus
+          </div>
+          <div className='text-foreground text-sm font-medium'>
+            Zuweisungen, Auslastung und offene Vorgänge
+          </div>
+        </div>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Modus
+          </div>
+          <div className='text-foreground text-sm font-medium'>
+            Operative Gesamtübersicht
+          </div>
+        </div>
+      </div>
+
       <AdminKpiGrid items={data.kpis} />
 
-      <div className='grid grid-cols-1 gap-4 xl:grid-cols-2'>
+      <div className='grid grid-cols-1 gap-6 xl:grid-cols-2'>
         <AdminAssignmentStatusChart items={data.assignmentStatus} />
         <AdminActivityChart items={data.activityLast7d} />
       </div>

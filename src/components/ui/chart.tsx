@@ -174,7 +174,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+        'border-border/60 bg-popover/95 grid min-w-[8rem] items-start gap-1.5 rounded-xl border px-3 py-2 text-xs shadow-[0_8px_24px_rgba(0,0,0,0.08)] backdrop-blur-sm',
         className
       )}
     >
@@ -271,7 +271,7 @@ function ChartLegendContent({
   return (
     <div
       className={cn(
-        'flex items-center justify-center gap-4',
+        'flex items-center justify-center gap-3',
         verticalAlign === 'top' ? 'pb-3' : 'pt-3',
         className
       )}
@@ -284,7 +284,7 @@ function ChartLegendContent({
           <div
             key={item.value}
             className={cn(
-              '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3'
+              '[&>svg]:text-muted-foreground flex items-center gap-1.5 text-xs [&>svg]:h-3 [&>svg]:w-3'
             )}
           >
             {itemConfig?.icon && !hideIcon ? (

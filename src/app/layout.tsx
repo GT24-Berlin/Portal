@@ -11,8 +11,8 @@ import './globals.css';
 import './theme.css';
 
 const META_THEME_COLORS = {
-  light: '#ffffff',
-  dark: '#09090b'
+  light: '#f7f6f2',
+  dark: '#101114'
 };
 
 export const metadata: Metadata = {
@@ -50,7 +50,7 @@ export default async function RootLayout({
       </head>
       <body
         className={cn(
-          'bg-background overflow-hidden overscroll-none font-sans antialiased',
+          'bg-background selection:bg-primary/10 selection:text-foreground overflow-hidden overscroll-none font-sans antialiased',
           activeThemeValue ? `theme-${activeThemeValue}` : '',
           isScaled ? 'theme-scaled' : '',
           fontVariables

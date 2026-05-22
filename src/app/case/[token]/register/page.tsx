@@ -32,74 +32,89 @@ export default async function CaseRegisterPage({
       redirect(`/case/${token}`);
     }
 
-    const label = c.caseNumber ?? c.id.slice(0, 8);
+    const label = c.caseNumber ?? '—';
 
     return (
       <PageContainer
         pageTitle='Profil anlegen'
         pageDescription={`Fall ${label} – bitte einmal kurz registrieren, dann kannst du fortfahren.`}
       >
-        <div className='max-w-xl space-y-4 rounded-lg border p-6'>
-          <form
-            action={`/case/${token}/register/submit`}
-            method='post'
-            className='space-y-3'
-          >
-            <div className='grid grid-cols-2 gap-3'>
+        <div className='border-border/60 bg-card/95 mx-auto max-w-xl overflow-hidden rounded-[28px] border shadow-sm'>
+          <div className='border-border/60 bg-muted/15 border-b p-5'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+              Kundenportal
+            </div>
+            <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+              Profil anlegen
+            </h2>
+            <p className='text-muted-foreground text-sm'>
+              Fall {label} – bitte einmal kurz registrieren, dann kannst du
+              fortfahren.
+            </p>
+          </div>
+
+          <div className='space-y-4 p-6'>
+            <form
+              action={`/case/${token}/register/submit`}
+              method='post'
+              className='space-y-3'
+            >
+              <div className='grid grid-cols-2 gap-3'>
+                <div className='space-y-1'>
+                  <label className='text-sm font-medium'>Vorname *</label>
+                  <input
+                    name='firstName'
+                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    required
+                  />
+                </div>
+
+                <div className='space-y-1'>
+                  <label className='text-sm font-medium'>Nachname *</label>
+                  <input
+                    name='lastName'
+                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    required
+                  />
+                </div>
+              </div>
+
               <div className='space-y-1'>
-                <label className='text-sm font-medium'>Vorname *</label>
+                <label className='text-sm font-medium'>E-Mail *</label>
                 <input
-                  name='firstName'
-                  className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+                  type='email'
+                  name='email'
+                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>
 
               <div className='space-y-1'>
-                <label className='text-sm font-medium'>Nachname *</label>
+                <label className='text-sm font-medium'>Telefon *</label>
                 <input
-                  name='lastName'
-                  className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+                  name='phone'
+                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>
+
+              <button
+                type='submit'
+                className='bg-foreground text-background inline-flex w-full items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium shadow-sm'
+              >
+                Weiter zum Fallstatus
+              </button>
+            </form>
+
+            <div className='text-muted-foreground text-xs'>
+              Du hast bereits einen Account?{' '}
+              <Link
+                className='underline underline-offset-4'
+                href={`/case/${token}`}
+              >
+                Zurück zum Tracker
+              </Link>
             </div>
-
-            <div className='space-y-1'>
-              <label className='text-sm font-medium'>E-Mail *</label>
-              <input
-                type='email'
-                name='email'
-                className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-                required
-              />
-            </div>
-
-            <div className='space-y-1'>
-              <label className='text-sm font-medium'>Telefon *</label>
-              <input
-                name='phone'
-                className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-                required
-              />
-            </div>
-
-            <button
-              type='submit'
-              className='bg-primary text-primary-foreground inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-medium'
-            >
-              Weiter zum Fallstatus
-            </button>
-          </form>
-
-          <div className='text-muted-foreground text-xs'>
-            Du hast bereits einen Account?{' '}
-            <Link
-              className='underline underline-offset-4'
-              href={`/case/${token}`}
-            >
-              Zurück zum Tracker
-            </Link>
           </div>
         </div>
       </PageContainer>

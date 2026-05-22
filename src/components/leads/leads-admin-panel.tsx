@@ -159,15 +159,17 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
 
   return (
     <div className='space-y-6'>
-      <Card>
-        <CardHeader>
-          <CardTitle>Lead erstellen</CardTitle>
-          <CardDescription>
+      <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
+        <CardHeader className='border-border/60 bg-muted/15 border-b'>
+          <CardTitle className='font-heading text-foreground tracking-tight'>
+            Lead erstellen
+          </CardTitle>
+          <CardDescription className='text-muted-foreground'>
             Nur für Admins. Neue Leads werden hier angelegt und können danach
             direkt in einen Case umgewandelt werden.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className='space-y-4'>
           <form
             className='space-y-4'
             onSubmit={(e) => {
@@ -177,7 +179,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
           >
             <div className='grid gap-3 md:grid-cols-2'>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Vorname</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Vorname
+                </label>
                 <Input
                   autoComplete='given-name'
                   value={form.firstName}
@@ -187,7 +191,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Nachname</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Nachname
+                </label>
                 <Input
                   autoComplete='family-name'
                   value={form.lastName}
@@ -197,7 +203,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>E-Mail</label>
+                <label className='text-foreground text-sm font-medium'>
+                  E-Mail
+                </label>
                 <Input
                   type='email'
                   autoComplete='email'
@@ -208,7 +216,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Telefonnummer</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Telefonnummer
+                </label>
                 <Input
                   autoComplete='tel'
                   value={form.phone}
@@ -218,7 +228,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2 md:col-span-2'>
-                <label className='text-sm font-medium'>Straße</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Straße
+                </label>
                 <Input
                   autoComplete='street-address'
                   value={form.street}
@@ -228,7 +240,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Hausnummer</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Hausnummer
+                </label>
                 <Input
                   value={form.houseNumber}
                   onChange={(e) =>
@@ -240,7 +254,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2'>
-                <label className='text-sm font-medium'>Plz</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Plz
+                </label>
                 <Input
                   autoComplete='postal-code'
                   value={form.zipCode}
@@ -250,7 +266,9 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
                 />
               </div>
               <div className='space-y-2 md:col-span-2'>
-                <label className='text-sm font-medium'>Ort</label>
+                <label className='text-foreground text-sm font-medium'>
+                  Ort
+                </label>
                 <Input
                   autoComplete='address-level2'
                   value={form.city}
@@ -261,101 +279,157 @@ export default function LeadsAdminPanel(props: { initialLeads: LeadRow[] }) {
               </div>
             </div>
 
-            <div className='flex flex-wrap items-center gap-3'>
+            <div className='border-border/60 flex flex-wrap items-center gap-3 border-t pt-4'>
               <Button type='submit' disabled={busyCreate}>
                 {busyCreate ? 'Speichere...' : 'Lead erstellen'}
               </Button>
               {notice ? (
-                <span className='text-sm text-emerald-600'>{notice}</span>
+                <span className='rounded-full border border-emerald-200/70 bg-emerald-50/80 px-3 py-1.5 text-sm text-emerald-900 shadow-sm'>
+                  {notice}
+                </span>
               ) : null}
               {error ? (
-                <span className='text-sm text-red-500'>{error}</span>
+                <span className='rounded-full border border-red-200/70 bg-red-50/80 px-3 py-1.5 text-sm text-red-900 shadow-sm'>
+                  {error}
+                </span>
               ) : null}
             </div>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Leads</CardTitle>
-          <CardDescription>
+      <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
+        <CardHeader className='border-border/60 bg-muted/15 border-b'>
+          <CardTitle className='font-heading text-foreground tracking-tight'>
+            Leads
+          </CardTitle>
+          <CardDescription className='text-muted-foreground'>
             Erstellte Leads bleiben hier sichtbar und können direkt in einen
             Case überführt werden.
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-3'>
           {leads.length === 0 ? (
-            <div className='text-muted-foreground text-sm'>
+            <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
               Noch keine Leads vorhanden.
             </div>
           ) : (
-            leads.map((lead) => {
-              const hasCase = Boolean(lead.case);
+            <>
+              <div className='bg-muted/10 text-muted-foreground border-border/60 hidden grid-cols-12 gap-3 rounded-2xl border px-4 py-3 text-[11px] font-medium tracking-[0.16em] uppercase shadow-sm md:grid'>
+                <div className='col-span-3'>Lead</div>
+                <div className='col-span-3'>Kontakt</div>
+                <div className='col-span-3'>Adresse</div>
+                <div className='col-span-1'>Status</div>
+                <div className='col-span-2 text-right'>Aktionen</div>
+              </div>
 
-              return (
-                <div
-                  key={lead.id}
-                  className='flex flex-col gap-4 rounded-lg border p-4 md:flex-row md:items-center md:justify-between'
-                >
-                  <div className='min-w-0 space-y-2'>
-                    <div className='flex flex-wrap items-center gap-2'>
-                      <div className='font-medium'>{leadLabel(lead)}</div>
-                      <Badge variant='outline'>
-                        {statusLabels[lead.status] ?? lead.status}
-                      </Badge>
-                      {hasCase ? <Badge>Case vorhanden</Badge> : null}
-                    </div>
-                    <div className='text-muted-foreground text-sm'>
-                      {lead.email ?? '—'} · {lead.phone ?? '—'}
-                    </div>
-                    <div className='text-muted-foreground text-sm'>
-                      {lead.street ?? '—'} {lead.houseNumber ?? ''},{' '}
-                      {lead.zipCode ?? '—'} {lead.city ?? '—'}
-                    </div>
-                    <div className='text-muted-foreground text-xs'>
-                      Erstellt am {formatDate(lead.createdAt)}
-                    </div>
-                    {lead.case ? (
-                      <div className='text-sm'>
-                        Case:{' '}
-                        <Link
-                          className='underline underline-offset-4'
-                          href={`/dashboard/cases/${lead.case.id}`}
+              <div className='space-y-3'>
+                {leads.map((lead) => {
+                  const hasCase = Boolean(lead.case);
+                  const leadName = leadLabel(lead);
+                  const leadAddress = [
+                    lead.street ?? '—',
+                    lead.houseNumber ?? '',
+                    lead.zipCode ?? '—',
+                    lead.city ?? '—'
+                  ]
+                    .join(' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                  return (
+                    <div
+                      key={lead.id}
+                      className='border-border/60 bg-background/80 hover:bg-muted/20 grid gap-4 rounded-2xl border p-4 shadow-sm transition-colors md:grid-cols-12 md:items-start md:gap-3'
+                    >
+                      <div className='space-y-2 md:col-span-3'>
+                        <div className='flex flex-wrap items-center gap-2'>
+                          <div className='text-foreground font-medium'>
+                            {leadName}
+                          </div>
+                        </div>
+                        <div className='text-muted-foreground text-xs leading-5'>
+                          Erstellt am {formatDate(lead.createdAt)}
+                        </div>
+                        {lead.source ? (
+                          <div className='text-muted-foreground text-xs leading-5'>
+                            Quelle: {lead.source}
+                          </div>
+                        ) : null}
+                        {hasCase ? <Badge>Case vorhanden</Badge> : null}
+                      </div>
+
+                      <div className='space-y-2 md:col-span-3'>
+                        <div className='text-foreground text-sm'>
+                          {lead.email ?? '—'}
+                        </div>
+                        <div className='text-muted-foreground text-sm'>
+                          {lead.phone ?? '—'}
+                        </div>
+                        {lead.externalId ? (
+                          <div className='text-muted-foreground text-xs leading-5'>
+                            Extern: {lead.externalId}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className='space-y-2 md:col-span-3'>
+                        <div className='text-foreground text-sm'>
+                          {leadAddress}
+                        </div>
+                        {lead.region ? (
+                          <div className='text-muted-foreground text-xs leading-5'>
+                            Region: {lead.region}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className='flex items-start md:col-span-1'>
+                        <Badge
+                          variant='secondary'
+                          className='bg-background/80 px-3 py-1.5 shadow-sm'
                         >
-                          {lead.case.caseNumber ?? lead.case.id.slice(0, 8)}
-                        </Link>
-                        <span className='text-muted-foreground ml-2'>
-                          · Public:{' '}
+                          {statusLabels[lead.status] ?? lead.status}
+                        </Badge>
+                      </div>
+
+                      <div className='flex flex-col gap-2 md:col-span-2 md:items-end'>
+                        {lead.case ? (
                           <Link
-                            className='underline underline-offset-4'
+                            className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 shadow-sm transition-colors'
+                            href={`/dashboard/cases/${lead.case.id}`}
+                          >
+                            {lead.case.caseNumber ?? '—'}
+                          </Link>
+                        ) : null}
+                        {lead.case ? (
+                          <Link
+                            className='text-muted-foreground border-border/60 bg-background/80 hover:bg-muted hover:text-foreground inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm shadow-sm transition-colors'
                             href={`/case/${lead.case.token}`}
                             target='_blank'
                             rel='noreferrer'
                           >
-                            öffnen
+                            Public öffnen
                           </Link>
-                        </span>
+                        ) : null}
+                        <Button
+                          variant='outline'
+                          className='border-border/60 bg-background/80 rounded-full shadow-sm'
+                          onClick={() => createCase(lead.id)}
+                          disabled={busyLeadId === lead.id || hasCase}
+                        >
+                          {busyLeadId === lead.id
+                            ? 'Erzeuge Case...'
+                            : hasCase
+                              ? 'Case bereits vorhanden'
+                              : 'Case erzeugen'}
+                        </Button>
                       </div>
-                    ) : null}
-                  </div>
-
-                  <div className='flex shrink-0 flex-wrap gap-2'>
-                    <Button
-                      variant='outline'
-                      onClick={() => createCase(lead.id)}
-                      disabled={busyLeadId === lead.id || hasCase}
-                    >
-                      {busyLeadId === lead.id
-                        ? 'Erzeuge Case...'
-                        : hasCase
-                          ? 'Case bereits vorhanden'
-                          : 'Case erzeugen'}
-                    </Button>
-                  </div>
-                </div>
-              );
-            })
+                    </div>
+                  );
+                })}
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

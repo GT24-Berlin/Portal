@@ -20,36 +20,36 @@ import {
 } from '@/components/ui/chart';
 
 const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--primary)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--primary-light)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--primary-lighter)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--primary-dark)' },
-  { browser: 'other', visitors: 190, fill: 'var(--primary-darker)' }
+  { browser: 'open', visitors: 275, fill: 'var(--primary)' },
+  { browser: 'pending', visitors: 200, fill: 'var(--foreground)' },
+  { browser: 'confirmed', visitors: 287, fill: 'var(--muted-foreground)' },
+  { browser: 'review', visitors: 173, fill: 'var(--border)' },
+  { browser: 'other', visitors: 190, fill: 'var(--border)' }
 ];
 
 const chartConfig = {
   visitors: {
-    label: 'Visitors'
+    label: 'Fälle'
   },
-  chrome: {
-    label: 'Chrome',
+  open: {
+    label: 'Offen',
     color: 'var(--primary)'
   },
-  safari: {
-    label: 'Safari',
-    color: 'var(--primary)'
+  pending: {
+    label: 'In Prüfung',
+    color: 'var(--foreground)'
   },
-  firefox: {
-    label: 'Firefox',
-    color: 'var(--primary)'
+  confirmed: {
+    label: 'Bestätigt',
+    color: 'var(--muted-foreground)'
   },
-  edge: {
-    label: 'Edge',
-    color: 'var(--primary)'
+  review: {
+    label: 'Rückfrage',
+    color: 'var(--border)'
   },
   other: {
-    label: 'Other',
-    color: 'var(--primary)'
+    label: 'Sonstiges',
+    color: 'var(--border)'
   }
 } satisfies ChartConfig;
 
@@ -59,15 +59,22 @@ export function PieGraph() {
   }, []);
 
   return (
-    <Card className='@container/card'>
-      <CardHeader>
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
-        <CardDescription>
-          <span className='hidden @[540px]/card:block'>
-            Total visitors by browser for the last 6 months
-          </span>
-          <span className='@[540px]/card:hidden'>Browser distribution</span>
-        </CardDescription>
+    <Card className='border-border/60 bg-card/95 @container/card overflow-hidden shadow-sm'>
+      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Statusverteilung
+          </div>
+          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+            Fallverteilung - Donut
+          </CardTitle>
+          <CardDescription className='text-muted-foreground'>
+            <span className='hidden @[540px]/card:block'>
+              Verteilung der Fälle im laufenden Bestand
+            </span>
+            <span className='@[540px]/card:hidden'>Fallverteilung</span>
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer
@@ -76,7 +83,7 @@ export function PieGraph() {
         >
           <PieChart>
             <defs>
-              {['chrome', 'safari', 'firefox', 'edge', 'other'].map(
+              {['open', 'pending', 'confirmed', 'review', 'other'].map(
                 (browser, index) => (
                   <linearGradient
                     key={browser}
@@ -137,7 +144,7 @@ export function PieGraph() {
                           y={(viewBox.cy || 0) + 24}
                           className='fill-muted-foreground text-sm'
                         >
-                          Total Visitors
+                          Gesamtfälle
                         </tspan>
                       </text>
                     );
@@ -148,14 +155,14 @@ export function PieGraph() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className='flex-col gap-2 text-sm'>
+      <CardFooter className='border-border/60 bg-muted/10 flex-col gap-2 border-t text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
-          Chrome leads with{' '}
+          Offen führt aktuell mit{' '}
           {((chartData[0].visitors / totalVisitors) * 100).toFixed(1)}%{' '}
           <IconTrendingUp className='h-4 w-4' />
         </div>
         <div className='text-muted-foreground leading-none'>
-          Based on data from January - June 2024
+          Übersicht der letzten 6 Monate
         </div>
       </CardFooter>
     </Card>

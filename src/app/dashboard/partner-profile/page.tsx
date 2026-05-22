@@ -37,16 +37,18 @@ export default async function PartnerProfilePage() {
 
         <div
           id='partner-pricing-section'
-          className='space-y-3 rounded-lg border p-6'
+          className='bg-card/95 border-border/60 space-y-3 rounded-2xl border p-6 shadow-sm'
         >
           <div>
-            <div className='text-sm font-medium'>Preispaket</div>
+            <div className='font-heading text-foreground text-sm font-medium tracking-tight'>
+              Preispaket
+            </div>
             <div className='text-muted-foreground text-xs'>
               Preis- und Paketlogik wird aktuell vorbereitet.
             </div>
           </div>
 
-          <div className='text-muted-foreground rounded-md border p-4 text-sm'>
+          <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed p-4 text-sm shadow-sm'>
             Dieser Bereich ist bald verfügbar. Bis zur finalen Preislogik bleibt
             das Preispaket im Partnerprofil als Coming Soon sichtbar.
           </div>
