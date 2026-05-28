@@ -46,9 +46,9 @@ export default function AdminOpsTable(props: {
   }, [tab, props.withoutGutachter, props.withoutAnwalt, props.pendingCases]);
 
   return (
-    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
-      <CardHeader className='border-border/60 bg-muted/15 space-y-3 border-b'>
-        <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
+      <CardHeader className='border-border/60 bg-muted/10 space-y-3 border-b'>
+        <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
           {current.title}
         </CardTitle>
 
@@ -56,7 +56,9 @@ export default function AdminOpsTable(props: {
           <button
             type='button'
             className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
-              tab === 'WITHOUT_GUTACHTER' ? 'bg-muted' : 'bg-background/80'
+              tab === 'WITHOUT_GUTACHTER'
+                ? 'bg-foreground text-background'
+                : 'bg-background/80'
             }`}
             onClick={() => setTab('WITHOUT_GUTACHTER')}
           >
@@ -66,7 +68,9 @@ export default function AdminOpsTable(props: {
           <button
             type='button'
             className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
-              tab === 'WITHOUT_ANWALT' ? 'bg-muted' : 'bg-background/80'
+              tab === 'WITHOUT_ANWALT'
+                ? 'bg-foreground text-background'
+                : 'bg-background/80'
             }`}
             onClick={() => setTab('WITHOUT_ANWALT')}
           >
@@ -76,7 +80,9 @@ export default function AdminOpsTable(props: {
           <button
             type='button'
             className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
-              tab === 'PENDING' ? 'bg-muted' : 'bg-background/80'
+              tab === 'PENDING'
+                ? 'bg-foreground text-background'
+                : 'bg-background/80'
             }`}
             onClick={() => setTab('PENDING')}
           >
@@ -93,7 +99,7 @@ export default function AdminOpsTable(props: {
         ) : (
           <div className='overflow-x-auto'>
             <div className='min-w-[760px]'>
-              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-6 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.14em] uppercase'>
+              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-6 gap-3 border-b px-4 py-3 text-xs font-semibold tracking-[0.14em] uppercase'>
                 <div>Case</div>
                 <div>Kunde</div>
                 <div>Gutachter</div>
@@ -106,7 +112,7 @@ export default function AdminOpsTable(props: {
                 {current.items.map((item) => (
                   <div
                     key={item.caseId}
-                    className='hover:bg-muted/20 grid grid-cols-6 gap-3 px-4 py-4 text-sm transition-colors'
+                    className='hover:bg-primary/[0.03] grid grid-cols-6 gap-3 px-4 py-4 text-sm transition-colors'
                   >
                     <div className='text-foreground font-mono text-sm font-medium'>
                       {item.caseNumber ?? '—'}
@@ -131,14 +137,14 @@ export default function AdminOpsTable(props: {
                     <div className='flex justify-end gap-3 text-xs'>
                       <Link
                         href={`/dashboard/cases/${item.caseId}`}
-                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Admin-Fall
                       </Link>
                       <Link
                         href={`/case/${item.token}`}
                         target='_blank'
-                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Kunden-Link
                       </Link>

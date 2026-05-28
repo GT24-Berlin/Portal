@@ -15,13 +15,13 @@ export default function AdminAssignmentStatusChart(props: {
   const max = Math.max(...props.items.map((x) => x.value), 1);
 
   return (
-    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
-      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
+      <CardHeader className='border-border/60 bg-muted/10 border-b'>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Statusverteilung
           </div>
-          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+          <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
             Assignment-Status-Verteilung
           </CardTitle>
         </div>
@@ -42,7 +42,7 @@ export default function AdminAssignmentStatusChart(props: {
                   </span>
                 </div>
 
-                <div className='bg-muted/70 h-2 w-full overflow-hidden rounded-full shadow-inner'>
+                <div className='bg-muted/70 border-border/50 h-2 w-full overflow-hidden rounded-full border shadow-inner'>
                   <div
                     className={`h-full rounded-full transition-all ${statusBarClass(
                       item.status

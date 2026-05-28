@@ -91,9 +91,9 @@ export default function CaseFilesPanel(props: {
   }
 
   return (
-    <div className='bg-card/95 border-border/60 space-y-4 overflow-hidden rounded-2xl border p-6 shadow-sm'>
-      <div className='border-border/60 flex items-center justify-between border-b pb-3'>
-        <div>
+    <div className='border-border/60 bg-background/82 space-y-4 overflow-hidden rounded-[28px] border p-6 shadow-[var(--shadow-soft)]'>
+      <div className='border-border/60 flex items-end justify-between gap-3 border-b pb-3'>
+        <div className='space-y-1'>
           <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
             Dokumente
           </h3>
@@ -104,38 +104,38 @@ export default function CaseFilesPanel(props: {
       </div>
 
       {props.canUpload ? (
-        <div className='border-border/60 bg-muted/10 space-y-3 rounded-2xl border p-4 shadow-sm'>
+        <div className='border-border/60 bg-background/84 space-y-4 rounded-[26px] border p-4 shadow-[var(--shadow-soft)]'>
           <div className='text-foreground text-sm font-medium'>
             Dokument hochladen
           </div>
 
           {error ? (
-            <div className='rounded-2xl border border-red-300/70 bg-red-50/70 px-3 py-2 text-sm text-red-800 shadow-sm'>
+            <div className='rounded-[20px] border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-[var(--shadow-soft)]'>
               {error}
             </div>
           ) : null}
 
           <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-xs'>
+            <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+              <label className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
                 Titel (optional)
               </label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
                 placeholder='z.B. "Gutachten PDF"'
               />
             </div>
 
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-xs'>
+            <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+              <label className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
                 Sichtbarkeit
               </label>
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as any)}
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
               >
                 <option value='CUSTOMER_AND_PARTNERS'>Kunde + Partner</option>
                 <option value='PARTNERS'>Nur Partner</option>
@@ -143,12 +143,14 @@ export default function CaseFilesPanel(props: {
               </select>
             </div>
 
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-xs'>Kategorie</label>
+            <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+              <label className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                Kategorie
+              </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
               >
                 <option value='OTHER'>Other</option>
                 <option value='GUTACHTEN'>Gutachten</option>
@@ -162,13 +164,15 @@ export default function CaseFilesPanel(props: {
               </div>
             </div>
 
-            <div className='space-y-1'>
-              <label className='text-muted-foreground text-xs'>Datei</label>
+            <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+              <label className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                Datei
+              </label>
               <input
                 type='file'
                 accept='.pdf,.png,.jpg,.jpeg,.webp'
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
               />
             </div>
           </div>
@@ -178,7 +182,7 @@ export default function CaseFilesPanel(props: {
               type='button'
               onClick={upload}
               disabled={busy}
-              className='bg-foreground text-background rounded-full px-4 py-2 text-sm shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50'
+              className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-50'
             >
               {busy ? 'Upload...' : 'Upload'}
             </button>
@@ -193,7 +197,7 @@ export default function CaseFilesPanel(props: {
 
       {/* Files list */}
       {sorted.length === 0 ? (
-        <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm'>
+        <div className='text-muted-foreground border-border/60 bg-background/82 rounded-[24px] border border-dashed px-4 py-6 text-sm shadow-[var(--shadow-soft)]'>
           Noch keine Dokumente.
         </div>
       ) : (
@@ -201,7 +205,7 @@ export default function CaseFilesPanel(props: {
           {sorted.map((f) => (
             <div
               key={f.id}
-              className='border-border/60 bg-background/80 hover:bg-muted/20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm transition-colors'
+              className='border-border/60 bg-background/84 hover:bg-primary/[0.02] flex items-center justify-between rounded-[24px] border px-4 py-3.5 text-sm shadow-[var(--shadow-soft)] transition-colors'
             >
               <div className='min-w-0'>
                 <div className='text-foreground truncate font-medium'>

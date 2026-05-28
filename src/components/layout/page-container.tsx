@@ -56,7 +56,7 @@ export default function PageContainer({
   return scrollable ? (
     <ScrollArea className='h-[calc(100dvh-52px)]'>
       <div className='flex flex-1 flex-col px-5 py-5 md:px-8 md:py-7'>
-        <div className='mb-6 flex items-start justify-between gap-4'>
+        <div className='border-border/60 bg-background/78 mb-6 flex items-start justify-between gap-4 rounded-[32px] border px-5 py-4 shadow-[var(--shadow-glass)] backdrop-blur-xl md:px-6 md:py-5'>
           <Heading
             title={pageTitle ?? ''}
             description={pageDescription ?? ''}
@@ -69,7 +69,7 @@ export default function PageContainer({
     </ScrollArea>
   ) : (
     <div className='flex flex-1 flex-col px-5 py-5 md:px-8 md:py-7'>
-      <div className='mb-6 flex items-start justify-between gap-4'>
+      <div className='border-border/60 bg-background/78 mb-6 flex items-start justify-between gap-4 rounded-[32px] border px-5 py-4 shadow-[var(--shadow-glass)] backdrop-blur-xl md:px-6 md:py-5'>
         <Heading
           title={pageTitle ?? ''}
           description={pageDescription ?? ''}

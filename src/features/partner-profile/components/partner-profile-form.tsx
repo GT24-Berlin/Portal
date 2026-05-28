@@ -22,6 +22,15 @@ function toFormData(profile: PartnerProfileDto): PartnerProfileFormData {
   };
 }
 
+const shellClass =
+  'border-border/60 bg-background/82 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]';
+
+const fieldClass =
+  'bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-[24px] border px-4 py-3 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none';
+
+const navItemClass =
+  'border-border/60 bg-background/80 hover:bg-background/95 rounded-full border px-3.5 py-2.5 text-[13px] font-medium tracking-[-0.01em] shadow-[var(--shadow-soft)] transition-colors';
+
 export default function PartnerProfileForm() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -123,248 +132,254 @@ export default function PartnerProfileForm() {
 
   return (
     <div id='partner-profile-section' className='space-y-4'>
-      <div className='flex flex-wrap items-center justify-between gap-3'>
-        <div>
-          <div className='font-heading text-foreground text-sm font-medium tracking-tight'>
+      <div className='flex flex-wrap items-end justify-between gap-3'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Partnerprofil
           </div>
-          <div className='text-muted-foreground text-xs'>
+          <div className='font-heading text-foreground text-lg font-semibold tracking-tight'>
             Unternehmens- und Kontaktdaten für dein Portalprofil
           </div>
         </div>
 
-        <div className='text-muted-foreground text-xs'>
+        <div className='border-border/60 bg-background/82 rounded-full border px-3.5 py-2 text-xs font-medium tracking-[0.01em] shadow-[var(--shadow-soft)]'>
           Rolle: <span className='font-mono'>{role || '—'}</span>
         </div>
       </div>
 
-      <div className='bg-muted/10 border-border/60 flex flex-wrap gap-2 rounded-2xl border p-2 shadow-sm'>
-        <a
-          href='#partner-profile-section'
-          className='bg-foreground text-background rounded-full px-3 py-2 text-xs font-medium shadow-sm transition-opacity hover:opacity-90'
-        >
+      <div className='border-border/60 bg-background/82 flex flex-wrap gap-2 rounded-[28px] border p-2.5 shadow-[var(--shadow-soft)]'>
+        <a href='#partner-profile-section' className={navItemClass}>
           Profil
         </a>
-        <a
-          href='#partner-collaboration-section'
-          className='text-muted-foreground hover:bg-muted border-border/60 rounded-full border px-3 py-2 text-xs font-medium transition-colors'
-        >
+        <a href='#partner-collaboration-section' className={navItemClass}>
           Fallpartner
         </a>
         <Link
           href='/dashboard/partner-profile/calendar'
-          className='text-muted-foreground hover:bg-muted border-border/60 rounded-full border px-3 py-2 text-xs font-medium transition-colors'
+          className={navItemClass}
         >
           Kalender
         </Link>
-        <a
-          href='#partner-pricing-section'
-          className='text-muted-foreground hover:bg-muted border-border/60 rounded-full border px-3 py-2 text-xs font-medium transition-colors'
-        >
+        <a href='#partner-pricing-section' className={navItemClass}>
           Preispaket
         </a>
       </div>
 
       {loading ? (
-        <div className='text-muted-foreground border-border/60 bg-card/95 rounded-2xl border p-6 text-sm shadow-sm'>
-          Profil wird geladen…
+        <div className={`${shellClass} space-y-5 p-6`}>
+          <div className='flex flex-wrap items-center justify-between gap-3'>
+            <div className='space-y-2'>
+              <div className='bg-muted/60 h-4 w-32 animate-pulse rounded-full' />
+              <div className='bg-muted/50 h-3 w-72 animate-pulse rounded-full' />
+            </div>
+            <div className='bg-muted/60 h-8 w-24 animate-pulse rounded-full' />
+          </div>
+          <div className='grid gap-4 md:grid-cols-2'>
+            <div className='border-border/60 bg-background/82 h-24 rounded-[24px] border shadow-[var(--shadow-soft)]' />
+            <div className='border-border/60 bg-background/82 h-24 rounded-[24px] border shadow-[var(--shadow-soft)]' />
+            <div className='border-border/60 bg-background/82 h-24 rounded-[24px] border shadow-[var(--shadow-soft)] md:col-span-2' />
+          </div>
         </div>
       ) : (
-        <form
-          onSubmit={onSubmit}
-          className='bg-card/95 border-border/60 space-y-6 rounded-2xl border p-6 shadow-sm'
-        >
-          <div className='grid gap-4 md:grid-cols-2'>
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                Unternehmensname
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.companyName}
-                onChange={(e) => update('companyName', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                Rechtsform
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.legalForm}
-                onChange={(e) => update('legalForm', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                Ansprechpartner
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.contactPerson}
-                onChange={(e) => update('contactPerson', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                E-Mail
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.email}
-                onChange={(e) => update('email', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                Telefon
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.phone}
-                onChange={(e) => update('phone', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className='text-foreground mb-1 block text-xs font-medium'>
-                Website
-              </label>
-              <input
-                className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                value={form.website}
-                onChange={(e) => update('website', e.target.value)}
-              />
-            </div>
-
-            <div className='space-y-3 md:col-span-2'>
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Logo URL
-                </label>
-                <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.logoUrl}
-                  onChange={(e) => update('logoUrl', e.target.value)}
-                  placeholder='https://...'
-                />
-              </div>
-
-              {form.logoUrl.trim() ? (
-                <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
-                  <div className='text-muted-foreground mb-2 text-xs font-medium'>
-                    Logo-Vorschau
-                  </div>
-
-                  <div className='bg-background/80 border-border/60 flex h-28 w-full items-center justify-center overflow-hidden rounded-2xl border p-4 shadow-inner'>
-                    <img
-                      src={form.logoUrl}
-                      alt='Partner Logo'
-                      className='max-h-full max-w-full object-contain'
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className='space-y-3'>
-            <div className='font-heading text-foreground text-sm font-medium tracking-tight'>
-              Adresse
-            </div>
-
+        <form onSubmit={onSubmit} className='space-y-6'>
+          <div className={`${shellClass} space-y-6 p-6 md:p-8`}>
             <div className='grid gap-4 md:grid-cols-2'>
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Straße
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  Unternehmensname
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.street}
-                  onChange={(e) => update('street', e.target.value)}
+                  className={fieldClass}
+                  value={form.companyName}
+                  onChange={(e) => update('companyName', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Hausnummer
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  Rechtsform
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.houseNumber}
-                  onChange={(e) => update('houseNumber', e.target.value)}
+                  className={fieldClass}
+                  value={form.legalForm}
+                  onChange={(e) => update('legalForm', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  PLZ
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  Ansprechpartner
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.zipCode}
-                  onChange={(e) => update('zipCode', e.target.value)}
+                  className={fieldClass}
+                  value={form.contactPerson}
+                  onChange={(e) => update('contactPerson', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Ort
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  E-Mail
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.city}
-                  onChange={(e) => update('city', e.target.value)}
+                  className={fieldClass}
+                  value={form.email}
+                  onChange={(e) => update('email', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Land
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  Telefon
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.country}
-                  onChange={(e) => update('country', e.target.value)}
+                  className={fieldClass}
+                  value={form.phone}
+                  onChange={(e) => update('phone', e.target.value)}
                 />
               </div>
 
-              <div>
-                <label className='text-foreground mb-1 block text-xs font-medium'>
-                  Region
+              <div className='space-y-2'>
+                <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                  Website
                 </label>
                 <input
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={form.region}
-                  onChange={(e) => update('region', e.target.value)}
+                  className={fieldClass}
+                  value={form.website}
+                  onChange={(e) => update('website', e.target.value)}
                 />
+              </div>
+
+              <div className='space-y-3 md:col-span-2'>
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Logo URL
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.logoUrl}
+                    onChange={(e) => update('logoUrl', e.target.value)}
+                    placeholder='https://...'
+                  />
+                </div>
+
+                {form.logoUrl.trim() ? (
+                  <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+                    <div className='text-muted-foreground mb-3 text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                      Logo-Vorschau
+                    </div>
+
+                    <div className='border-border/60 bg-background/90 flex h-32 w-full items-center justify-center overflow-hidden rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'>
+                      <img
+                        src={form.logoUrl}
+                        alt='Partner Logo'
+                        className='max-h-full max-w-full object-contain'
+                      />
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
-          </div>
 
-          {error ? (
-            <div className='rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
-              {error}
-            </div>
-          ) : null}
-          {success ? (
-            <div className='rounded-xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
-              {success}
-            </div>
-          ) : null}
+            <div className='border-border/60 bg-background/84 space-y-4 rounded-[28px] border p-5 shadow-[var(--shadow-soft)]'>
+              <div className='space-y-1'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Adresse
+                </div>
+                <div className='text-foreground text-sm font-medium'>
+                  Postadresse und regionale Zuordnung in einer ruhigen Sektion.
+                </div>
+              </div>
 
-          <div className='flex justify-end'>
-            <button
-              type='submit'
-              disabled={saving}
-              className='bg-foreground text-background rounded-full px-4 py-2 text-sm shadow-sm disabled:opacity-60'
-            >
-              {saving ? 'Speichern…' : 'Profil speichern'}
-            </button>
+              <div className='grid gap-4 md:grid-cols-2'>
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Straße
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.street}
+                    onChange={(e) => update('street', e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Hausnummer
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.houseNumber}
+                    onChange={(e) => update('houseNumber', e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    PLZ
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.zipCode}
+                    onChange={(e) => update('zipCode', e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Ort
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.city}
+                    onChange={(e) => update('city', e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Land
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.country}
+                    onChange={(e) => update('country', e.target.value)}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    Region
+                  </label>
+                  <input
+                    className={fieldClass}
+                    value={form.region}
+                    onChange={(e) => update('region', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {error ? (
+              <div className='rounded-[24px] border border-red-200/70 bg-red-50/80 px-4 py-3 text-sm text-red-900 shadow-[var(--shadow-soft)]'>
+                {error}
+              </div>
+            ) : null}
+            {success ? (
+              <div className='rounded-[24px] border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900 shadow-[var(--shadow-soft)]'>
+                {success}
+              </div>
+            ) : null}
+
+            <div className='flex justify-end'>
+              <button
+                type='submit'
+                disabled={saving}
+                className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] disabled:opacity-60'
+              >
+                {saving ? 'Speichern…' : 'Profil speichern'}
+              </button>
+            </div>
           </div>
         </form>
       )}

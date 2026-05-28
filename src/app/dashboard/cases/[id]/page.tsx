@@ -231,28 +231,28 @@ export default async function CaseDetailPage({
         }
       >
         <div className='space-y-6'>
-          <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
-            <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-6 md:grid-cols-[1.4fr_0.6fr] md:p-8'>
-              <div className='space-y-2'>
+          <section className='border-border/60 bg-background/82 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
+            <div className='border-border/60 bg-muted/10 grid gap-4 border-b p-6 md:grid-cols-[1.4fr_0.6fr] md:p-8'>
+              <div className='space-y-3'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                   Case Detail
                 </div>
-                <h1 className='font-heading text-foreground text-2xl font-semibold tracking-tight md:text-3xl'>
+                <h1 className='font-heading text-foreground text-[2rem] font-semibold tracking-tight md:text-[2.6rem]'>
                   {c.caseNumber ?? '—'}
                 </h1>
-                <p className='text-muted-foreground max-w-3xl text-sm leading-6 md:text-[15px]'>
+                <p className='text-muted-foreground max-w-3xl text-[14px] leading-6 md:text-[15px]'>
                   {customerName
                     ? `Kunde: ${customerName}`
                     : 'Kundeninformationen werden ergänzt, sobald sie verfügbar sind.'}
                 </p>
               </div>
 
-              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+              <div className='border-border/60 bg-background/84 grid gap-2 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
                   Summary
                 </div>
                 <div className='grid gap-2 text-sm'>
-                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                  <div className='border-border/60 bg-background/90 rounded-[24px] border px-3 py-2 shadow-[var(--shadow-soft)]'>
                     <div className='text-muted-foreground text-xs'>
                       Fallnummer
                     </div>
@@ -260,13 +260,13 @@ export default async function CaseDetailPage({
                       {c.caseNumber ?? '—'}
                     </div>
                   </div>
-                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                  <div className='border-border/60 bg-background/90 rounded-[24px] border px-3 py-2 shadow-[var(--shadow-soft)]'>
                     <div className='text-muted-foreground text-xs'>Kunde</div>
                     <div className='text-foreground font-medium'>
                       {customerName || '—'}
                     </div>
                   </div>
-                  <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+                  <div className='border-border/60 bg-background/90 rounded-[24px] border px-3 py-2 shadow-[var(--shadow-soft)]'>
                     <div className='text-muted-foreground text-xs'>Partner</div>
                     <div className='text-foreground font-medium'>
                       {c.partner?.name ?? '—'}
@@ -277,19 +277,19 @@ export default async function CaseDetailPage({
             </div>
           </section>
 
-          {isAdmin ? <CaseAssignmentAdmin caseId={c.id} /> : null}
+          <div className='grid gap-6'>
+            {isAdmin ? <CaseAssignmentAdmin caseId={c.id} /> : null}
 
-          {/* Preview immer möglich, aber Edit nur wenn ACCEPTED oder ADMIN */}
-          <CaseStatusEditor
-            caseId={c.id}
-            gutachterStatus={String(c.gutachterStatus)}
-            anwaltStatus={String(c.anwaltStatus)}
-            role={canEdit ? role : ''} // <- Trick: nicht editierbar => Editor zeigt "Keine Berechtigung"
-          />
+            <CaseStatusEditor
+              caseId={c.id}
+              gutachterStatus={String(c.gutachterStatus)}
+              anwaltStatus={String(c.anwaltStatus)}
+              role={canEdit ? role : ''} // <- Trick: nicht editierbar => Editor zeigt "Keine Berechtigung"
+            />
+          </div>
 
-          {/* Dokumente (Case Files) */}
-          <div className='bg-card/95 border-border/60 space-y-3 overflow-hidden rounded-[28px] border p-6 shadow-sm'>
-            <div className='border-border/60 flex flex-wrap items-start justify-between gap-3 border-b pb-3'>
+          <section className='border-border/60 bg-background/82 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]'>
+            <div className='border-border/60 flex flex-wrap items-start justify-between gap-3 border-b px-6 py-5'>
               <div className='space-y-1'>
                 <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                   Hauptfläche
@@ -297,7 +297,7 @@ export default async function CaseDetailPage({
                 <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
                   Dokumente
                 </h3>
-                <p className='text-muted-foreground text-xs'>
+                <p className='text-muted-foreground text-xs leading-6'>
                   Uploads vom Kunden & Partner (je nach Sichtbarkeit)
                 </p>
               </div>
@@ -307,82 +307,87 @@ export default async function CaseDetailPage({
                   <CaseFilesUpload caseId={c.id} />
                 </div>
               ) : (
-                <span className='text-muted-foreground shrink-0 text-xs'>
+                <span className='text-muted-foreground shrink-0 text-xs leading-6'>
                   Upload erst nach Annahme (ACCEPTED).
                 </span>
               )}
             </div>
 
-            {files.length === 0 ? (
-              <p className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
-                Noch keine Dokumente.
-              </p>
-            ) : (
-              <div className='space-y-2'>
-                {files.map((f) => (
-                  <div
-                    key={f.id}
-                    className='border-border/60 bg-background/80 hover:bg-muted/20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm transition-colors'
-                  >
-                    <div className='min-w-0'>
-                      <div className='text-foreground truncate font-medium'>
-                        {f.title ? f.title : f.filename}
-                      </div>
-
-                      <div className='text-muted-foreground text-xs leading-5'>
-                        {f.filename} · {String(f.uploaderType)} ·{' '}
-                        {String(f.visibility)}
-                      </div>
-
-                      <div className='text-muted-foreground text-xs leading-5'>
-                        {new Intl.DateTimeFormat('de-DE', {
-                          dateStyle: 'medium',
-                          timeStyle: 'short'
-                        }).format(new Date(f.createdAt))}
-                        {' · '}
-                        {f.size ? `${Math.round(f.size / 1024)} KB` : '—'}
-                      </div>
-                    </div>
-
-                    <a
-                      className='hover:bg-muted border-border/60 bg-background/90 decoration-muted-foreground/40 hover:decoration-foreground/70 shrink-0 rounded-full border px-3 py-1.5 text-xs underline underline-offset-4 transition-colors'
-                      href={`/api/cases/${c.id}/files/${f.id}/download`}
-                      target='_blank'
-                      rel='noreferrer'
+            <div className='px-6 pt-0 pb-6'>
+              {files.length === 0 ? (
+                <p className='text-muted-foreground border-border/60 bg-background/78 rounded-[24px] border border-dashed px-4 py-6 text-sm shadow-[var(--shadow-soft)]'>
+                  Noch keine Dokumente.
+                </p>
+              ) : (
+                <div className='space-y-2'>
+                  {files.map((f) => (
+                    <div
+                      key={f.id}
+                      className='border-border/60 bg-background/84 hover:bg-primary/[0.02] flex items-center justify-between rounded-[26px] border px-4 py-3.5 text-sm shadow-[var(--shadow-soft)] transition-colors'
                     >
-                      Download
-                    </a>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                      <div className='min-w-0'>
+                        <div className='text-foreground truncate font-medium'>
+                          {f.title ? f.title : f.filename}
+                        </div>
 
-          <CaseCustomerInfoCard customer={customerInfo} />
+                        <div className='text-muted-foreground text-xs leading-5'>
+                          {f.filename} · {String(f.uploaderType)} ·{' '}
+                          {String(f.visibility)}
+                        </div>
 
-          <CaseAccidentDataCard intake={accidentData} />
+                        <div className='text-muted-foreground text-xs leading-5'>
+                          {new Intl.DateTimeFormat('de-DE', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                          }).format(new Date(f.createdAt))}
+                          {' · '}
+                          {f.size ? `${Math.round(f.size / 1024)} KB` : '—'}
+                        </div>
+                      </div>
 
-          <CasePhotoGallery caseId={c.id} items={photoFiles} />
+                      <a
+                        className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 shrink-0 rounded-full border px-3 py-1.5 text-xs underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors'
+                        href={`/api/cases/${c.id}/files/${f.id}/download`}
+                        target='_blank'
+                        rel='noreferrer'
+                      >
+                        Download
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
 
-          <CaseOperationsLogAccordion items={c.operationalEvents} />
+          <section className='grid gap-6'>
+            <CaseCustomerInfoCard customer={customerInfo} />
+            <CaseAccidentDataCard intake={accidentData} />
+            <CasePhotoGallery caseId={c.id} items={photoFiles} />
+            <CaseOperationsLogAccordion items={c.operationalEvents} />
+          </section>
 
-          <div className='border-border/60 bg-card/95 rounded-[28px] border p-5 shadow-sm'>
-            <div className='mb-3 space-y-1'>
-              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
-                Supporting Context
-              </div>
-              <div className='font-heading text-lg font-semibold tracking-tight'>
-                Events
+          <section className='border-border/60 bg-background/82 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]'>
+            <div className='border-border/60 flex flex-wrap items-start justify-between gap-3 border-b px-6 py-5'>
+              <div className='space-y-1'>
+                <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                  Supporting Context
+                </div>
+                <div className='font-heading text-lg font-semibold tracking-tight'>
+                  Events
+                </div>
               </div>
             </div>
-            <div className='space-y-2 text-sm'>
+            <div className='space-y-2 p-6 text-sm'>
               {c.events.length === 0 ? (
-                <div className='text-muted-foreground'>Noch keine Events.</div>
+                <div className='text-muted-foreground border-border/60 bg-background/78 rounded-[24px] border border-dashed px-4 py-6 shadow-[var(--shadow-soft)]'>
+                  Noch keine Events.
+                </div>
               ) : (
                 c.events.map((e) => (
                   <div
                     key={e.id}
-                    className='border-border/60 bg-background/80 hover:bg-muted/20 rounded-2xl border p-3 shadow-sm transition-colors'
+                    className='border-border/60 bg-background/84 hover:bg-primary/[0.02] rounded-[26px] border p-4 shadow-[var(--shadow-soft)] transition-colors'
                   >
                     <div className='flex flex-wrap gap-x-3 gap-y-1'>
                       <span className='font-mono text-xs opacity-80'>
@@ -402,7 +407,7 @@ export default async function CaseDetailPage({
                 ))
               )}
             </div>
-          </div>
+          </section>
         </div>
       </PageContainer>
     );

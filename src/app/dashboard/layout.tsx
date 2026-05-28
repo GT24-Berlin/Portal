@@ -8,8 +8,12 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn Dashboard Starter',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: {
+    default: 'Gutachtery24 Dashboard',
+    template: '%s | Gutachtery24'
+  },
+  description:
+    'Operative Bereiche für Fälle, Partner und Organisationen in Gutachtery24'
 };
 
 export default async function DashboardLayout({

@@ -153,16 +153,26 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
     value ? new Date(value).toLocaleString('de-DE') : '—';
 
   return (
-    <div className='space-y-4 rounded-lg border p-4'>
-      <div className='text-sm font-medium'>Case zuweisen (ADMIN)</div>
+    <div className='border-border/60 bg-background/82 space-y-6 rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl'>
+      <div className='border-border/60 space-y-1.5 border-b pb-4'>
+        <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+          Administration
+        </div>
+        <div className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+          Case zuweisen
+        </div>
+        <div className='text-muted-foreground text-sm leading-6'>
+          Gutachter- und Anwalt-Zuweisungen werden getrennt gepflegt.
+        </div>
+      </div>
 
       <div className='grid gap-3 md:grid-cols-3'>
-        <div>
-          <div className='text-muted-foreground mb-1 text-xs'>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
             Frist (Stunden)
           </div>
           <input
-            className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
             type='number'
             min={1}
             max={168}
@@ -171,17 +181,19 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
           />
         </div>
 
-        <label className='flex items-end gap-2 text-sm'>
+        <label className='border-border/60 bg-background/84 flex items-end gap-2 rounded-[28px] border p-4 text-sm shadow-[var(--shadow-soft)]'>
           <input
             type='checkbox'
             checked={force}
             onChange={(e) => setForce(e.target.checked)}
           />
-          force (aktive Zuweisung ersetzen)
+          <span className='text-muted-foreground'>
+            force (aktive Zuweisung ersetzen)
+          </span>
         </label>
 
         <button
-          className='rounded-md border px-3 py-2 text-sm hover:opacity-80'
+          className='border-border/60 bg-background/85 hover:bg-muted/50 rounded-full border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
           onClick={() => {
             loadUsers();
             loadAssignments();
@@ -192,13 +204,16 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
-        <div>
-          <div className='text-muted-foreground mb-1 text-xs'>
-            Gutachter auswählen
+      <div className='grid gap-3 md:grid-cols-[1fr_auto] md:items-end'>
+        <div className='border-border/60 bg-background/84 space-y-2 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+          <div className='flex items-center justify-between gap-2'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+              Gutachter auswählen
+            </div>
+            <div className='text-muted-foreground text-[11px]'>Assignment</div>
           </div>
           <select
-            className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
             value={selectedGutachter}
             onChange={(e) => setSelectedGutachter(e.target.value)}
             disabled={loadingUsers}
@@ -212,7 +227,7 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
           </select>
         </div>
         <button
-          className='bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-60'
+          className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-60'
           onClick={() => assign('GUTACHTER', selectedGutachter)}
           disabled={!selectedGutachter || saving !== null}
         >
@@ -220,13 +235,16 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
-        <div>
-          <div className='text-muted-foreground mb-1 text-xs'>
-            Anwalt auswählen
+      <div className='grid gap-3 md:grid-cols-[1fr_auto] md:items-end'>
+        <div className='border-border/60 bg-background/84 space-y-2 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+          <div className='flex items-center justify-between gap-2'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+              Anwalt auswählen
+            </div>
+            <div className='text-muted-foreground text-[11px]'>Assignment</div>
           </div>
           <select
-            className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
             value={selectedAnwalt}
             onChange={(e) => setSelectedAnwalt(e.target.value)}
             disabled={loadingUsers}
@@ -240,7 +258,7 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
           </select>
         </div>
         <button
-          className='bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-60'
+          className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-60'
           onClick={() => assign('ANWALT', selectedAnwalt)}
           disabled={!selectedAnwalt || saving !== null}
         >
@@ -248,102 +266,91 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
         </button>
       </div>
 
-      <div className='space-y-2 rounded-md border p-3 text-sm'>
-        <div className='font-medium'>Aktuelle Zuweisungen (Preview)</div>
+      <div className='border-border/60 bg-background/82 space-y-4 rounded-[32px] border p-4 shadow-[var(--shadow-soft)]'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+            Status
+          </div>
+          <div className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Aktuelle Zuweisungen
+          </div>
+          <div className='text-muted-foreground text-xs'>
+            Übersicht der aktiven Assignment-Zustände für diesen Fall.
+          </div>
+        </div>
 
-        <div className='grid gap-2 md:grid-cols-2'>
-          <div className='rounded-md border p-3'>
-            <div className='text-muted-foreground mb-1 text-xs'>Gutachter</div>
+        <div className='grid gap-3 md:grid-cols-2'>
+          <div className='border-border/60 bg-background/84 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+            <div className='text-muted-foreground mb-1 text-[11px] font-semibold tracking-[0.14em] uppercase'>
+              Gutachter
+            </div>
             {loadingAssignments ? (
-              <div className='text-muted-foreground'>lädt…</div>
+              <div className='text-muted-foreground text-sm'>lädt…</div>
             ) : currentGutachter ? (
-              <div className='space-y-1'>
-                <div className='text-xs font-medium'>
+              <div className='space-y-1.5'>
+                <div className='text-foreground text-sm font-medium'>
                   {currentGutachterUser?.name || 'Unbekannter User'}
                 </div>
 
                 <div className='text-muted-foreground text-xs'>
                   {currentGutachterUser?.email || '—'}
                 </div>
-
-                <div className='text-muted-foreground text-xs'>
-                  id:{' '}
-                  <span className='font-mono'>
-                    {currentGutachter.assigneeClerkUserId}
+                <div className='text-muted-foreground flex flex-wrap gap-2 text-xs'>
+                  <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono shadow-[var(--shadow-soft)]'>
+                    {currentGutachter.status}
                   </span>
-                </div>
-
-                <div className='text-xs'>
-                  status:{' '}
-                  <span className='font-mono'>{currentGutachter.status}</span>
-                </div>
-
-                <div className='text-xs'>
-                  expires: {fmtDateTime(currentGutachter.expiresAt)}
-                </div>
-
-                <div className='text-xs'>
-                  accepted: {fmtDateTime(currentGutachter.acceptedAt)}
-                </div>
-
-                <div className='text-xs'>
-                  released: {fmtDateTime(currentGutachter.releasedAt)}
+                  <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                    {fmtDateTime(currentGutachter.expiresAt)}
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className='text-muted-foreground'>— keine —</div>
+              <div className='text-muted-foreground text-sm'>— keine —</div>
             )}
           </div>
 
-          <div className='rounded-md border p-3'>
-            <div className='text-muted-foreground mb-1 text-xs'>Anwalt</div>
+          <div className='border-border/60 bg-background/84 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+            <div className='text-muted-foreground mb-1 text-[11px] font-semibold tracking-[0.14em] uppercase'>
+              Anwalt
+            </div>
             {loadingAssignments ? (
-              <div className='text-muted-foreground'>lädt…</div>
+              <div className='text-muted-foreground text-sm'>lädt…</div>
             ) : currentAnwalt ? (
-              <div className='space-y-1'>
-                <div className='text-xs font-medium'>
+              <div className='space-y-1.5'>
+                <div className='text-foreground text-sm font-medium'>
                   {currentAnwaltUser?.name || 'Unbekannter User'}
                 </div>
 
                 <div className='text-muted-foreground text-xs'>
                   {currentAnwaltUser?.email || '—'}
                 </div>
-
-                <div className='text-muted-foreground text-xs'>
-                  id:{' '}
-                  <span className='font-mono'>
-                    {currentAnwalt.assigneeClerkUserId}
+                <div className='text-muted-foreground flex flex-wrap gap-2 text-xs'>
+                  <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                    {currentAnwalt.status}
                   </span>
-                </div>
-
-                <div className='text-xs'>
-                  status:{' '}
-                  <span className='font-mono'>{currentAnwalt.status}</span>
-                </div>
-
-                <div className='text-xs'>
-                  expires: {fmtDateTime(currentAnwalt.expiresAt)}
-                </div>
-
-                <div className='text-xs'>
-                  accepted: {fmtDateTime(currentAnwalt.acceptedAt)}
-                </div>
-
-                <div className='text-xs'>
-                  released: {fmtDateTime(currentAnwalt.releasedAt)}
+                  <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                    {fmtDateTime(currentAnwalt.expiresAt)}
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className='text-muted-foreground'>— keine —</div>
+              <div className='text-muted-foreground text-sm'>— keine —</div>
             )}
           </div>
         </div>
       </div>
 
-      <div className='space-y-2 rounded-md border p-3 text-sm'>
-        <div className='font-medium'>Letzte Zuweisungen</div>
-        <div className='text-muted-foreground text-xs'>
-          Verlauf der letzten Assignment-Einträge dieses Falls
+      <div className='border-border/60 bg-background/82 space-y-4 rounded-[32px] border p-4 shadow-[var(--shadow-soft)]'>
+        <div className='space-y-1'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+            Historie
+          </div>
+          <div className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Letzte Zuweisungen
+          </div>
+          <div className='text-muted-foreground text-xs'>
+            Verlauf der letzten Assignment-Einträge dieses Falls
+          </div>
         </div>
 
         {loadingAssignments ? (
@@ -358,10 +365,17 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
               const user = getUserById(a.assigneeClerkUserId);
 
               return (
-                <div key={a.id} className='rounded-md border p-3'>
+                <div
+                  key={a.id}
+                  className='border-border/60 bg-background/84 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'
+                >
                   <div className='flex flex-wrap items-center gap-x-3 gap-y-1'>
-                    <span className='font-mono text-xs'>{a.role}</span>
-                    <span className='font-mono text-xs'>{a.status}</span>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono text-[11px] shadow-[var(--shadow-soft)]'>
+                      {a.role}
+                    </span>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono text-[11px] shadow-[var(--shadow-soft)]'>
+                      {a.status}
+                    </span>
                     <span className='text-muted-foreground text-xs'>
                       {user?.name || 'Unbekannter User'}
                     </span>
@@ -370,15 +384,19 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
                     </span>
                   </div>
 
-                  <div className='text-muted-foreground mt-2 space-y-1 text-xs'>
-                    <div>
-                      id:{' '}
-                      <span className='font-mono'>{a.assigneeClerkUserId}</span>
-                    </div>
-                    <div>assigned: {fmtDateTime(a.assignedAt)}</div>
-                    <div>expires: {fmtDateTime(a.expiresAt)}</div>
-                    <div>accepted: {fmtDateTime(a.acceptedAt)}</div>
-                    <div>released: {fmtDateTime(a.releasedAt)}</div>
+                  <div className='text-muted-foreground mt-2 flex flex-wrap gap-2 text-xs'>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                      assigned {fmtDateTime(a.assignedAt)}
+                    </span>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                      expires {fmtDateTime(a.expiresAt)}
+                    </span>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                      accepted {fmtDateTime(a.acceptedAt)}
+                    </span>
+                    <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 shadow-[var(--shadow-soft)]'>
+                      released {fmtDateTime(a.releasedAt)}
+                    </span>
                   </div>
                 </div>
               );
@@ -388,10 +406,14 @@ export default function CaseAssignmentAdmin(props: { caseId: string }) {
       </div>
 
       {loadingUsers || loadingAssignments ? (
-        <div className='text-muted-foreground text-xs'>lädt Daten…</div>
+        <div className='text-muted-foreground text-xs'>Lädt Daten…</div>
       ) : null}
 
-      {error ? <div className='text-sm text-red-500'>{error}</div> : null}
+      {error ? (
+        <div className='border-border/60 rounded-[24px] border bg-red-50/80 px-4 py-3 text-sm text-red-900 shadow-[var(--shadow-soft)]'>
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }

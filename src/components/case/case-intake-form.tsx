@@ -427,10 +427,15 @@ export default function CaseIntakeForm({ token }: { token: string }) {
   }
 
   return (
-    <div className='bg-card/95 border-border/60 space-y-10 rounded-[28px] border px-5 py-6 shadow-sm'>
+    <div className='border-border/60 bg-background/80 space-y-12 rounded-[32px] border px-5 py-6 shadow-[var(--shadow-glass)] backdrop-blur-xl'>
       <div className='flex items-start justify-between gap-3'>
         <div>
-          <h3 className='text-lg font-semibold'>Unfall & Daten</h3>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Kundendaten
+          </div>
+          <h3 className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+            Unfall & Daten
+          </h3>
           <p className='text-muted-foreground text-sm'>
             Bitte trage die wichtigsten Angaben ein. Du kannst jederzeit
             bearbeiten.
@@ -450,10 +455,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       {okMsg ? <div className='text-sm text-green-600'>{okMsg}</div> : null}
 
       {/* Claim Route */}
-      <div className='space-y-1'>
-        <label className='text-sm font-medium'>Regulierungsweg</label>
+      <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+        <label className='text-sm font-medium tracking-[-0.01em]'>
+          Regulierungsweg
+        </label>
         <select
-          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
           value={intake.claimRoute}
           onChange={(e) =>
             setIntake((p) => ({
@@ -469,10 +476,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Unfallbeschreibung */}
-      <div className='space-y-1'>
-        <label className='text-sm font-medium'>Unfallhergang</label>
+      <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+        <label className='text-sm font-medium tracking-[-0.01em]'>
+          Unfallhergang
+        </label>
         <textarea
-          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 min-h-[120px] w-full rounded-xl border p-3 text-sm shadow-sm transition-colors outline-none focus-visible:ring-2 focus-visible:outline-none'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 min-h-[120px] w-full rounded-2xl border p-3.5 text-sm shadow-sm transition-colors outline-none focus-visible:ring-2 focus-visible:outline-none'
           value={intake.accidentDescription}
           onChange={(e) =>
             setIntake((p) => ({ ...p, accidentDescription: e.target.value }))
@@ -481,22 +490,26 @@ export default function CaseIntakeForm({ token }: { token: string }) {
         />
       </div>
 
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Unfalldatum</label>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Unfalldatum
+          </label>
           <input
             type='date'
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.accidentDate}
             onChange={(e) =>
               setIntake((p) => ({ ...p, accidentDate: e.target.value }))
             }
           />
         </div>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Unfallort</label>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Unfallort
+          </label>
           <input
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.accidentLocation}
             onChange={(e) =>
               setIntake((p) => ({ ...p, accidentLocation: e.target.value }))
@@ -507,42 +520,50 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Fahrzeug */}
-      <div className='grid grid-cols-1 gap-3 md:grid-cols-4'>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Kennzeichen</label>
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Kennzeichen
+          </label>
           <input
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.ownPlateNumber}
             onChange={(e) =>
               setIntake((p) => ({ ...p, ownPlateNumber: e.target.value }))
             }
           />
         </div>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Marke</label>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Marke
+          </label>
           <input
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.ownCarMake}
             onChange={(e) =>
               setIntake((p) => ({ ...p, ownCarMake: e.target.value }))
             }
           />
         </div>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Modell</label>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Modell
+          </label>
           <input
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.ownCarModel}
             onChange={(e) =>
               setIntake((p) => ({ ...p, ownCarModel: e.target.value }))
             }
           />
         </div>
-        <div className='space-y-1'>
-          <label className='text-sm font-medium'>Baujahr</label>
+        <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Baujahr
+          </label>
           <input
             inputMode='numeric'
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={intake.ownCarYear}
             onChange={(e) =>
               setIntake((p) => ({ ...p, ownCarYear: e.target.value }))
@@ -552,10 +573,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
         </div>
       </div>
 
-      <div className='space-y-1'>
-        <label className='text-sm font-medium'>Halter (Name)</label>
+      <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+        <label className='text-sm font-medium tracking-[-0.01em]'>
+          Halter (Name)
+        </label>
         <input
-          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
           value={intake.ownerName}
           onChange={(e) =>
             setIntake((p) => ({ ...p, ownerName: e.target.value }))
@@ -564,16 +587,16 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Fahrer */}
-      <div className='border-border/60 bg-background/80 rounded-2xl border p-6 shadow-sm'>
-        <div className='mb-2 text-sm font-semibold'>Fahrer</div>
+      <div className='border-border/60 bg-background/84 rounded-[28px] border p-6 shadow-sm'>
+        <div className='mb-3 text-sm font-semibold tracking-tight'>Fahrer</div>
 
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-          <div className='space-y-1 md:col-span-2'>
-            <label className='text-sm font-medium'>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+          <div className='space-y-1.5 md:col-span-2'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
               Ist der Fahrer gleich Halter?
             </label>
             <select
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={boolSelectValue(intake.driverIsHolder)}
               onChange={(e) =>
                 setIntake((p) => {
@@ -600,10 +623,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
           </div>
 
           {intake.driverIsHolder === false ? (
-            <div className='space-y-1 md:col-span-2'>
-              <label className='text-sm font-medium'>Fahrername</label>
+            <div className='space-y-1.5 md:col-span-2'>
+              <label className='text-sm font-medium tracking-[-0.01em]'>
+                Fahrername
+              </label>
               <input
-                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                 value={intake.driverName}
                 onChange={(e) =>
                   setIntake((p) => ({ ...p, driverName: e.target.value }))
@@ -613,10 +638,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
             </div>
           ) : null}
 
-          <div className='space-y-1 md:col-span-2'>
-            <label className='text-sm font-medium'>Fahrertelefon</label>
+          <div className='space-y-1.5 md:col-span-2'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              Fahrertelefon
+            </label>
             <input
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={intake.driverPhone}
               onChange={(e) =>
                 setIntake((p) => ({ ...p, driverPhone: e.target.value }))
@@ -628,16 +655,18 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Gegnerfahrzeug */}
-      <div className='border-border/60 bg-background/80 rounded-2xl border p-6 shadow-sm'>
-        <div className='mb-2 text-sm font-semibold'>Gegnerfahrzeug</div>
+      <div className='border-border/60 bg-background/84 rounded-[28px] border p-6 shadow-sm'>
+        <div className='mb-3 text-sm font-semibold tracking-tight'>
+          Gegnerfahrzeug
+        </div>
 
-        <div className='space-y-3'>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>
+        <div className='space-y-4'>
+          <div className='space-y-1.5'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
               Sind Ihnen die Daten des Gegnerfahrzeugs bekannt?
             </label>
             <select
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={opponentVehicleKnown ? 'yes' : 'no'}
               onChange={(e) =>
                 setOpponentVehicleKnown(e.target.value === 'yes')
@@ -649,11 +678,13 @@ export default function CaseIntakeForm({ token }: { token: string }) {
           </div>
 
           {opponentVehicleKnown ? (
-            <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>Kennzeichen</label>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+              <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  Kennzeichen
+                </label>
                 <input
-                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   value={intake.opponentPlateNumber}
                   onChange={(e) =>
                     setIntake((p) => ({
@@ -664,10 +695,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                   placeholder='Unbekannt'
                 />
               </div>
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>Marke</label>
+              <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  Marke
+                </label>
                 <input
-                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   value={intake.opponentCarMake}
                   onChange={(e) =>
                     setIntake((p) => ({
@@ -678,10 +711,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                   placeholder='Unbekannt'
                 />
               </div>
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>Modell</label>
+              <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  Modell
+                </label>
                 <input
-                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   value={intake.opponentCarModel}
                   onChange={(e) =>
                     setIntake((p) => ({
@@ -790,24 +825,30 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Versicherung OWN */}
-      <div className='border-border/60 bg-background/80 mt-4 rounded-2xl border p-6 shadow-sm'>
-        <div className='mb-2 text-sm font-semibold'>Eigene Versicherung</div>
-        <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>Name</label>
+      <div className='border-border/60 bg-background/84 mt-6 rounded-[28px] border p-6 shadow-sm'>
+        <div className='mb-3 text-sm font-semibold tracking-tight'>
+          Eigene Versicherung
+        </div>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+          <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              Name
+            </label>
             <input
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={insuranceOwn.name}
               onChange={(e) =>
                 setInsuranceOwn((p) => ({ ...p, name: e.target.value }))
               }
             />
           </div>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>E-Mail</label>
+          <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              E-Mail
+            </label>
             <input
               type='email'
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={insuranceOwn.email}
               onChange={(e) =>
                 setInsuranceOwn((p) => ({ ...p, email: e.target.value }))
@@ -816,31 +857,37 @@ export default function CaseIntakeForm({ token }: { token: string }) {
           </div>
         </div>
 
-        <div className='mt-3 grid grid-cols-1 gap-3 md:grid-cols-3'>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>Telefon</label>
+        <div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-3'>
+          <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              Telefon
+            </label>
             <input
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={insuranceOwn.phone}
               onChange={(e) =>
                 setInsuranceOwn((p) => ({ ...p, phone: e.target.value }))
               }
             />
           </div>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>Police-Nr.</label>
+          <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              Police-Nr.
+            </label>
             <input
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={insuranceOwn.policyNumber}
               onChange={(e) =>
                 setInsuranceOwn((p) => ({ ...p, policyNumber: e.target.value }))
               }
             />
           </div>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>Schaden-Nr.</label>
+          <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
+              Schaden-Nr.
+            </label>
             <input
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={insuranceOwn.claimNumber}
               onChange={(e) =>
                 setInsuranceOwn((p) => ({ ...p, claimNumber: e.target.value }))
@@ -849,10 +896,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
           </div>
         </div>
 
-        <div className='mt-3 space-y-1'>
-          <label className='text-sm font-medium'>Ansprechpartner</label>
+        <div className='border-border/60 bg-background/84 mt-4 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+          <label className='text-sm font-medium tracking-[-0.01em]'>
+            Ansprechpartner
+          </label>
           <input
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={insuranceOwn.contactPerson}
             onChange={(e) =>
               setInsuranceOwn((p) => ({ ...p, contactPerson: e.target.value }))
@@ -862,17 +911,17 @@ export default function CaseIntakeForm({ token }: { token: string }) {
       </div>
 
       {/* Versicherung Gegner */}
-      <div className='border-border/60 bg-background/80 mt-4 rounded-2xl border p-6 shadow-sm'>
-        <div className='mb-2 text-sm font-semibold'>
+      <div className='border-border/60 bg-background/84 mt-6 rounded-[28px] border p-6 shadow-sm'>
+        <div className='mb-3 text-sm font-semibold tracking-tight'>
           Versicherung des Unfallgegners
         </div>
-        <div className='space-y-3'>
-          <div className='space-y-1'>
-            <label className='text-sm font-medium'>
+        <div className='space-y-4'>
+          <div className='space-y-1.5'>
+            <label className='text-sm font-medium tracking-[-0.01em]'>
               Ist Ihnen die Versicherung des Unfallgegners bekannt?
             </label>
             <select
-              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
               value={opponentInsuranceKnown ? 'yes' : 'no'}
               onChange={(e) =>
                 setOpponentInsuranceKnown(e.target.value === 'yes')
@@ -885,11 +934,13 @@ export default function CaseIntakeForm({ token }: { token: string }) {
 
           {opponentInsuranceKnown ? (
             <>
-              <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Name</label>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Name
+                  </label>
                   <input
-                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     value={insuranceOpponent.name}
                     onChange={(e) =>
                       setInsuranceOpponent((p) => ({
@@ -899,11 +950,13 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                     }
                   />
                 </div>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>E-Mail</label>
+                <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    E-Mail
+                  </label>
                   <input
                     type='email'
-                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     value={insuranceOpponent.email}
                     onChange={(e) =>
                       setInsuranceOpponent((p) => ({
@@ -915,11 +968,13 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                 </div>
               </div>
 
-              <div className='grid grid-cols-1 gap-3 md:grid-cols-3'>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Telefon</label>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Telefon
+                  </label>
                   <input
-                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     value={insuranceOpponent.phone}
                     onChange={(e) =>
                       setInsuranceOpponent((p) => ({
@@ -929,10 +984,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                     }
                   />
                 </div>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Police-Nr.</label>
+                <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Police-Nr.
+                  </label>
                   <input
-                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     value={insuranceOpponent.policyNumber}
                     onChange={(e) =>
                       setInsuranceOpponent((p) => ({
@@ -942,10 +999,12 @@ export default function CaseIntakeForm({ token }: { token: string }) {
                     }
                   />
                 </div>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Schaden-Nr.</label>
+                <div className='border-border/60 bg-background/84 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Schaden-Nr.
+                  </label>
                   <input
-                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     value={insuranceOpponent.claimNumber}
                     onChange={(e) =>
                       setInsuranceOpponent((p) => ({

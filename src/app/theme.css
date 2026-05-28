@@ -27,12 +27,22 @@ body {
 
 .theme-default,
 .theme-default-scaled {
-  --primary: var(--color-neutral-600);
-  --primary-foreground: var(--color-neutral-50);
+  --primary: oklch(0.24 0.015 255);
+  --primary-foreground: oklch(0.986 0.003 92);
+  --accent: oklch(0.92 0.015 84);
+  --accent-foreground: oklch(0.24 0.015 255);
+  --ring: oklch(0.62 0.05 255);
+  --sidebar-primary: oklch(0.24 0.015 255);
+  --sidebar-primary-foreground: oklch(0.986 0.003 92);
 
   @variant dark {
-    --primary: var(--color-neutral-500);
-    --primary-foreground: var(--color-neutral-50);
+    --primary: oklch(0.98 0.004 92);
+    --primary-foreground: oklch(0.15 0.01 255);
+    --accent: oklch(0.26 0.01 255);
+    --accent-foreground: oklch(0.97 0.004 92);
+    --ring: oklch(0.72 0.04 255);
+    --sidebar-primary: oklch(0.98 0.004 92);
+    --sidebar-primary-foreground: oklch(0.15 0.01 255);
   }
 }
 

@@ -2,10 +2,14 @@ import PageContainer from '@/components/layout/page-container';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import type { Metadata } from 'next';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const metadata: Metadata = {
+  title: 'Benachrichtigungen'
+};
 
 type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 

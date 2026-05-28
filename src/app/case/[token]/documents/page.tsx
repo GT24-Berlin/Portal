@@ -140,7 +140,7 @@ export default async function CaseDocumentsPage({
             showEdit={false}
           />
 
-          <section className='border-border/60 bg-card/95 grid gap-3 rounded-[28px] border p-5 shadow-sm md:grid-cols-3'>
+          <section className='border-border/60 bg-background/78 grid gap-3 rounded-[32px] border p-5 shadow-[var(--shadow-glass)] backdrop-blur-xl md:grid-cols-3'>
             <div className='space-y-1'>
               <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                 Für dich wichtig
@@ -178,7 +178,7 @@ export default async function CaseDocumentsPage({
 
           <CaseFilesUploader token={token} />
 
-          <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+          <div className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
             <div className='border-border/60 bg-muted/15 flex items-center justify-between gap-3 border-b p-6 pb-4'>
               <div>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -195,21 +195,21 @@ export default async function CaseDocumentsPage({
 
               <Link
                 href={`/case/${token}`}
-                className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-3 py-2 text-sm shadow-sm transition-colors'
+                className='hover:bg-muted border-border/60 bg-background/85 rounded-full border px-3 py-2.5 text-[13px] shadow-sm transition-colors'
               >
                 Zurück zum Fallstatus
               </Link>
             </div>
 
-            <div className='space-y-4 p-6'>
+            <div className='space-y-5 p-6'>
               {files.length === 0 ? (
-                <div className='border-border/60 bg-muted/10 rounded-2xl border border-dashed p-6 shadow-sm'>
+                <div className='border-border/60 bg-background/82 rounded-[28px] border border-dashed p-6 shadow-sm'>
                   <p className='text-muted-foreground text-sm'>
                     Noch keine Dokumente vorhanden.
                   </p>
                 </div>
               ) : (
-                <div className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm'>
+                <div className='border-border/60 bg-background/82 rounded-[28px] border p-5 shadow-sm'>
                   <div className='mb-3 flex items-center justify-between'>
                     <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
                       Meine Dokumente
@@ -231,7 +231,7 @@ export default async function CaseDocumentsPage({
                       return (
                         <div
                           key={f.id}
-                          className='border-border/60 bg-background/80 hover:bg-muted/20 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-colors'
+                          className='border-border/60 bg-background/84 hover:bg-muted/20 flex items-center justify-between gap-3 rounded-[24px] border px-4 py-3.5 shadow-sm transition-colors'
                         >
                           <div className='min-w-0'>
                             <div className='text-foreground truncate font-medium'>

@@ -50,7 +50,7 @@ export function NavMain({
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
-                    className='bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 rounded-lg shadow-sm duration-200 ease-out'
+                    className='bg-background/75 text-foreground hover:bg-sidebar-accent/55 hover:text-sidebar-accent-foreground active:bg-sidebar-accent/70 active:text-sidebar-accent-foreground min-w-8 rounded-xl shadow-[var(--shadow-soft)]'
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>

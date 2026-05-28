@@ -39,7 +39,7 @@ export default async function CaseRegisterPage({
         pageTitle='Profil anlegen'
         pageDescription={`Fall ${label} – bitte einmal kurz registrieren, dann kannst du fortfahren.`}
       >
-        <div className='border-border/60 bg-card/95 mx-auto max-w-xl overflow-hidden rounded-[28px] border shadow-sm'>
+        <div className='border-border/60 bg-background/78 mx-auto max-w-xl overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
           <div className='border-border/60 bg-muted/15 border-b p-5'>
             <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
               Kundenportal
@@ -60,40 +60,48 @@ export default async function CaseRegisterPage({
               className='space-y-3'
             >
               <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Vorname *</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Vorname *
+                  </label>
                   <input
                     name='firstName'
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     required
                   />
                 </div>
 
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Nachname *</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Nachname *
+                  </label>
                   <input
                     name='lastName'
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     required
                   />
                 </div>
               </div>
 
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>E-Mail *</label>
+              <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  E-Mail *
+                </label>
                 <input
                   type='email'
                   name='email'
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>
 
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>Telefon *</label>
+              <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  Telefon *
+                </label>
                 <input
                   name='phone'
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>

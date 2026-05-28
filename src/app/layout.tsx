@@ -11,13 +11,14 @@ import './globals.css';
 import './theme.css';
 
 const META_THEME_COLORS = {
-  light: '#f7f6f2',
+  light: '#f6f2ea',
   dark: '#101114'
 };
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn',
-  description: 'Basic dashboard with Next.js and Shadcn'
+  title: 'Gutachtery24',
+  description:
+    'Digitales Fall- und Sachverständigenportal für strukturierte Schadenbearbeitung'
 };
 
 export const viewport: Viewport = {
@@ -34,7 +35,7 @@ export default async function RootLayout({
   const isScaled = activeThemeValue?.endsWith('-scaled');
 
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html lang='de' suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -50,7 +51,7 @@ export default async function RootLayout({
       </head>
       <body
         className={cn(
-          'bg-background selection:bg-primary/10 selection:text-foreground overflow-hidden overscroll-none font-sans antialiased',
+          'bg-background selection:bg-primary/10 selection:text-foreground overflow-x-hidden overscroll-none font-sans antialiased',
           activeThemeValue ? `theme-${activeThemeValue}` : '',
           isScaled ? 'theme-scaled' : '',
           fontVariables

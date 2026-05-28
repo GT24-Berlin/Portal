@@ -75,7 +75,7 @@ export default async function CaseVerifyPage({
         pageTitle='Code bestätigen'
         pageDescription={`Fall ${label} – bitte OTP bestätigen, um fortzufahren.`}
       >
-        <div className='border-border/60 bg-card/95 mx-auto max-w-xl overflow-hidden rounded-[28px] border shadow-sm'>
+        <div className='border-border/60 bg-background/78 mx-auto max-w-xl overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
           <div className='border-border/60 bg-muted/15 border-b p-5'>
             <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
               Kundenportal
@@ -91,11 +91,11 @@ export default async function CaseVerifyPage({
           <div className='space-y-4 p-6'>
             {/* Status Banner */}
             {errorRaw ? (
-              <div className='rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
+              <div className='rounded-2xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
                 {niceError(errorNorm)}
               </div>
             ) : sent ? (
-              <div className='rounded-xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
+              <div className='rounded-2xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
                 Code wurde gesendet. Bitte prüfe dein Postfach.
               </div>
             ) : null}
@@ -111,20 +111,22 @@ export default async function CaseVerifyPage({
               method='post'
               className='space-y-3'
             >
-              <div className='space-y-1'>
-                <label className='text-sm font-medium'>E-Mail *</label>
+              <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                <label className='text-sm font-medium tracking-[-0.01em]'>
+                  E-Mail *
+                </label>
                 <input
                   type='email'
                   name='email'
                   defaultValue={c.customer.email ?? ''}
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   required
                 />
               </div>
 
               <button
                 type='submit'
-                className='border-border/60 bg-background/80 hover:bg-muted inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors'
+                className='border-border/60 bg-background/85 hover:bg-muted inline-flex w-full items-center justify-center rounded-full border px-4 py-2.5 text-sm font-medium shadow-sm transition-colors'
               >
                 Code senden
               </button>
@@ -139,19 +141,21 @@ export default async function CaseVerifyPage({
               className='space-y-3'
             >
               <div className='grid grid-cols-2 gap-3'>
-                <div className='col-span-2 space-y-1'>
-                  <label className='text-sm font-medium'>E-Mail *</label>
+                <div className='border-border/60 bg-background/82 col-span-2 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    E-Mail *
+                  </label>
                   <input
                     type='email'
                     name='email'
                     defaultValue={c.customer.email ?? ''}
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     required
                   />
                 </div>
 
-                <div className='col-span-2 space-y-1'>
-                  <label className='text-sm font-medium'>
+                <div className='border-border/60 bg-background/82 col-span-2 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
                     6-stelliger Code *
                   </label>
                   <input
@@ -159,7 +163,7 @@ export default async function CaseVerifyPage({
                     inputMode='numeric'
                     pattern='[0-9]{6}'
                     maxLength={6}
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                     placeholder='z.B. 123456'
                     required
                   />

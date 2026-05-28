@@ -27,7 +27,7 @@ export default function CaseOperationsLogAccordion(props: {
   const { items } = props;
 
   return (
-    <details className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border p-6 shadow-sm'>
+    <details className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border p-6 shadow-sm'>
       <summary className='border-border/60 flex cursor-pointer list-none items-center justify-between gap-4 border-b pb-4'>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -41,33 +41,33 @@ export default function CaseOperationsLogAccordion(props: {
           </p>
         </div>
 
-        <span className='border-border/60 bg-background/80 text-foreground rounded-full border px-3 py-1.5 text-xs shadow-sm'>
+        <span className='border-border/60 bg-background/85 text-foreground rounded-full border px-3 py-1.5 text-xs shadow-sm'>
           Aufklappen
         </span>
       </summary>
 
       <div className='mt-5 space-y-3'>
         {items.length === 0 ? (
-          <div className='border-border/60 bg-muted/10 text-muted-foreground rounded-2xl border border-dashed p-4 text-sm shadow-sm'>
+          <div className='border-border/60 bg-background/82 text-muted-foreground rounded-[24px] border border-dashed p-4 text-sm shadow-sm'>
             Noch keine Einträge vorhanden.
           </div>
         ) : (
           items.map((item) => (
             <div
               key={item.id}
-              className='border-border/60 bg-background/80 hover:bg-muted/20 rounded-2xl border p-4 shadow-sm transition-colors'
+              className='border-border/60 bg-background/84 hover:bg-muted/20 rounded-[24px] border p-4 shadow-sm transition-colors'
             >
               <div className='text-muted-foreground flex flex-wrap items-center gap-2 text-xs'>
-                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
                   {fmtDate(item.createdAt)}
                 </span>
-                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
                   {item.domain}
                 </span>
-                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
                   {item.action}
                 </span>
-                <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
+                <span className='border-border/60 bg-background/90 rounded-full border px-2.5 py-1 font-mono shadow-sm'>
                   {item.result}
                 </span>
               </div>

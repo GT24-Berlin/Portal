@@ -39,7 +39,7 @@ export default function CasePhotoGalleryClient(props: {
 
   return (
     <>
-      <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+      <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-sm'>
         <div className='border-border/60 bg-muted/15 border-b p-6'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Medien
@@ -63,7 +63,7 @@ export default function CasePhotoGalleryClient(props: {
                 key={item.id}
                 type='button'
                 onClick={() => setActiveId(item.id)}
-                className='group border-border/60 bg-background/80 overflow-hidden rounded-2xl border text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md'
+                className='group border-border/60 bg-background/84 overflow-hidden rounded-[24px] border text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md'
               >
                 <div className='bg-muted/20 relative h-52 sm:h-44 lg:h-48'>
                   <img
@@ -73,7 +73,7 @@ export default function CasePhotoGalleryClient(props: {
                   />
                 </div>
 
-                <div className='space-y-1 p-3'>
+                <div className='space-y-1 p-3.5'>
                   <div className='text-foreground truncate text-sm font-medium'>
                     {item.title ?? item.filename}
                   </div>

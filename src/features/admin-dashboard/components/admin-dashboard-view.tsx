@@ -12,7 +12,7 @@ export default function AdminDashboardView(props: {
 
   return (
     <div className='space-y-8'>
-      <div className='bg-card/95 border-border/60 space-y-4 rounded-[28px] border p-6 shadow-sm md:p-8'>
+      <div className='border-border/60 bg-background/78 space-y-4 rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl md:p-8'>
         <div className='space-y-2'>
           <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Admin Dashboard
@@ -27,7 +27,7 @@ export default function AdminDashboardView(props: {
         </div>
       </div>
 
-      <div className='border-border/60 bg-card/95 grid grid-cols-1 gap-4 rounded-[28px] border p-5 shadow-sm md:grid-cols-3 md:p-6'>
+      <div className='border-border/60 bg-background/78 grid grid-cols-1 gap-4 rounded-[32px] border p-5 shadow-[var(--shadow-glass)] backdrop-blur-xl md:grid-cols-3 md:p-6'>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             KPI Layer

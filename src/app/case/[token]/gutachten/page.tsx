@@ -111,7 +111,7 @@ export default async function CaseGutachtenPage({
             }`}
           />
 
-          <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+          <section className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
             <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-6 md:grid-cols-[1.35fr_0.65fr] md:p-8'>
               <div className='space-y-2'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -126,7 +126,7 @@ export default async function CaseGutachtenPage({
                 </p>
               </div>
 
-              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+              <div className='border-border/60 bg-background/84 grid gap-2 rounded-[24px] border p-4 shadow-sm'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
                   Service
                 </div>
@@ -141,7 +141,7 @@ export default async function CaseGutachtenPage({
 
             <div className='space-y-6 p-6 md:p-8'>
               {insights.status === 'PARSED' && summaryLines.length > 0 ? (
-                <section className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm md:p-6'>
+                <section className='border-border/60 bg-background/82 rounded-[28px] border p-5 shadow-sm md:p-6'>
                   <div className='space-y-2'>
                     <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                       Kurzübersicht
@@ -155,7 +155,7 @@ export default async function CaseGutachtenPage({
                     {summaryLines.map((line, index) => (
                       <div
                         key={index}
-                        className='bg-background/80 border-border/60 text-foreground rounded-2xl border px-4 py-3 text-sm shadow-sm md:text-base'
+                        className='bg-background/85 border-border/60 text-foreground rounded-[24px] border px-4 py-3 text-sm shadow-sm md:text-base'
                       >
                         {line}
                       </div>
@@ -165,7 +165,7 @@ export default async function CaseGutachtenPage({
               ) : null}
 
               <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                   <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Schadenshöhe
                   </div>
@@ -177,7 +177,7 @@ export default async function CaseGutachtenPage({
                   </div>
                 </div>
 
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                   <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Wiederbeschaffungswert
                   </div>
@@ -189,7 +189,7 @@ export default async function CaseGutachtenPage({
                   </div>
                 </div>
 
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                   <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Wertminderung
                   </div>
@@ -201,7 +201,7 @@ export default async function CaseGutachtenPage({
                   </div>
                 </div>
 
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                   <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Nutzungsausfall
                   </div>
@@ -217,7 +217,7 @@ export default async function CaseGutachtenPage({
                 </div>
               </div>
 
-              <div className='border-border/60 bg-muted/10 rounded-2xl border p-5 shadow-sm'>
+              <div className='border-border/60 bg-background/82 rounded-[28px] border p-5 shadow-sm'>
                 <div className='space-y-4'>
                   <div>
                     <div className='text-foreground text-sm font-medium'>
@@ -230,7 +230,7 @@ export default async function CaseGutachtenPage({
                   </div>
 
                   <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-5'>
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                    <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                       <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturkosten netto
                       </div>
@@ -239,7 +239,7 @@ export default async function CaseGutachtenPage({
                       </div>
                     </div>
 
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                    <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                       <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturkosten brutto
                       </div>
@@ -248,7 +248,7 @@ export default async function CaseGutachtenPage({
                       </div>
                     </div>
 
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                    <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                       <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Reparaturdauer
                       </div>
@@ -261,7 +261,7 @@ export default async function CaseGutachtenPage({
                       </div>
                     </div>
 
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                    <div className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-sm'>
                       <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                         Abrechnungsart
                       </div>

@@ -425,7 +425,7 @@ export default async function CaseAppointmentsPage({
             }`}
           />
 
-          <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+          <section className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
             <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-6 md:grid-cols-[1.4fr_0.6fr] md:p-8'>
               <div className='space-y-2'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -444,7 +444,7 @@ export default async function CaseAppointmentsPage({
                 </div>
               </div>
 
-              <div className='border-border/60 bg-background/80 grid gap-3 self-start rounded-2xl border p-4 shadow-sm'>
+              <div className='border-border/60 bg-background/84 grid gap-3 self-start rounded-[24px] border p-4 shadow-sm'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
                   Workflow
                 </div>
@@ -465,7 +465,7 @@ export default async function CaseAppointmentsPage({
               />
             </div>
 
-            <section className='border-border/60 bg-background/80 border-t p-6 md:p-8'>
+            <section className='border-border/60 bg-background/82 border-t p-6 md:p-8'>
               <div className='space-y-1'>
                 <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                   Secondary Context
@@ -476,7 +476,7 @@ export default async function CaseAppointmentsPage({
               </div>
 
               {appointmentRequests.length === 0 ? (
-                <div className='text-muted-foreground border-border/60 bg-muted/10 mt-3 rounded-2xl border border-dashed p-5 text-sm shadow-sm'>
+                <div className='text-muted-foreground border-border/60 bg-background/82 mt-3 rounded-[24px] border border-dashed p-5 text-sm shadow-sm'>
                   Noch keine Terminanfragen vorhanden.
                 </div>
               ) : (
@@ -484,7 +484,7 @@ export default async function CaseAppointmentsPage({
                   {appointmentRequests.map((request) => (
                     <div
                       key={request.id}
-                      className='border-border/60 bg-card/95 hover:bg-muted/10 rounded-2xl border px-4 py-4 text-sm shadow-sm transition-colors'
+                      className='border-border/60 bg-background/84 hover:bg-muted/10 rounded-[24px] border px-4 py-4 text-sm shadow-sm transition-colors'
                     >
                       <div className='flex flex-wrap items-center justify-between gap-3'>
                         <div className='space-y-2'>
@@ -529,7 +529,7 @@ export default async function CaseAppointmentsPage({
 
                       {request.status === 'CONFIRMED' &&
                       request.partnerContact ? (
-                        <div className='mt-4 rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-4 text-sm shadow-sm'>
+                        <div className='mt-4 rounded-[24px] border border-emerald-200/70 bg-emerald-50/80 p-4 text-sm shadow-sm'>
                           <div className='text-xs font-medium text-emerald-700'>
                             Kontakt des bestätigten Partners
                           </div>

@@ -68,8 +68,8 @@ export default function CaseCustomerUploadsMini({ token }: { token: string }) {
   );
 
   return (
-    <div className='bg-card/95 border-border/60 space-y-3 overflow-hidden rounded-2xl border p-6 shadow-sm'>
-      <div className='border-border/60 flex items-center justify-between gap-3 border-b pb-3'>
+    <div className='border-border/60 bg-background/82 space-y-4 overflow-hidden rounded-[28px] border p-6 shadow-[var(--shadow-soft)]'>
+      <div className='border-border/60 flex items-center justify-between gap-3 border-b pb-3.5'>
         <div>
           <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
             Deine Uploads
@@ -83,14 +83,14 @@ export default function CaseCustomerUploadsMini({ token }: { token: string }) {
           <button
             type='button'
             onClick={load}
-            className='hover:bg-muted border-border/60 bg-background/80 rounded-full border px-3 py-2 text-sm shadow-sm transition-colors'
+            className='hover:bg-muted border-border/60 bg-background/85 rounded-full border px-3 py-2.5 text-[13px] shadow-sm transition-colors'
             disabled={loading}
           >
             Aktualisieren
           </button>
           <Link
             href={`/case/${token}/documents`}
-            className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm hover:opacity-90'
+            className='bg-foreground text-background rounded-full px-3 py-2.5 text-[13px] shadow-sm hover:opacity-90'
           >
             Zu den Dokumenten
           </Link>
@@ -98,7 +98,7 @@ export default function CaseCustomerUploadsMini({ token }: { token: string }) {
       </div>
 
       {error ? (
-        <div className='rounded-2xl border border-red-300/70 bg-red-50/70 px-3 py-2 text-sm text-red-800'>
+        <div className='rounded-2xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
           Laden fehlgeschlagen: {error}
         </div>
       ) : null}
@@ -106,7 +106,7 @@ export default function CaseCustomerUploadsMini({ token }: { token: string }) {
       {loading ? (
         <div className='text-muted-foreground text-sm'>Lade…</div>
       ) : customerUploads.length === 0 ? (
-        <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm'>
+        <div className='text-muted-foreground border-border/60 bg-background/82 rounded-[24px] border border-dashed px-4 py-6 text-sm shadow-sm'>
           Du hast noch keine Dateien hochgeladen.
         </div>
       ) : (
@@ -114,7 +114,7 @@ export default function CaseCustomerUploadsMini({ token }: { token: string }) {
           {customerUploads.map((f) => (
             <div
               key={f.id}
-              className='border-border/60 bg-background/80 hover:bg-muted/20 flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm transition-colors'
+              className='border-border/60 bg-background/84 hover:bg-muted/20 flex items-center justify-between rounded-[24px] border px-4 py-3.5 text-sm shadow-sm transition-colors'
             >
               <div className='min-w-0'>
                 <div className='text-foreground truncate font-medium'>

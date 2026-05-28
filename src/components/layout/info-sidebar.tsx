@@ -39,7 +39,7 @@ export function InfoSidebar({
 
   return (
     <Infobar {...props}>
-      <InfobarHeader className='bg-background/80 flex flex-row items-start justify-between gap-2 border-b px-3 py-3 backdrop-blur-sm'>
+      <InfobarHeader className='bg-background/85 border-border/60 flex flex-row items-start justify-between gap-2 border-b px-3 py-3 shadow-[var(--shadow-glass)] backdrop-blur-xl'>
         <div className='min-w-0 flex-1'>
           <h2 className='font-heading text-lg font-semibold tracking-tight wrap-break-word'>
             {data.title}

@@ -277,44 +277,44 @@ export default async function CaseTokenPage({
             showEdit
           />
 
-          <div className='bg-card/95 border-border/60 space-y-5 rounded-[28px] border p-6 shadow-sm md:p-8'>
-            <div className='flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between'>
+          <div className='border-border/60 bg-background/78 space-y-6 rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl md:p-8'>
+            <div className='space-y-6'>
               <div className='space-y-3'>
-                <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase'>
                   Fallübersicht
                 </p>
                 <div className='space-y-2'>
-                  <h1 className='font-heading text-foreground text-3xl font-semibold tracking-tight md:text-4xl'>
+                  <h1 className='font-heading text-foreground text-[2.15rem] font-semibold tracking-tight md:text-[2.8rem]'>
                     Dein Fallstatus
                   </h1>
-                  <p className='text-muted-foreground max-w-2xl text-sm leading-6 md:text-[15px]'>
+                  <p className='text-muted-foreground max-w-2xl text-[14px] leading-6 md:text-[15px]'>
                     Hier siehst du die wichtigsten Eckdaten, die aktuelle
                     Bearbeitung und die Ansprechpartner für deinen Fall in einer
                     ruhigen Übersicht.
                   </p>
                   <div className='flex flex-wrap gap-2 pt-1'>
-                    <span className='border-border/60 bg-background/80 text-foreground rounded-full border px-3 py-1 text-xs shadow-sm'>
+                    <span className='border-border/60 bg-background/85 text-foreground rounded-full border px-3 py-1.5 text-xs shadow-sm'>
                       Aktueller Schritt:{' '}
                       {journey.currentLabel ?? 'In Bearbeitung'}
                     </span>
-                    <span className='border-border/60 bg-background/80 text-muted-foreground rounded-full border px-3 py-1 text-xs shadow-sm'>
+                    <span className='border-border/60 bg-background/85 text-muted-foreground rounded-full border px-3 py-1.5 text-xs shadow-sm'>
                       Nächster Schritt: {journey.nextLabel ?? 'Keiner offen'}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className='grid gap-3 sm:grid-cols-3 lg:min-w-[420px] lg:grid-cols-1 xl:grid-cols-3'>
-                <div className='border-border/60 bg-foreground/5 rounded-2xl border p-4 shadow-sm'>
+              <div className='grid gap-3 sm:grid-cols-3 lg:max-w-3xl lg:grid-cols-3'>
+                <div className='border-border/60 bg-background/85 rounded-[24px] border p-4 shadow-sm'>
                   <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Fallnummer
                   </p>
-                  <p className='text-foreground font-mono text-lg font-semibold'>
+                  <p className='text-foreground font-mono text-lg font-semibold tracking-tight'>
                     {found.caseNumber ?? '—'}
                   </p>
                 </div>
 
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/82 rounded-[24px] border p-4 shadow-sm'>
                   <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Ihr Gutachter
                   </p>
@@ -328,7 +328,7 @@ export default async function CaseTokenPage({
                   ) : null}
                 </div>
 
-                <div className='border-border/60 bg-background/80 rounded-2xl border p-4 shadow-sm'>
+                <div className='border-border/60 bg-background/82 rounded-[24px] border p-4 shadow-sm'>
                   <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
                     Ihr Anwalt
                   </p>
@@ -345,37 +345,33 @@ export default async function CaseTokenPage({
             </div>
           </div>
 
-          <div className='grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,0.92fr)]'>
-            <div className='space-y-6'>
-              <CustomerJourneyCard data={journey} />
+          <div className='space-y-6'>
+            <CustomerJourneyCard data={journey} />
 
-              <div className='bg-card/95 border-border/60 flex flex-col gap-3 rounded-2xl border px-5 py-5 shadow-sm md:flex-row md:items-center md:justify-between'>
-                <div>
-                  <p className='text-muted-foreground text-sm'>
-                    Letztes Update
-                  </p>
-                  <p className='text-foreground font-medium'>
-                    {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
-                  </p>
-                </div>
-                <div className='text-muted-foreground text-sm'>
-                  Gutachter:{' '}
-                  <span className='text-foreground'>
-                    {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
-                      ?.label ?? found.gutachterStatus}
-                  </span>
-                  {' · '}
-                  Anwalt:{' '}
-                  <span className='text-foreground'>
-                    {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
-                      ?.label ?? found.anwaltStatus}
-                  </span>
-                </div>
+            <div className='border-border/60 bg-background/80 flex flex-col gap-3 rounded-[28px] border px-5 py-5 shadow-sm md:flex-row md:items-center md:justify-between'>
+              <div>
+                <p className='text-muted-foreground text-sm'>Letztes Update</p>
+                <p className='text-foreground font-medium'>
+                  {fmt(lastEvent?.occurredAt ?? found.updatedAt)}
+                </p>
+              </div>
+              <div className='text-muted-foreground text-sm'>
+                Gutachter:{' '}
+                <span className='text-foreground'>
+                  {GUTACHTER_FLOW.find((x) => x.key === found.gutachterStatus)
+                    ?.label ?? found.gutachterStatus}
+                </span>
+                {' · '}
+                Anwalt:{' '}
+                <span className='text-foreground'>
+                  {ANWALT_FLOW.find((x) => x.key === found.anwaltStatus)
+                    ?.label ?? found.anwaltStatus}
+                </span>
               </div>
             </div>
 
-            <div className='space-y-4'>
-              <div className='bg-card/95 border-border/60 rounded-[28px] border px-5 py-6 shadow-sm'>
+            <div className='grid gap-4 xl:grid-cols-2'>
+              <div className='border-border/60 bg-background/80 rounded-[28px] border px-5 py-6 shadow-[var(--shadow-soft)]'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-muted-foreground text-sm'>Track</p>
@@ -413,7 +409,7 @@ export default async function CaseTokenPage({
                 ) : null}
               </div>
 
-              <div className='bg-card/95 border-border/60 rounded-[28px] border px-5 py-6 shadow-sm'>
+              <div className='border-border/60 bg-background/80 rounded-[28px] border px-5 py-6 shadow-[var(--shadow-soft)]'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-muted-foreground text-sm'>Track</p>
@@ -437,17 +433,12 @@ export default async function CaseTokenPage({
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className='grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.9fr)]'>
             <div className='space-y-6'>
               <CaseIntakeForm token={token} />
-            </div>
-
-            <div className='space-y-6'>
               <CaseCustomerUploadsMini token={token} />
 
-              <div className='bg-card/95 border-border/60 space-y-3 rounded-2xl border p-5 shadow-sm'>
+              <div className='border-border/60 bg-background/80 space-y-3 rounded-[28px] border p-5 shadow-sm'>
                 <h3 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
                   Fragen?
                 </h3>

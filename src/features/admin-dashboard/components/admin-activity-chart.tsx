@@ -14,13 +14,13 @@ export default function AdminActivityChart(props: {
   );
 
   return (
-    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
-      <CardHeader className='border-border/60 bg-muted/15 border-b'>
+    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
+      <CardHeader className='border-border/60 bg-muted/10 border-b'>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Operationsrhythmus
           </div>
-          <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+          <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
             Aktivität letzte 7 Tage
           </CardTitle>
         </div>
@@ -30,7 +30,7 @@ export default function AdminActivityChart(props: {
           {props.items.map((item) => (
             <div
               key={item.dateLabel}
-              className='border-border/60 bg-background/80 space-y-3 rounded-2xl border p-4 shadow-sm'
+              className='border-border/60 bg-background/82 space-y-3 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'
             >
               <div className='flex items-center justify-between gap-3'>
                 <div className='text-foreground text-sm font-medium'>
@@ -48,7 +48,7 @@ export default function AdminActivityChart(props: {
                     {item.uploads}
                   </span>
                 </div>
-                <div className='bg-muted/70 h-2 rounded-full shadow-inner'>
+                <div className='bg-muted/70 border-border/50 h-2 rounded-full border shadow-inner'>
                   <div
                     className='bg-primary/80 h-full rounded-full'
                     style={{ width: `${(item.uploads / max) * 100}%` }}
@@ -63,7 +63,7 @@ export default function AdminActivityChart(props: {
                     {item.otpIssues}
                   </span>
                 </div>
-                <div className='bg-muted/70 h-2 rounded-full shadow-inner'>
+                <div className='bg-muted/70 border-border/50 h-2 rounded-full border shadow-inner'>
                   <div
                     className='h-full rounded-full bg-amber-400/75'
                     style={{ width: `${(item.otpIssues / max) * 100}%` }}
@@ -78,7 +78,7 @@ export default function AdminActivityChart(props: {
                     {item.operationalEvents}
                   </span>
                 </div>
-                <div className='bg-muted/70 h-2 rounded-full shadow-inner'>
+                <div className='bg-muted/70 border-border/50 h-2 rounded-full border shadow-inner'>
                   <div
                     className='bg-foreground/50 h-full rounded-full'
                     style={{

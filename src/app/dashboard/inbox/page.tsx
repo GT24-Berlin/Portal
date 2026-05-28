@@ -7,8 +7,12 @@ import InboxList from '@/components/cases/inbox-list';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
 import { NotificationType } from '@prisma/client';
+import type { Metadata } from 'next';
 
 export const runtime = 'nodejs';
+export const metadata: Metadata = {
+  title: 'Inbox'
+};
 
 type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
@@ -127,11 +131,13 @@ export default async function InboxPage() {
       >
         <div className='space-y-8'>
           {appointmentNotes.length > 0 ? (
-            <div className='space-y-3'>
-              <div className='flex items-end justify-between'>
-                <div>
-                  <div className='text-sm font-medium'>Terminhinweise</div>
-                  <div className='text-muted-foreground text-sm'>
+            <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+              <div className='border-border/60 bg-muted/10 flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4 md:px-6'>
+                <div className='space-y-1'>
+                  <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                    Terminhinweise
+                  </div>
+                  <div className='text-muted-foreground text-xs'>
                     Neue oder aktualisierte Terminanfragen.
                   </div>
                 </div>
@@ -140,15 +146,17 @@ export default async function InboxPage() {
                 </div>
               </div>
 
-              <div className='space-y-3'>
+              <div className='space-y-3 p-4 md:p-6'>
                 {appointmentNotes.map((note) => (
                   <div
                     key={note.id}
-                    className='rounded-xl border bg-white p-4 shadow-sm'
+                    className='border-border/60 bg-background/84 rounded-[24px] border p-4 shadow-[var(--shadow-soft)]'
                   >
                     <div className='flex flex-wrap items-start justify-between gap-3'>
                       <div className='space-y-1'>
-                        <div className='text-sm font-medium'>{note.title}</div>
+                        <div className='text-foreground text-sm font-medium'>
+                          {note.title}
+                        </div>
                         {note.body ? (
                           <div className='text-muted-foreground text-sm'>
                             {note.body}
@@ -184,14 +192,16 @@ export default async function InboxPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           ) : null}
 
-          <div className='space-y-3'>
-            <div className='flex items-end justify-between'>
-              <div>
-                <div className='text-sm font-medium'>Neue Zuweisungen</div>
-                <div className='text-muted-foreground text-sm'>
+          <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+            <div className='border-border/60 bg-muted/10 flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4 md:px-6'>
+              <div className='space-y-1'>
+                <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                  Neue Zuweisungen
+                </div>
+                <div className='text-muted-foreground text-xs'>
                   Erst annehmen, dann bearbeiten.
                 </div>
               </div>
@@ -200,14 +210,18 @@ export default async function InboxPage() {
               </div>
             </div>
 
-            <InboxList role={role as any} rows={pendingRows as any} />
-          </div>
+            <div className='p-4 md:p-6'>
+              <InboxList role={role as any} rows={pendingRows as any} />
+            </div>
+          </section>
 
-          <div className='space-y-3'>
-            <div className='flex items-end justify-between'>
-              <div>
-                <div className='text-sm font-medium'>Meine aktiven Fälle</div>
-                <div className='text-muted-foreground text-sm'>
+          <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+            <div className='border-border/60 bg-muted/10 flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4 md:px-6'>
+              <div className='space-y-1'>
+                <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                  Meine aktiven Fälle
+                </div>
+                <div className='text-muted-foreground text-xs'>
                   Bereits angenommene Zuständigkeiten.
                 </div>
               </div>
@@ -216,8 +230,10 @@ export default async function InboxPage() {
               </div>
             </div>
 
-            <InboxList role={role as any} rows={acceptedRows as any} />
-          </div>
+            <div className='p-4 md:p-6'>
+              <InboxList role={role as any} rows={acceptedRows as any} />
+            </div>
+          </section>
         </div>
       </PageContainer>
     );

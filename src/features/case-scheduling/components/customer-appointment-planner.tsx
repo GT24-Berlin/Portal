@@ -134,7 +134,7 @@ export default function CustomerAppointmentPlanner(props: {
 
   return (
     <div className='space-y-4'>
-      <div className='border-border/60 bg-card/95 grid gap-3 rounded-[28px] border p-5 shadow-sm md:grid-cols-3'>
+      <div className='border-border/60 bg-background/78 grid gap-3 rounded-[32px] border p-5 shadow-[var(--shadow-glass)] backdrop-blur-xl md:grid-cols-3'>
         <div className='space-y-1'>
           <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
             Booking-Modul
@@ -174,7 +174,7 @@ export default function CustomerAppointmentPlanner(props: {
           return (
             <section
               key={section.role}
-              className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'
+              className='border-border/60 bg-background/80 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]'
             >
               <div className='border-border/60 bg-muted/15 border-b px-5 py-4'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -188,9 +188,9 @@ export default function CustomerAppointmentPlanner(props: {
                 </p>
               </div>
 
-              <div className='space-y-4 p-5'>
+              <div className='space-y-5 p-5'>
                 {section.addressLines.length > 0 ? (
-                  <div className='border-border/60 bg-background/80 text-foreground grid gap-2 rounded-2xl border p-4 text-sm shadow-sm'>
+                  <div className='border-border/60 bg-background/84 text-foreground grid gap-2 rounded-[24px] border p-4 text-sm shadow-sm'>
                     {section.addressLines.map((line) => (
                       <div key={line}>{line}</div>
                     ))}
@@ -212,12 +212,12 @@ export default function CustomerAppointmentPlanner(props: {
                 </div>
 
                 {section.slots.length === 0 ? (
-                  <div className='border-border/60 bg-muted/10 text-muted-foreground rounded-2xl border border-dashed p-5 text-sm shadow-sm'>
+                  <div className='border-border/60 bg-background/82 text-muted-foreground rounded-[24px] border border-dashed p-5 text-sm shadow-sm'>
                     Für diese Rolle sind aktuell keine anfragbaren Slots
                     hinterlegt.
                   </div>
                 ) : (
-                  <div className='space-y-2.5'>
+                  <div className='space-y-3'>
                     {section.slots.map((slot) => {
                       const active = selectedKey === slotKey(slot);
 
@@ -231,7 +231,7 @@ export default function CustomerAppointmentPlanner(props: {
                               [section.role]: slotKey(slot)
                             }))
                           }
-                          className={`w-full rounded-2xl border px-4 py-4 text-left shadow-sm transition-all ${
+                          className={`w-full rounded-[24px] border px-4 py-4 text-left shadow-sm transition-all ${
                             active
                               ? 'border-primary/40 bg-primary/5 ring-primary/15 ring-1'
                               : 'border-border/60 bg-background/80 hover:border-foreground/20 hover:bg-muted/20'
@@ -261,10 +261,10 @@ export default function CustomerAppointmentPlanner(props: {
                 )}
               </div>
 
-              <div className='border-border/60 bg-background/80 border-t p-5'>
-                <div className='border-border/60 bg-card/95 space-y-4 rounded-2xl border p-4 shadow-sm'>
+              <div className='border-border/60 bg-background/82 border-t p-5'>
+                <div className='border-border/60 bg-background/84 space-y-4 rounded-[24px] border p-4 shadow-sm'>
                   <div className='grid gap-3 text-sm md:grid-cols-2'>
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-3 shadow-sm'>
+                    <div className='border-border/60 bg-background/86 rounded-[22px] border p-3 shadow-sm'>
                       <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
                         Terminart
                       </div>
@@ -274,7 +274,7 @@ export default function CustomerAppointmentPlanner(props: {
                           : 'Bitte Slot auswählen'}
                       </div>
                     </div>
-                    <div className='border-border/60 bg-background/80 rounded-2xl border p-3 shadow-sm'>
+                    <div className='border-border/60 bg-background/86 rounded-[22px] border p-3 shadow-sm'>
                       <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
                         Dauer
                       </div>
@@ -298,14 +298,14 @@ export default function CustomerAppointmentPlanner(props: {
                           [section.role]: e.target.value
                         }))
                       }
-                      className='bg-background/80 border-border/60 focus-visible:ring-primary/20 min-h-28 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                      className='bg-background/85 border-border/60 focus-visible:ring-primary/20 min-h-28 w-full rounded-[24px] border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                       placeholder='Zum Beispiel Erreichbarkeit, Hinweise oder Rückfragen'
                     />
                   </div>
 
                   {messageByRole[section.role] ? (
                     <div
-                      className={`rounded-2xl border px-3 py-2.5 text-sm shadow-sm ${
+                      className={`rounded-[24px] border px-3 py-2.5 text-sm shadow-sm ${
                         messageByRole[section.role]?.kind === 'ok'
                           ? 'border-emerald-300/70 bg-emerald-50/80 text-emerald-900'
                           : 'border-red-300/70 bg-red-50/80 text-red-900'

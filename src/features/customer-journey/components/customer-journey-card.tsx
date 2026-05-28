@@ -6,24 +6,24 @@ export default function CustomerJourneyCard(props: {
   const { data } = props;
 
   return (
-    <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border p-6 shadow-sm md:p-8'>
-      <div className='space-y-8'>
+    <section className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl md:p-8'>
+      <div className='space-y-9'>
         <div className='grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,0.7fr)]'>
-          <div className='border-border/60 bg-muted/10 rounded-3xl border p-5 shadow-sm md:p-6'>
-            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+          <div className='border-border/60 bg-background/82 rounded-[28px] border p-5 shadow-sm md:p-6'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.2em] uppercase'>
               Fortschritt
             </div>
 
-            <h2 className='font-heading text-foreground mt-3 text-2xl font-semibold tracking-tight md:text-4xl'>
+            <h2 className='font-heading text-foreground mt-3 text-[2rem] font-semibold tracking-tight md:text-[2.9rem]'>
               {data.currentLabel}
             </h2>
 
-            <p className='text-muted-foreground mt-3 max-w-2xl text-sm leading-6 md:text-[15px]'>
+            <p className='text-muted-foreground mt-3 max-w-2xl text-[14px] leading-6 md:text-[15px]'>
               {data.summary}
             </p>
           </div>
 
-          <div className='border-border/60 bg-background/80 rounded-3xl border p-5 shadow-sm'>
+          <div className='border-border/60 bg-background/82 rounded-[28px] border p-5 shadow-sm'>
             <div className='flex items-center justify-between text-sm'>
               <span className='text-muted-foreground'>Bearbeitungsstand</span>
               <span className='font-heading text-foreground text-lg font-semibold tabular-nums'>
@@ -39,10 +39,10 @@ export default function CustomerJourneyCard(props: {
             </div>
 
             <div className='text-muted-foreground mt-4 grid gap-2 text-xs'>
-              <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+              <div className='border-border/60 bg-background/82 rounded-2xl border px-3 py-2 shadow-sm'>
                 Aktueller Schritt: {data.currentLabel}
               </div>
-              <div className='border-border/60 bg-muted/10 rounded-2xl border px-3 py-2 shadow-sm'>
+              <div className='border-border/60 bg-background/82 rounded-2xl border px-3 py-2 shadow-sm'>
                 Nächster Schritt: {data.nextLabel ?? 'Keiner offen'}
               </div>
             </div>
@@ -50,8 +50,8 @@ export default function CustomerJourneyCard(props: {
         </div>
 
         <div className='grid gap-3 md:grid-cols-3'>
-          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
-            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+          <div className='border-border/60 bg-background/82 rounded-[24px] border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
               Kurzstatus
             </div>
             <div className='text-foreground mt-2 text-sm font-semibold'>
@@ -59,8 +59,8 @@ export default function CustomerJourneyCard(props: {
             </div>
           </div>
 
-          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
-            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+          <div className='border-border/60 bg-background/82 rounded-[24px] border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
               Als Nächstes
             </div>
             <div className='text-foreground mt-2 text-sm font-semibold'>
@@ -68,8 +68,8 @@ export default function CustomerJourneyCard(props: {
             </div>
           </div>
 
-          <div className='border-border/60 bg-muted/10 rounded-2xl border p-4 shadow-sm'>
-            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+          <div className='border-border/60 bg-background/82 rounded-[24px] border p-4 shadow-sm'>
+            <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
               Für dich wichtig
             </div>
             <div className='text-foreground mt-2 text-sm font-semibold'>
@@ -80,15 +80,15 @@ export default function CustomerJourneyCard(props: {
         </div>
 
         <div className='space-y-4'>
-          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
             Fallfortschritt
           </div>
 
-          <div className='grid gap-3 xl:grid-cols-3'>
+          <div className='grid gap-4 xl:grid-cols-3'>
             {data.steps.map((step, index) => (
               <div
                 key={step.key}
-                className={`rounded-3xl border p-4 shadow-sm transition-colors ${
+                className={`rounded-[28px] border p-4 shadow-sm transition-colors ${
                   step.active
                     ? 'border-foreground bg-foreground text-background'
                     : step.done

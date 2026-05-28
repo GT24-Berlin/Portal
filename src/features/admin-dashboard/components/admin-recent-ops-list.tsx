@@ -6,9 +6,9 @@ export default function AdminRecentOpsList(props: {
   items: AdminRecentOpRow[];
 }) {
   return (
-    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
-      <CardHeader className='border-border/60 bg-muted/15 border-b'>
-        <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
+      <CardHeader className='border-border/60 bg-muted/10 border-b'>
+        <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
           Letzte Operations Events
         </CardTitle>
       </CardHeader>
@@ -22,7 +22,7 @@ export default function AdminRecentOpsList(props: {
             {props.items.map((item) => (
               <div
                 key={item.id}
-                className='border-border/60 bg-background/80 hover:bg-muted/20 rounded-2xl border p-4 text-sm shadow-sm transition-colors'
+                className='border-border/60 bg-background/82 hover:bg-primary/[0.03] rounded-[24px] border p-4 text-sm shadow-[var(--shadow-soft)] transition-colors'
               >
                 <div className='flex flex-wrap items-center gap-x-2 gap-y-2'>
                   <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-sm'>

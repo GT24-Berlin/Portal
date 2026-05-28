@@ -37,9 +37,9 @@ export default function PartnerCasesTable(props: {
   }, [tab, props.pendingCases, props.acceptedCases]);
 
   return (
-    <Card className='border-border/60 bg-card/95 overflow-hidden shadow-sm'>
-      <CardHeader className='border-border/60 bg-muted/15 space-y-3 border-b'>
-        <CardTitle className='font-heading text-foreground text-base tracking-tight'>
+    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
+      <CardHeader className='border-border/60 bg-muted/10 space-y-3 border-b'>
+        <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
           {current.title}
         </CardTitle>
 
@@ -47,7 +47,9 @@ export default function PartnerCasesTable(props: {
           <button
             type='button'
             className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
-              tab === 'PENDING' ? 'bg-muted' : 'bg-background/80'
+              tab === 'PENDING'
+                ? 'bg-foreground text-background'
+                : 'bg-background/80'
             }`}
             onClick={() => setTab('PENDING')}
           >
@@ -57,7 +59,9 @@ export default function PartnerCasesTable(props: {
           <button
             type='button'
             className={`border-border/60 rounded-full border px-3 py-1.5 text-xs shadow-sm transition-colors ${
-              tab === 'ACCEPTED' ? 'bg-muted' : 'bg-background/80'
+              tab === 'ACCEPTED'
+                ? 'bg-foreground text-background'
+                : 'bg-background/80'
             }`}
             onClick={() => setTab('ACCEPTED')}
           >
@@ -74,7 +78,7 @@ export default function PartnerCasesTable(props: {
         ) : (
           <div className='overflow-x-auto'>
             <div className='min-w-[860px]'>
-              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-7 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.14em] uppercase'>
+              <div className='text-muted-foreground bg-muted/10 border-border/60 grid grid-cols-7 gap-3 border-b px-4 py-3 text-xs font-semibold tracking-[0.14em] uppercase'>
                 <div>Case</div>
                 <div>Kunde</div>
                 <div>Assignment</div>
@@ -88,18 +92,18 @@ export default function PartnerCasesTable(props: {
                 {current.items.map((item) => (
                   <div
                     key={item.caseId}
-                    className='hover:bg-muted/20 grid grid-cols-7 gap-3 px-4 py-4 text-sm transition-colors'
+                    className='hover:bg-primary/[0.03] grid grid-cols-7 gap-3 px-4 py-4 text-sm transition-colors'
                   >
-                    <div className='text-foreground font-mono text-sm font-medium'>
+                    <div className='text-foreground font-mono text-sm font-semibold'>
                       {item.caseNumber ?? '—'}
                     </div>
 
-                    <div className='text-foreground truncate text-sm font-medium'>
+                    <div className='text-foreground truncate text-sm font-semibold'>
                       {item.customerName ?? '—'}
                     </div>
 
                     <div className='text-xs'>
-                      <div className='text-foreground font-mono'>
+                      <div className='text-foreground font-mono text-[11px] tracking-[0.08em]'>
                         {item.assignmentStatus}
                       </div>
                       <div className='text-muted-foreground'>
@@ -122,14 +126,14 @@ export default function PartnerCasesTable(props: {
                     <div className='flex justify-end gap-3 text-xs'>
                       <Link
                         href={`/dashboard/cases/${item.caseId}`}
-                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Fall öffnen
                       </Link>
                       <Link
                         href={`/case/${item.token}`}
                         target='_blank'
-                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
+                        className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 rounded-full border px-3 py-1.5 underline underline-offset-4 transition-colors'
                       >
                         Kunden-Link
                       </Link>

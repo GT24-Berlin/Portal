@@ -66,6 +66,12 @@ function rowToForm(slot: PartnerAvailabilitySlotRow): FormState {
   };
 }
 
+const shellClass =
+  'border-border/60 bg-background/82 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]';
+
+const fieldClass =
+  'bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-[24px] border px-4 py-3 text-sm shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none';
+
 export default function PartnerAvailabilityManager(props: {
   defaultRole: CaseSchedulingRole;
 }) {
@@ -238,255 +244,331 @@ export default function PartnerAvailabilityManager(props: {
 
   return (
     <div className='space-y-6'>
-      <div className='text-muted-foreground rounded-lg border p-4 text-sm'>
-        Dies sind interne Verfügbarkeiten für das MVP. Eine externe
-        Kalender-Synchronisation folgt in einem späteren Schritt.
-      </div>
-
-      <div className='rounded-xl border bg-white p-6 shadow-sm'>
-        <div className='mb-4'>
-          <div className='text-lg font-semibold'>Verfügbarkeit anlegen</div>
-          <div className='text-muted-foreground text-sm'>
-            Pflegt interne Slot-Vorlagen für Telefon- und Vor-Ort-Termine.
+      <div className='border-border/60 bg-background/78 rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl md:p-8'>
+        <div className='space-y-2'>
+          <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+            Verfügbarkeiten
           </div>
-        </div>
-
-        {error ? (
-          <div className='mb-4 text-sm text-red-500'>{error}</div>
-        ) : null}
-        {success ? (
-          <div className='mb-4 text-sm text-green-600'>{success}</div>
-        ) : null}
-
-        <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Rolle</label>
-            <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.role}
-              onChange={(e) =>
-                update('role', e.target.value as CaseSchedulingRole)
-              }
-            >
-              <option value='GUTACHTER'>Gutachter</option>
-              <option value='ANWALT'>Anwalt</option>
-            </select>
+          <div className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+            Slot-Vorlagen für Partner-Termine
           </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Terminart</label>
-            <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.appointmentType}
-              onChange={(e) =>
-                update('appointmentType', e.target.value as CaseSchedulingType)
-              }
-            >
-              <option value='PHONE'>Telefon</option>
-              <option value='IN_PERSON'>Persönlich</option>
-            </select>
+          <div className='text-muted-foreground text-sm leading-6'>
+            Die Oberfläche bleibt ruhig und produktisiert, während du interne
+            Telefon- und Vor-Ort-Zeiten pflegst.
           </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Dauer</label>
-            <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.duration}
-              onChange={(e) =>
-                update(
-                  'duration',
-                  Number(e.target.value) as CaseSchedulingDuration
-                )
-              }
-            >
-              <option value={15}>15 Minuten</option>
-              <option value={30}>30 Minuten</option>
-            </select>
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Wochentag</label>
-            <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.weekday}
-              onChange={(e) => update('weekday', e.target.value)}
-            >
-              {WEEKDAY_OPTIONS.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Startzeit</label>
-            <input
-              type='time'
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.startTime}
-              onChange={(e) => update('startTime', e.target.value)}
-            />
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Endzeit</label>
-            <input
-              type='time'
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.endTime}
-              onChange={(e) => update('endTime', e.target.value)}
-            />
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Puffer in Minuten</label>
-            <input
-              inputMode='numeric'
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.bufferMinutes}
-              onChange={(e) => update('bufferMinutes', e.target.value)}
-            />
-          </div>
-
-          <div className='space-y-1'>
-            <label className='text-xs font-medium'>Aktiv</label>
-            <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
-              value={form.isActive ? 'yes' : 'no'}
-              onChange={(e) => update('isActive', e.target.value === 'yes')}
-            >
-              <option value='yes'>Ja</option>
-              <option value='no'>Nein</option>
-            </select>
-          </div>
-        </div>
-
-        <div className='mt-4 flex flex-wrap items-center gap-3'>
-          <button
-            type='button'
-            onClick={saveSlot}
-            disabled={saving}
-            className='bg-foreground text-background rounded-md px-3 py-2 text-sm disabled:opacity-60'
-          >
-            {saving
-              ? 'Speichere…'
-              : isEditing
-                ? 'Slot aktualisieren'
-                : 'Slot anlegen'}
-          </button>
-
-          {isEditing ? (
-            <button
-              type='button'
-              onClick={resetForm}
-              className='rounded-md border px-3 py-2 text-sm'
-            >
-              Bearbeitung abbrechen
-            </button>
-          ) : null}
         </div>
       </div>
 
-      <div className='rounded-xl border bg-white p-6 shadow-sm'>
-        <div className='mb-4 flex items-center justify-between gap-3'>
-          <div>
-            <div className='text-lg font-semibold'>Vorhandene Slots</div>
-            <div className='text-muted-foreground text-sm'>
-              {slots.length} Slot{slots.length === 1 ? '' : 's'} gespeichert
+      <div className='grid gap-6 xl:grid-cols-[1.05fr_0.95fr]'>
+        <section className={`${shellClass} space-y-6 p-6 md:p-8`}>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='space-y-1'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                Verfügbarkeit anlegen
+              </div>
+              <div className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+                Interne Slot-Vorlage
+              </div>
+              <div className='text-muted-foreground text-sm leading-6'>
+                Pflegt interne Slot-Vorlagen für Telefon- und Vor-Ort-Termine.
+              </div>
+            </div>
+
+            <div className='border-border/60 bg-background/82 rounded-full border px-3.5 py-2 text-xs font-medium shadow-[var(--shadow-soft)]'>
+              {isEditing ? 'Bearbeitungsmodus' : 'Neuer Slot'}
             </div>
           </div>
-        </div>
 
-        {loading ? (
-          <div className='text-muted-foreground text-sm'>Lade Slots…</div>
-        ) : slots.length === 0 ? (
-          <div className='text-muted-foreground rounded-md border p-4 text-sm'>
-            Noch keine Verfügbarkeits-Slots angelegt.
-          </div>
-        ) : (
-          <div className='overflow-x-auto'>
-            <table className='w-full min-w-[980px] border-separate border-spacing-0'>
-              <thead>
-                <tr className='text-muted-foreground text-left text-xs tracking-wide uppercase'>
-                  <th className='border-b px-3 py-2'>Rolle</th>
-                  <th className='border-b px-3 py-2'>Terminart</th>
-                  <th className='border-b px-3 py-2'>Dauer</th>
-                  <th className='border-b px-3 py-2'>Wochentag</th>
-                  <th className='border-b px-3 py-2'>Zeitfenster</th>
-                  <th className='border-b px-3 py-2'>Puffer</th>
-                  <th className='border-b px-3 py-2'>Status</th>
-                  <th className='border-b px-3 py-2 text-right'>Aktionen</th>
-                </tr>
-              </thead>
-              <tbody>
-                {slots.map((slot) => (
-                  <tr key={slot.id} className='align-top text-sm'>
-                    <td className='border-b px-3 py-3 font-medium'>
-                      {slot.role === 'GUTACHTER' ? 'Gutachter' : 'Anwalt'}
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      {appointmentTypeLabel(slot.appointmentType)}
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      {slot.duration === 'MINUTES_15'
-                        ? '15 Minuten'
-                        : '30 Minuten'}
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      {weekdayLabel(slot.weekday)}
-                    </td>
-                    <td className='border-b px-3 py-3 font-mono'>
-                      {slot.startTime} – {slot.endTime}
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      {slot.bufferMinutes} Min
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      <span
-                        className={`inline-flex rounded-full border px-2 py-1 text-xs font-medium ${
-                          slot.isActive
-                            ? 'border-green-200 bg-green-50 text-green-700'
-                            : 'border-neutral-200 bg-neutral-50 text-neutral-600'
-                        }`}
-                      >
-                        {slot.isActive ? 'Aktiv' : 'Inaktiv'}
-                      </span>
-                    </td>
-                    <td className='border-b px-3 py-3'>
-                      <div className='flex justify-end gap-2'>
-                        <button
-                          type='button'
-                          className='rounded-md border px-3 py-1.5 text-xs'
-                          onClick={() => editSlot(slot)}
-                          disabled={saving}
-                        >
-                          Bearbeiten
-                        </button>
-                        <button
-                          type='button'
-                          className='rounded-md border px-3 py-1.5 text-xs'
-                          onClick={() => toggleSlot(slot)}
-                          disabled={saving}
-                        >
-                          {slot.isActive ? 'Deaktivieren' : 'Aktivieren'}
-                        </button>
-                        <button
-                          type='button'
-                          className='rounded-md border px-3 py-1.5 text-xs text-red-600'
-                          onClick={() => deleteSlot(slot)}
-                          disabled={saving}
-                        >
-                          Löschen
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+          {error ? (
+            <div className='rounded-[24px] border border-rose-200/70 bg-rose-50/80 px-4 py-3 text-sm text-rose-900 shadow-[var(--shadow-soft)]'>
+              {error}
+            </div>
+          ) : null}
+          {success ? (
+            <div className='rounded-[24px] border border-emerald-200/70 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900 shadow-[var(--shadow-soft)]'>
+              {success}
+            </div>
+          ) : null}
+
+          <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Rolle
+              </label>
+              <select
+                className={fieldClass}
+                value={form.role}
+                onChange={(e) =>
+                  update('role', e.target.value as CaseSchedulingRole)
+                }
+              >
+                <option value='GUTACHTER'>Gutachter</option>
+                <option value='ANWALT'>Anwalt</option>
+              </select>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Terminart
+              </label>
+              <select
+                className={fieldClass}
+                value={form.appointmentType}
+                onChange={(e) =>
+                  update(
+                    'appointmentType',
+                    e.target.value as CaseSchedulingType
+                  )
+                }
+              >
+                <option value='PHONE'>Telefon</option>
+                <option value='IN_PERSON'>Persönlich</option>
+              </select>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Dauer
+              </label>
+              <select
+                className={fieldClass}
+                value={form.duration}
+                onChange={(e) =>
+                  update(
+                    'duration',
+                    Number(e.target.value) as CaseSchedulingDuration
+                  )
+                }
+              >
+                <option value={15}>15 Minuten</option>
+                <option value={30}>30 Minuten</option>
+              </select>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Wochentag
+              </label>
+              <select
+                className={fieldClass}
+                value={form.weekday}
+                onChange={(e) => update('weekday', e.target.value)}
+              >
+                {WEEKDAY_OPTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
                 ))}
-              </tbody>
-            </table>
+              </select>
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Startzeit
+              </label>
+              <input
+                type='time'
+                className={fieldClass}
+                value={form.startTime}
+                onChange={(e) => update('startTime', e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Endzeit
+              </label>
+              <input
+                type='time'
+                className={fieldClass}
+                value={form.endTime}
+                onChange={(e) => update('endTime', e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Puffer in Minuten
+              </label>
+              <input
+                inputMode='numeric'
+                className={fieldClass}
+                value={form.bufferMinutes}
+                onChange={(e) => update('bufferMinutes', e.target.value)}
+              />
+            </div>
+
+            <div className='space-y-2'>
+              <label className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Aktiv
+              </label>
+              <select
+                className={fieldClass}
+                value={form.isActive ? 'yes' : 'no'}
+                onChange={(e) => update('isActive', e.target.value === 'yes')}
+              >
+                <option value='yes'>Ja</option>
+                <option value='no'>Nein</option>
+              </select>
+            </div>
           </div>
-        )}
+
+          <div className='flex flex-wrap items-center gap-3'>
+            <button
+              type='button'
+              onClick={saveSlot}
+              disabled={saving}
+              className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] disabled:opacity-60'
+            >
+              {saving
+                ? 'Speichere…'
+                : isEditing
+                  ? 'Slot aktualisieren'
+                  : 'Slot anlegen'}
+            </button>
+
+            {isEditing ? (
+              <button
+                type='button'
+                onClick={resetForm}
+                className='border-border/60 bg-background/80 hover:bg-background/95 rounded-full border px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-colors'
+              >
+                Bearbeitung abbrechen
+              </button>
+            ) : null}
+          </div>
+        </section>
+
+        <section className={`${shellClass} space-y-5 p-6 md:p-8`}>
+          <div className='flex flex-wrap items-start justify-between gap-3'>
+            <div className='space-y-1'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+                Vorhandene Slots
+              </div>
+              <div className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+                {slots.length} Slot{slots.length === 1 ? '' : 's'} gespeichert
+              </div>
+              <div className='text-muted-foreground text-sm leading-6'>
+                Die Liste ist bewusst ruhig gestaltet und vermeidet
+                Tabellen-Feeling.
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className='space-y-3'>
+              <div className='border-border/60 bg-background/84 h-28 animate-pulse rounded-[24px] border shadow-[var(--shadow-soft)]' />
+              <div className='border-border/60 bg-background/84 h-28 animate-pulse rounded-[24px] border shadow-[var(--shadow-soft)]' />
+            </div>
+          ) : slots.length === 0 ? (
+            <div className='border-border/60 bg-background/84 rounded-[24px] border border-dashed px-4 py-5 text-sm shadow-[var(--shadow-soft)]'>
+              <div className='text-foreground text-sm font-medium'>
+                Noch keine Verfügbarkeits-Slots angelegt.
+              </div>
+              <div className='text-muted-foreground mt-1 text-sm'>
+                Sobald du oben einen Slot speicherst, erscheint er hier in der
+                neuen Partner-Surface.
+              </div>
+            </div>
+          ) : (
+            <div className='space-y-3'>
+              {slots.map((slot) => (
+                <article
+                  key={slot.id}
+                  className='border-border/60 bg-background/84 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'
+                >
+                  <div className='flex flex-wrap items-start justify-between gap-4'>
+                    <div className='space-y-2'>
+                      <div className='flex flex-wrap items-center gap-2'>
+                        <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                          {slot.role === 'GUTACHTER' ? 'Gutachter' : 'Anwalt'}
+                        </div>
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-medium ${
+                            slot.isActive
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                              : 'border-border/60 bg-background/80 text-muted-foreground'
+                          }`}
+                        >
+                          {slot.isActive ? 'Aktiv' : 'Inaktiv'}
+                        </span>
+                      </div>
+                      <div className='text-muted-foreground text-sm'>
+                        {appointmentTypeLabel(slot.appointmentType)} ·{' '}
+                        {slot.duration === 'MINUTES_15'
+                          ? '15 Minuten'
+                          : '30 Minuten'}{' '}
+                        · {weekdayLabel(slot.weekday)}
+                      </div>
+                    </div>
+
+                    <div className='border-border/60 bg-background/90 rounded-full border px-3.5 py-2 text-xs font-medium shadow-[var(--shadow-soft)]'>
+                      {slot.startTime} – {slot.endTime}
+                    </div>
+                  </div>
+
+                  <div className='mt-4 grid gap-3 sm:grid-cols-3'>
+                    <div className='border-border/60 bg-background/90 rounded-[22px] border px-4 py-3 shadow-[var(--shadow-soft)]'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                        Dauer
+                      </div>
+                      <div className='text-foreground mt-1 text-sm font-medium'>
+                        {slot.duration === 'MINUTES_15'
+                          ? '15 Minuten'
+                          : '30 Minuten'}
+                      </div>
+                    </div>
+
+                    <div className='border-border/60 bg-background/90 rounded-[22px] border px-4 py-3 shadow-[var(--shadow-soft)]'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                        Wochentag
+                      </div>
+                      <div className='text-foreground mt-1 text-sm font-medium'>
+                        {weekdayLabel(slot.weekday)}
+                      </div>
+                    </div>
+
+                    <div className='border-border/60 bg-background/90 rounded-[22px] border px-4 py-3 shadow-[var(--shadow-soft)]'>
+                      <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                        Puffer
+                      </div>
+                      <div className='text-foreground mt-1 text-sm font-medium'>
+                        {slot.bufferMinutes} Min
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='mt-4 flex flex-wrap justify-end gap-2'>
+                    <button
+                      type='button'
+                      className='border-border/60 bg-background/80 hover:bg-background/95 rounded-full border px-3.5 py-2 text-xs font-medium shadow-[var(--shadow-soft)] transition-colors'
+                      onClick={() => editSlot(slot)}
+                      disabled={saving}
+                    >
+                      Bearbeiten
+                    </button>
+                    <button
+                      type='button'
+                      className='border-border/60 bg-background/80 hover:bg-background/95 rounded-full border px-3.5 py-2 text-xs font-medium shadow-[var(--shadow-soft)] transition-colors'
+                      onClick={() => toggleSlot(slot)}
+                      disabled={saving}
+                    >
+                      {slot.isActive ? 'Deaktivieren' : 'Aktivieren'}
+                    </button>
+                    <button
+                      type='button'
+                      className='border-border/60 bg-background/80 hover:bg-background/95 rounded-full border px-3.5 py-2 text-xs font-medium text-rose-700 shadow-[var(--shadow-soft)] transition-colors'
+                      onClick={() => deleteSlot(slot)}
+                      disabled={saving}
+                    >
+                      Löschen
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

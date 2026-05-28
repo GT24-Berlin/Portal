@@ -77,7 +77,7 @@ export default async function CaseProfilePage({
       <div className='bg-background text-foreground min-h-[100dvh]'>
         <div className='mx-auto max-w-5xl space-y-6 px-4 py-8'>
           {/* Header */}
-          <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+          <div className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
             <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-5 md:grid-cols-[1.2fr_0.8fr] md:p-6'>
               <div className='space-y-1'>
                 <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -90,7 +90,7 @@ export default async function CaseProfilePage({
                   Fallnummer {label}
                 </p>
               </div>
-              <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+              <div className='border-border/60 bg-background/84 grid gap-2 rounded-[24px] border p-4 shadow-sm'>
                 <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
                   Für dich wichtig
                 </div>
@@ -132,7 +132,7 @@ export default async function CaseProfilePage({
           </div>
 
           {/* Content */}
-          <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+          <div className='border-border/60 bg-background/80 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]'>
             <div className='border-border/60 bg-muted/15 border-b p-6'>
               <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
                 Profildaten
@@ -144,31 +144,39 @@ export default async function CaseProfilePage({
 
             <div className='space-y-4 p-6'>
               {saved ? (
-                <div className='rounded-xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
+                <div className='rounded-2xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
                   Profil gespeichert.
                 </div>
               ) : null}
 
               {errorMessage ? (
-                <div className='rounded-xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
+                <div className='rounded-2xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
                   {errorMessage}
                 </div>
               ) : null}
               <div className='grid grid-cols-1 gap-4 text-sm md:grid-cols-2'>
-                <div>
-                  <div className='text-muted-foreground'>Vorname</div>
+                <div className='border-border/60 bg-background/82 space-y-1 rounded-[24px] border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                    Vorname
+                  </div>
                   <div className='font-medium'>{customer.firstName}</div>
                 </div>
-                <div>
-                  <div className='text-muted-foreground'>Nachname</div>
+                <div className='border-border/60 bg-background/82 space-y-1 rounded-[24px] border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                    Nachname
+                  </div>
                   <div className='font-medium'>{customer.lastName}</div>
                 </div>
-                <div>
-                  <div className='text-muted-foreground'>E-Mail</div>
+                <div className='border-border/60 bg-background/82 space-y-1 rounded-[24px] border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                    E-Mail
+                  </div>
                   <div className='font-medium break-all'>{customer.email}</div>
                 </div>
-                <div>
-                  <div className='text-muted-foreground'>Telefon</div>
+                <div className='border-border/60 bg-background/82 space-y-1 rounded-[24px] border p-4 shadow-sm'>
+                  <div className='text-muted-foreground text-xs font-medium tracking-[0.12em] uppercase'>
+                    Telefon
+                  </div>
                   <div className='font-medium'>{customer.phone}</div>
                 </div>
               </div>

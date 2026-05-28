@@ -72,7 +72,7 @@ function InfoRow(props: { label: string; value?: string | null }) {
   if (!value || !value.trim()) return null;
 
   return (
-    <div className='border-border/60 bg-background/80 hover:bg-muted/20 flex flex-col gap-1 rounded-2xl border p-3 shadow-sm transition-colors'>
+    <div className='border-border/60 bg-background/84 hover:bg-muted/20 flex flex-col gap-1 rounded-[24px] border p-4 shadow-sm transition-colors'>
       <div className='text-muted-foreground text-xs font-medium tracking-[0.14em] uppercase'>
         {label}
       </div>
@@ -96,7 +96,7 @@ export default function CaseAccidentDataCard(props: {
 
   if (!intake) {
     return (
-      <section className='border-border/60 bg-card/95 rounded-2xl border p-6 shadow-sm'>
+      <section className='border-border/60 bg-background/82 rounded-[28px] border p-6 shadow-sm'>
         <div className='mb-3'>
           <h2 className='font-heading text-foreground text-lg font-semibold tracking-tight'>
             Unfalldaten
@@ -121,7 +121,7 @@ export default function CaseAccidentDataCard(props: {
   ]);
 
   return (
-    <section className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+    <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-sm'>
       <div className='border-border/60 bg-muted/15 border-b p-6'>
         <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
           Kontext

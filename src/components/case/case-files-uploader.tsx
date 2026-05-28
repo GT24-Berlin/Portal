@@ -50,42 +50,51 @@ export default function CaseFilesUploader({ token }: { token: string }) {
   }
 
   return (
-    <div className='bg-card/95 border-border/60 space-y-3 rounded-2xl border p-4 shadow-sm'>
-      <div className='text-sm font-medium'>Datei hochladen</div>
+    <div className='border-border/60 bg-background/82 space-y-4 rounded-[28px] border p-5 shadow-[var(--shadow-soft)]'>
+      <div className='space-y-1'>
+        <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
+          Upload
+        </div>
+        <div className='font-heading text-foreground text-lg font-semibold tracking-tight'>
+          Datei hochladen
+        </div>
+      </div>
 
       {msg ? (
-        <div className='rounded-2xl border border-green-300/70 bg-green-50/70 px-3 py-2 text-sm text-green-800'>
+        <div className='rounded-2xl border border-emerald-300/70 bg-emerald-50/80 px-3 py-2 text-sm text-emerald-900 shadow-sm'>
           {msg}
         </div>
       ) : null}
 
       {err ? (
-        <div className='rounded-2xl border border-red-300/70 bg-red-50/70 px-3 py-2 text-sm text-red-800'>
+        <div className='rounded-2xl border border-red-300/70 bg-red-50/80 px-3 py-2 text-sm text-red-900 shadow-sm'>
           {err}
         </div>
       ) : null}
 
       <form onSubmit={onUpload} className='space-y-3'>
         <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-          <div className='space-y-1'>
-            <label className='text-muted-foreground text-xs'>
+          <div className='space-y-1.5'>
+            <label className='text-muted-foreground text-xs font-medium'>
               Label (optional)
             </label>
             <input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder='z.B. Fahrzeugschein'
-              className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             />
           </div>
 
-          <div className='space-y-1'>
-            <label className='text-muted-foreground text-xs'>Datei *</label>
+          <div className='space-y-1.5'>
+            <label className='text-muted-foreground text-xs font-medium'>
+              Datei *
+            </label>
             <input
               type='file'
               accept='.pdf,.png,.jpg,.jpeg,.webp'
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+              className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
             />
           </div>
         </div>
@@ -93,7 +102,7 @@ export default function CaseFilesUploader({ token }: { token: string }) {
         <button
           type='submit'
           disabled={loading}
-          className='bg-primary text-primary-foreground inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60'
+          className='bg-primary text-primary-foreground inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-medium shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60'
         >
           {loading ? 'Lade hoch…' : 'Hochladen'}
         </button>

@@ -6,6 +6,11 @@ import { redirect } from 'next/navigation';
 import AdminCasesTable from '@/components/cases/admin-cases-table';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Fälle'
+};
 
 export const runtime = 'nodejs';
 
@@ -158,108 +163,152 @@ export default async function CasesPage({
         ) : (
           <div className='space-y-6'>
             {/* Pending */}
-            <div className='rounded-lg border'>
-              <div className='grid grid-cols-6 gap-2 border-b p-3 text-sm font-medium'>
-                <div>Case</div>
-                <div>Kunde</div>
-                <div>Gutachter</div>
-                <div>Anwalt</div>
-                <div>Updated</div>
-                <div className='text-right'>Kunden-Link</div>
+            <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+              <div className='border-border/60 bg-muted/10 flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4 md:px-6'>
+                <div className='space-y-1'>
+                  <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                    Neue Zuweisungen
+                  </div>
+                  <div className='text-muted-foreground text-xs'>
+                    Erst annehmen, dann bearbeiten.
+                  </div>
+                </div>
+                <div className='text-muted-foreground text-xs'>
+                  {pendingCases.length} offen
+                </div>
               </div>
 
               {pendingCases.length === 0 ? (
-                <div className='text-muted-foreground p-6 text-sm'>
+                <div className='text-muted-foreground bg-background/78 px-4 py-6 text-sm md:px-6'>
                   Keine neuen Zuweisungen.
                 </div>
               ) : (
-                pendingCases.map((c) => (
-                  <div
-                    key={c.id}
-                    className='grid grid-cols-6 gap-2 p-3 text-sm'
-                  >
-                    <div className='font-mono'>
-                      <Link
-                        className='underline underline-offset-4 hover:opacity-80'
-                        href={`/dashboard/cases/${c.id}`}
-                      >
-                        {c.caseNumber ?? '—'}
-                      </Link>
-                    </div>
-                    <div className='truncate text-xs'>
-                      {[c.customer?.firstName, c.customer?.lastName]
-                        .filter(Boolean)
-                        .join(' ')
-                        .trim() || '—'}
-                    </div>
-                    <div>{labelGutachter(String(c.gutachterStatus))}</div>
-                    <div>{labelAnwalt(String(c.anwaltStatus))}</div>
-                    <div>{fmt(new Date(c.updatedAt))}</div>
-                    <div className='text-right'>
-                      <Link
-                        className='text-sm underline underline-offset-4 hover:opacity-80'
-                        href={`/case/${c.token}`}
-                        target='_blank'
-                      >
-                        öffnen
-                      </Link>
-                    </div>
+                <div className='space-y-2 px-4 py-4 md:px-6'>
+                  <div className='text-muted-foreground grid grid-cols-6 gap-3 px-1 text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    <div>Case</div>
+                    <div>Kunde</div>
+                    <div>Gutachter</div>
+                    <div>Anwalt</div>
+                    <div>Updated</div>
+                    <div className='text-right'>Kunden-Link</div>
                   </div>
-                ))
+
+                  {pendingCases.map((c) => (
+                    <div
+                      key={c.id}
+                      className='border-border/60 bg-background/84 hover:bg-primary/[0.02] grid grid-cols-6 gap-3 rounded-[24px] border px-4 py-4 text-sm shadow-[var(--shadow-soft)] transition-colors'
+                    >
+                      <div className='font-mono'>
+                        <Link
+                          className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
+                          href={`/dashboard/cases/${c.id}`}
+                        >
+                          {c.caseNumber ?? '—'}
+                        </Link>
+                      </div>
+                      <div className='truncate text-sm font-medium'>
+                        {[c.customer?.firstName, c.customer?.lastName]
+                          .filter(Boolean)
+                          .join(' ')
+                          .trim() || '—'}
+                      </div>
+                      <div className='text-sm'>
+                        {labelGutachter(String(c.gutachterStatus))}
+                      </div>
+                      <div className='text-sm'>
+                        {labelAnwalt(String(c.anwaltStatus))}
+                      </div>
+                      <div className='text-muted-foreground text-sm'>
+                        {fmt(new Date(c.updatedAt))}
+                      </div>
+                      <div className='text-right'>
+                        <Link
+                          className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
+                          href={`/case/${c.token}`}
+                          target='_blank'
+                        >
+                          öffnen
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
+            </section>
 
             {/* Accepted */}
-            <div className='rounded-lg border'>
-              <div className='grid grid-cols-6 gap-2 border-b p-3 text-sm font-medium'>
-                <div>Case</div>
-                <div>Kunde</div>
-                <div>Gutachter</div>
-                <div>Anwalt</div>
-                <div>Updated</div>
-                <div className='text-right'>Kunden-Link</div>
+            <section className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+              <div className='border-border/60 bg-muted/10 flex flex-wrap items-end justify-between gap-3 border-b px-4 py-4 md:px-6'>
+                <div className='space-y-1'>
+                  <div className='font-heading text-foreground text-base font-semibold tracking-tight'>
+                    Aktive Fälle
+                  </div>
+                  <div className='text-muted-foreground text-xs'>
+                    Bereits angenommene Zuständigkeiten.
+                  </div>
+                </div>
+                <div className='text-muted-foreground text-xs'>
+                  {activeCases.length} aktiv
+                </div>
               </div>
 
               {activeCases.length === 0 ? (
-                <div className='text-muted-foreground p-6 text-sm'>
+                <div className='text-muted-foreground bg-background/78 px-4 py-6 text-sm md:px-6'>
                   Keine aktiven Fälle.
                 </div>
               ) : (
-                activeCases.map((c) => (
-                  <div
-                    key={c.id}
-                    className='grid grid-cols-6 gap-2 p-3 text-sm'
-                  >
-                    <div className='font-mono'>
-                      <Link
-                        className='underline underline-offset-4 hover:opacity-80'
-                        href={`/dashboard/cases/${c.id}`}
-                      >
-                        {c.caseNumber ?? '—'}
-                      </Link>
-                    </div>
-                    <div className='truncate text-xs'>
-                      {[c.customer?.firstName, c.customer?.lastName]
-                        .filter(Boolean)
-                        .join(' ')
-                        .trim() || '—'}
-                    </div>
-                    <div>{labelGutachter(String(c.gutachterStatus))}</div>
-                    <div>{labelAnwalt(String(c.anwaltStatus))}</div>
-                    <div>{fmt(new Date(c.updatedAt))}</div>
-                    <div className='text-right'>
-                      <Link
-                        className='text-sm underline underline-offset-4 hover:opacity-80'
-                        href={`/case/${c.token}`}
-                        target='_blank'
-                      >
-                        öffnen
-                      </Link>
-                    </div>
+                <div className='space-y-2 px-4 py-4 md:px-6'>
+                  <div className='text-muted-foreground grid grid-cols-6 gap-3 px-1 text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                    <div>Case</div>
+                    <div>Kunde</div>
+                    <div>Gutachter</div>
+                    <div>Anwalt</div>
+                    <div>Updated</div>
+                    <div className='text-right'>Kunden-Link</div>
                   </div>
-                ))
+
+                  {activeCases.map((c) => (
+                    <div
+                      key={c.id}
+                      className='border-border/60 bg-background/84 hover:bg-primary/[0.02] grid grid-cols-6 gap-3 rounded-[24px] border px-4 py-4 text-sm shadow-[var(--shadow-soft)] transition-colors'
+                    >
+                      <div className='font-mono'>
+                        <Link
+                          className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
+                          href={`/dashboard/cases/${c.id}`}
+                        >
+                          {c.caseNumber ?? '—'}
+                        </Link>
+                      </div>
+                      <div className='truncate text-sm font-medium'>
+                        {[c.customer?.firstName, c.customer?.lastName]
+                          .filter(Boolean)
+                          .join(' ')
+                          .trim() || '—'}
+                      </div>
+                      <div className='text-sm'>
+                        {labelGutachter(String(c.gutachterStatus))}
+                      </div>
+                      <div className='text-sm'>
+                        {labelAnwalt(String(c.anwaltStatus))}
+                      </div>
+                      <div className='text-muted-foreground text-sm'>
+                        {fmt(new Date(c.updatedAt))}
+                      </div>
+                      <div className='text-right'>
+                        <Link
+                          className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
+                          href={`/case/${c.token}`}
+                          target='_blank'
+                        >
+                          öffnen
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </div>
+            </section>
           </div>
         )}
       </PageContainer>

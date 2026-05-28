@@ -98,15 +98,19 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
 
   if (rows.length === 0) {
     return (
-      <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm shadow-sm'>
+      <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-[24px] border border-dashed px-4 py-6 text-sm shadow-[var(--shadow-soft)]'>
         Keine zugewiesenen Cases.
       </div>
     );
   }
 
   return (
-    <div className='space-y-3'>
-      {error ? <div className='text-sm text-red-500'>{error}</div> : null}
+    <div className='space-y-4'>
+      {error ? (
+        <div className='border-border/60 rounded-[20px] border bg-red-50/70 px-4 py-3 text-sm text-red-800 shadow-[var(--shadow-soft)]'>
+          {error}
+        </div>
+      ) : null}
 
       {rows.map((r) => {
         const expiresAt = new Date(r.expiresAt);
@@ -128,30 +132,34 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
         return (
           <div
             key={r.id}
-            className='border-border/60 bg-card/95 hover:bg-muted/10 rounded-2xl border p-4 shadow-sm transition-colors'
+            className='border-border/60 bg-background/84 hover:bg-primary/[0.02] rounded-[26px] border p-4 shadow-[var(--shadow-soft)] transition-colors'
           >
-            <div className='flex flex-col gap-3 md:flex-row md:items-start md:justify-between'>
-              <div className='space-y-1'>
-                <div className='text-foreground text-sm font-medium'>
+            <div className='flex flex-col gap-4 md:flex-row md:items-start md:justify-between'>
+              <div className='space-y-2'>
+                <div className='flex flex-wrap items-center gap-2'>
                   <Link
-                    className='decoration-muted-foreground/40 hover:decoration-foreground/70 underline underline-offset-4'
+                    className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 font-mono text-sm font-semibold underline underline-offset-4 transition-colors'
                     href={`/dashboard/cases/${r.caseId}`}
                   >
                     Case {title}
                   </Link>
-                  <span className='text-muted-foreground ml-2 text-xs'>
+                  <span className='text-muted-foreground text-xs'>
                     Kunde: {customerLabel}
                   </span>
                 </div>
 
-                <div className='text-muted-foreground text-xs'>
-                  Status:{' '}
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2 py-1 font-mono'>
-                    {r.status}
-                  </span>{' '}
-                  · Lane:{' '}
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2 py-1 font-mono'>
-                    {props.role}
+                <div className='flex flex-wrap gap-2 text-xs'>
+                  <span className='text-muted-foreground inline-flex items-center gap-2'>
+                    Status
+                    <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-[var(--shadow-soft)]'>
+                      {r.status}
+                    </span>
+                  </span>
+                  <span className='text-muted-foreground inline-flex items-center gap-2'>
+                    Lane
+                    <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-[var(--shadow-soft)]'>
+                      {props.role}
+                    </span>
                   </span>
                 </div>
 
@@ -174,9 +182,10 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
                   ) : null}
                 </div>
               </div>
-              <div className='flex gap-2 md:justify-end'>
+
+              <div className='flex flex-wrap gap-2 md:justify-end'>
                 <button
-                  className='border-border/60 bg-background/80 hover:bg-muted rounded-full border px-3 py-2 text-sm shadow-sm transition-colors disabled:opacity-60'
+                  className='border-border/60 bg-background/85 hover:bg-muted/50 rounded-full border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
                   onClick={() => release(r.caseId)}
                   disabled={
                     (busy !== null && busy !== r.caseId) ||
@@ -189,14 +198,14 @@ export default function InboxList(props: { role: Role; rows: Row[] }) {
 
                 {r.status === 'ACCEPTED' ? (
                   <Link
-                    className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm hover:opacity-90'
+                    className='bg-foreground text-background rounded-full px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90'
                     href={`/dashboard/cases/${r.caseId}`}
                   >
                     Öffnen
                   </Link>
                 ) : (
                   <button
-                    className='bg-foreground text-background rounded-full px-3 py-2 text-sm shadow-sm disabled:opacity-60'
+                    className='bg-foreground text-background rounded-full px-3 py-2.5 text-sm shadow-[var(--shadow-soft)] transition-opacity disabled:opacity-60'
                     onClick={() => accept(r.caseId)}
                     disabled={
                       (busy !== null && busy !== r.caseId) ||

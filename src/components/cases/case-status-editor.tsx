@@ -75,22 +75,41 @@ export default function CaseStatusEditor(props: {
   }
 
   return (
-    <div className='space-y-4 rounded-lg border p-4'>
-      <div className='text-sm font-medium'>Status ändern</div>
+    <div className='border-border/60 bg-background/82 space-y-5 rounded-[32px] border p-6 shadow-[var(--shadow-glass)] backdrop-blur-xl'>
+      <div className='border-border/60 space-y-1.5 border-b pb-4'>
+        <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
+          Actions
+        </div>
+        <div className='font-heading text-foreground text-xl font-semibold tracking-tight'>
+          Status ändern
+        </div>
+        <div className='text-muted-foreground text-sm leading-6'>
+          Die beiden Lanes bleiben getrennt und werden gezielt gepflegt.
+        </div>
+      </div>
 
       {showNothing ? (
-        <div className='text-muted-foreground text-sm'>
-          Keine Rolle gesetzt oder keine Berechtigung. (role:{' '}
-          <span className='font-mono'>{role || 'UNSET'}</span>)
+        <div className='border-border/60 bg-background/78 rounded-[24px] border px-4 py-3 text-sm shadow-[var(--shadow-soft)]'>
+          <span className='text-muted-foreground'>
+            Keine Rolle gesetzt oder keine Berechtigung. (role:{' '}
+            <span className='font-mono'>{role || 'UNSET'}</span>)
+          </span>
         </div>
       ) : null}
 
       {canEditGutachter ? (
-        <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
-          <div>
-            <div className='text-muted-foreground mb-1 text-xs'>Gutachter</div>
+        <div className='grid gap-3 md:grid-cols-[1fr_auto] md:items-end'>
+          <div className='border-border/60 bg-background/84 space-y-2 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+            <div className='flex items-center justify-between gap-2'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Gutachter
+              </div>
+              <div className='text-muted-foreground text-[11px]'>
+                Lane-Status
+              </div>
+            </div>
             <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
               value={gutachter}
               onChange={(e) => setGutachter(e.target.value)}
             >
@@ -102,7 +121,7 @@ export default function CaseStatusEditor(props: {
             </select>
           </div>
           <button
-            className='bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-60'
+            className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-60'
             onClick={() => save('GUTACHTER')}
             disabled={saving !== null}
           >
@@ -112,11 +131,18 @@ export default function CaseStatusEditor(props: {
       ) : null}
 
       {canEditAnwalt ? (
-        <div className='grid gap-2 md:grid-cols-[1fr_auto] md:items-end'>
-          <div>
-            <div className='text-muted-foreground mb-1 text-xs'>Anwalt</div>
+        <div className='grid gap-3 md:grid-cols-[1fr_auto] md:items-end'>
+          <div className='border-border/60 bg-background/84 space-y-2 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+            <div className='flex items-center justify-between gap-2'>
+              <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                Anwalt
+              </div>
+              <div className='text-muted-foreground text-[11px]'>
+                Lane-Status
+              </div>
+            </div>
             <select
-              className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+              className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
               value={anwalt}
               onChange={(e) => setAnwalt(e.target.value)}
             >
@@ -128,7 +154,7 @@ export default function CaseStatusEditor(props: {
             </select>
           </div>
           <button
-            className='bg-foreground text-background rounded-md px-4 py-2 text-sm disabled:opacity-60'
+            className='bg-foreground text-background rounded-full px-4 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-60'
             onClick={() => save('ANWALT')}
             disabled={saving !== null}
           >
@@ -137,7 +163,11 @@ export default function CaseStatusEditor(props: {
         </div>
       ) : null}
 
-      {error ? <div className='text-sm text-red-500'>{error}</div> : null}
+      {error ? (
+        <div className='border-border/60 rounded-[24px] border bg-red-50/80 px-4 py-3 text-sm text-red-900 shadow-[var(--shadow-soft)]'>
+          {error}
+        </div>
+      ) : null}
     </div>
   );
 }

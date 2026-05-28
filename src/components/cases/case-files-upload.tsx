@@ -62,10 +62,19 @@ export default function CaseFilesUpload({ caseId, disabled }: Props) {
   }
 
   return (
-    <div className='bg-background space-y-2 rounded-md border p-3'>
-      <div className='grid grid-cols-1 gap-2 md:grid-cols-3'>
+    <div className='border-border/60 bg-background/84 space-y-4 rounded-[28px] border p-4 shadow-[var(--shadow-soft)]'>
+      <div className='space-y-1'>
+        <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+          Upload
+        </div>
+        <div className='text-foreground text-sm font-medium'>
+          Datei zum Fall hinzufügen
+        </div>
+      </div>
+
+      <div className='grid grid-cols-1 gap-2.5 md:grid-cols-3'>
         <input
-          className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
           placeholder='Titel (optional), z.B. Gutachten PDF'
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -73,7 +82,7 @@ export default function CaseFilesUpload({ caseId, disabled }: Props) {
         />
 
         <select
-          className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
           value={visibility}
           onChange={(e) => setVisibility(e.target.value as Visibility)}
           disabled={saving || disabled}
@@ -85,7 +94,7 @@ export default function CaseFilesUpload({ caseId, disabled }: Props) {
         </select>
 
         <input
-          className='bg-background w-full rounded-md border px-3 py-2 text-sm'
+          className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-[var(--shadow-soft)]'
           type='file'
           accept='.pdf,.png,.jpg,.jpeg,.webp'
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
@@ -93,8 +102,8 @@ export default function CaseFilesUpload({ caseId, disabled }: Props) {
         />
       </div>
 
-      <div className='flex items-center justify-between gap-3'>
-        <div className='text-muted-foreground text-xs'>
+      <div className='flex flex-wrap items-center justify-between gap-3'>
+        <div className='text-muted-foreground text-xs leading-5'>
           Erlaubt: PDF/JPG/PNG/WEBP
           {file ? ` · gewählt: ${file.name}` : ''}
         </div>
@@ -103,13 +112,17 @@ export default function CaseFilesUpload({ caseId, disabled }: Props) {
           type='button'
           onClick={submit}
           disabled={saving || disabled}
-          className='bg-foreground text-background rounded-md px-3 py-2 text-sm hover:opacity-90 disabled:opacity-50'
+          className='bg-foreground text-background rounded-full px-3.5 py-2.5 text-sm font-medium shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90 disabled:opacity-50'
         >
           {saving ? 'Lade hoch…' : 'Upload'}
         </button>
       </div>
 
-      {msg ? <div className='text-muted-foreground text-xs'>{msg}</div> : null}
+      {msg ? (
+        <div className='border-border/60 bg-background/78 rounded-[20px] border px-3 py-2 text-xs shadow-[var(--shadow-soft)]'>
+          {msg}
+        </div>
+      ) : null}
     </div>
   );
 }

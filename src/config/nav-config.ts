@@ -90,15 +90,6 @@ export const navItems: NavItem[] = [
   },
 
   {
-    title: 'Partners',
-    url: '/dashboard/partners',
-    icon: 'teams',
-    isActive: false,
-    shortcut: ['p', 'p'],
-    items: []
-  },
-
-  {
     title: 'Account',
     url: '#',
     icon: 'account',

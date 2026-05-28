@@ -225,25 +225,25 @@ export default function AdminCasesTable(props: { cases: any[] }) {
   }
 
   return (
-    <div className='border-border/60 bg-card/95 overflow-hidden rounded-2xl border shadow-sm'>
+    <div className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
       {/* Header */}
-      <div className='from-muted/20 to-muted/10 border-border/60 grid grid-cols-8 items-start gap-2 border-b bg-gradient-to-b px-4 py-4 text-sm font-medium md:px-6'>
-        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+      <div className='from-muted/16 to-muted/6 border-border/60 grid grid-cols-8 items-center gap-3 border-b bg-gradient-to-b px-4 py-4 text-sm font-medium md:px-6'>
+        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
           Case
         </div>
-        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
           Kunde
         </div>
-        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
           Gutachter
         </div>
-        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
           Anwalt
         </div>
 
         <div className='col-span-2 space-y-2'>
           <div className='flex items-center justify-between gap-2'>
-            <span className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+            <span className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
               Assignments
             </span>
             <label className='text-muted-foreground flex items-center gap-2 text-xs font-normal'>
@@ -264,7 +264,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
             onChangeAnwalt={setAnwaltFilter}
           />
           <select
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-xs shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
             value={opsFilter}
             onChange={(e) => setOpsFilter(e.target.value)}
             title='Operativer Schnellfilter'
@@ -277,35 +277,35 @@ export default function AdminCasesTable(props: { cases: any[] }) {
           </select>
         </div>
 
-        <div className='text-muted-foreground text-xs tracking-[0.14em] uppercase'>
+        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
           Updated
         </div>
-        <div className='text-muted-foreground text-right text-xs tracking-[0.14em] uppercase'>
+        <div className='text-muted-foreground text-right text-xs font-semibold tracking-[0.14em] uppercase'>
           Kunden-Link
         </div>
       </div>
 
       {/* Errors */}
       {error ? (
-        <div className='border-border/60 border-b bg-red-50/60 px-4 py-3 text-sm text-red-700 md:px-6'>
+        <div className='border-border/60 border-b bg-red-50/70 px-4 py-3 text-sm text-red-800 md:px-6'>
           {error}
         </div>
       ) : null}
 
       {/* Users status */}
       {usersLoading ? (
-        <div className='text-muted-foreground border-border/60 border-b px-4 py-3 text-sm md:px-6'>
+        <div className='text-muted-foreground border-border/60 bg-background/78 border-b px-4 py-3 text-sm md:px-6'>
           Lade User-Liste…
         </div>
       ) : usersError ? (
-        <div className='border-border/60 border-b bg-red-50/60 px-4 py-3 text-sm text-red-700 md:px-6'>
+        <div className='border-border/60 border-b bg-red-50/70 px-4 py-3 text-sm text-red-800 md:px-6'>
           {usersError}
         </div>
       ) : null}
 
       {/* Body */}
       {filtered.length === 0 ? (
-        <div className='text-muted-foreground px-4 py-6 text-sm md:px-6'>
+        <div className='text-muted-foreground bg-background/78 px-4 py-6 text-sm md:px-6'>
           Keine Cases passend zum Filter.
         </div>
       ) : (
@@ -320,12 +320,12 @@ export default function AdminCasesTable(props: { cases: any[] }) {
           return (
             <div
               key={c.id}
-              className='hover:bg-muted/20 border-border/40 grid grid-cols-8 gap-2 border-b px-4 py-4 text-sm transition-colors last:border-b-0 md:px-6'
+              className='border-border/60 bg-background/84 hover:bg-primary/[0.02] mx-4 mb-3 grid grid-cols-8 gap-3 rounded-[24px] border px-4 py-4 text-sm shadow-[var(--shadow-soft)] transition-colors last:mb-4 md:mx-6'
             >
               {/* Case */}
-              <div className='text-foreground font-mono text-sm font-medium'>
+              <div className='text-foreground font-mono text-sm font-semibold'>
                 <Link
-                  className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-sm transition-colors hover:opacity-90'
+                  className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
                   href={`/dashboard/cases/${c.id}`}
                 >
                   {c.caseNumber ?? '—'}
@@ -333,7 +333,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
               </div>
 
               {/* Kunde */}
-              <div className='text-foreground min-w-0 truncate text-sm font-medium'>
+              <div className='text-foreground min-w-0 truncate text-sm font-semibold'>
                 {[c.customer?.firstName, c.customer?.lastName]
                   .filter(Boolean)
                   .join(' ')
@@ -342,18 +342,18 @@ export default function AdminCasesTable(props: { cases: any[] }) {
 
               {/* Status Gutachter/Anwalt */}
               <div className='flex items-start'>
-                <span className='border-border/60 bg-background/80 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-sm'>
+                <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-[var(--shadow-soft)]'>
                   {labelGutachter(String(c.gutachterStatus))}
                 </span>
               </div>
               <div className='flex items-start'>
-                <span className='border-border/60 bg-background/80 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-sm'>
+                <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-[var(--shadow-soft)]'>
                   {labelAnwalt(String(c.anwaltStatus))}
                 </span>
               </div>
 
               {/* Assignment G */}
-              <div className='border-border/60 bg-background/70 space-y-2 rounded-2xl border p-3 shadow-sm'>
+              <div className='border-border/60 bg-background/78 space-y-2 rounded-[24px] border p-3 shadow-[var(--shadow-soft)]'>
                 <div className='text-muted-foreground text-xs leading-5'>
                   {gAssign
                     ? `${gAssign.status} · ${fmtDt(gAssign.assignedAt)}`
@@ -361,7 +361,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                 </div>
 
                 <select
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-xs shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   value={pickGutachter[c.id] ?? ''}
                   onChange={(e) =>
                     setPickGutachter((prev) => ({
@@ -380,7 +380,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                 </select>
 
                 <button
-                  className='hover:bg-muted border-border/60 bg-background/90 w-full rounded-xl border px-3 py-2 text-xs shadow-sm transition-colors disabled:opacity-60'
+                  className='hover:bg-muted/50 border-border/60 bg-background/90 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
                   onClick={() => assign(c.id, 'GUTACHTER')}
                   disabled={usersLoading || !!usersError || isBusy}
                   title={
@@ -392,7 +392,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
               </div>
 
               {/* Assignment A */}
-              <div className='border-border/60 bg-background/70 space-y-2 rounded-2xl border p-3 shadow-sm'>
+              <div className='border-border/60 bg-background/78 space-y-2 rounded-[24px] border p-3 shadow-[var(--shadow-soft)]'>
                 <div className='text-muted-foreground text-xs leading-5'>
                   {aAssign
                     ? `${aAssign.status} · ${fmtDt(aAssign.assignedAt)}`
@@ -400,7 +400,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                 </div>
 
                 <select
-                  className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-xs shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   value={pickAnwalt[c.id] ?? ''}
                   onChange={(e) =>
                     setPickAnwalt((prev) => ({
@@ -419,7 +419,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                 </select>
 
                 <button
-                  className='hover:bg-muted border-border/60 bg-background/90 w-full rounded-xl border px-3 py-2 text-xs shadow-sm transition-colors disabled:opacity-60'
+                  className='hover:bg-muted/50 border-border/60 bg-background/90 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
                   onClick={() => assign(c.id, 'ANWALT')}
                   disabled={usersLoading || !!usersError || isBusy}
                   title={
@@ -432,7 +432,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
 
               {/* Updated */}
               <div className='text-muted-foreground flex items-start text-sm'>
-                <span className='border-border/60 bg-background/80 inline-flex rounded-full border px-3 py-1.5 shadow-sm'>
+                <span className='border-border/60 bg-background/90 inline-flex rounded-full border px-3 py-1.5 shadow-[var(--shadow-soft)]'>
                   {fmtDate(new Date(c.updatedAt))}
                 </span>
               </div>
@@ -440,7 +440,7 @@ export default function AdminCasesTable(props: { cases: any[] }) {
               {/* Customer link */}
               <div className='text-right'>
                 <Link
-                  className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 inline-flex items-center rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 hover:opacity-90'
+                  className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex items-center rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
                   href={`/case/${c.token}`}
                   target='_blank'
                 >

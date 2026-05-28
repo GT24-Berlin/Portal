@@ -40,7 +40,7 @@ export default async function CaseProfileEditPage({
   return (
     <div className='bg-background text-foreground min-h-[100dvh]'>
       <div className='mx-auto max-w-3xl space-y-6 px-4 py-8'>
-        <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+        <div className='border-border/60 bg-background/78 overflow-hidden rounded-[32px] border shadow-[var(--shadow-glass)] backdrop-blur-xl'>
           <div className='border-border/60 bg-muted/15 grid gap-4 border-b p-5 md:grid-cols-[1.2fr_0.8fr] md:p-6'>
             <div className='space-y-1'>
               <p className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
@@ -53,7 +53,7 @@ export default async function CaseProfileEditPage({
                 Fallnummer {label}
               </p>
             </div>
-            <div className='border-border/60 bg-background/80 grid gap-2 rounded-2xl border p-4 shadow-sm'>
+            <div className='border-border/60 bg-background/84 grid gap-2 rounded-[24px] border p-4 shadow-sm'>
               <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.16em] uppercase'>
                 Hinweis
               </div>
@@ -85,7 +85,7 @@ export default async function CaseProfileEditPage({
           </div>
         </div>
 
-        <div className='border-border/60 bg-card/95 overflow-hidden rounded-[28px] border shadow-sm'>
+        <div className='border-border/60 bg-background/80 overflow-hidden rounded-[32px] border shadow-[var(--shadow-soft)]'>
           <div className='border-border/60 bg-muted/15 border-b p-6'>
             <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.18em] uppercase'>
               Formulardaten
@@ -102,33 +102,39 @@ export default async function CaseProfileEditPage({
               className='space-y-4'
             >
               <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Vorname *</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Vorname *
+                  </label>
                   <input
                     name='firstName'
                     defaultValue={found.customer.firstName}
                     required
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   />
                 </div>
 
-                <div className='space-y-1'>
-                  <label className='text-sm font-medium'>Nachname *</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Nachname *
+                  </label>
                   <input
                     name='lastName'
                     defaultValue={found.customer.lastName}
                     required
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   />
                 </div>
 
-                <div className='space-y-1 md:col-span-2'>
-                  <label className='text-sm font-medium'>E-Mail</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm md:col-span-2'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    E-Mail
+                  </label>
                   <input
                     name='email'
                     defaultValue={found.customer.email}
                     readOnly
-                    className='bg-background/80 border-border/60 w-full rounded-xl border px-3 py-2 text-sm opacity-80 shadow-sm'
+                    className='bg-background/85 border-border/60 w-full rounded-2xl border px-3 py-2.5 text-sm opacity-80 shadow-sm'
                   />
                   <p className='text-muted-foreground text-xs'>
                     E-Mail ist für den OTP-Zugang relevant und bleibt für den
@@ -136,13 +142,15 @@ export default async function CaseProfileEditPage({
                   </p>
                 </div>
 
-                <div className='space-y-1 md:col-span-2'>
-                  <label className='text-sm font-medium'>Telefon *</label>
+                <div className='border-border/60 bg-background/82 space-y-1.5 rounded-[24px] border p-4 shadow-sm md:col-span-2'>
+                  <label className='text-sm font-medium tracking-[-0.01em]'>
+                    Telefon *
+                  </label>
                   <input
                     name='phone'
                     defaultValue={found.customer.phone}
                     required
-                    className='bg-background/80 border-border/60 focus-visible:ring-primary/20 w-full rounded-xl border px-3 py-2 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
+                    className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2.5 text-sm shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
                   />
                 </div>
               </div>
