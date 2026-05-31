@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/rbac';
-import { LeadStatus } from '@prisma/client';
 
 export const runtime = 'nodejs';
 
@@ -81,7 +80,7 @@ export async function POST(req: Request) {
         city,
         region: city,
         source: 'dashboard-admin',
-        status: LeadStatus.NEW
+        status: 'NEW'
       }
     });
 
