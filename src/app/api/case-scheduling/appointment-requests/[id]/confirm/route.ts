@@ -1,4 +1,3 @@
-import { CaseAppointmentRequestStatus } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { emitAppointmentRequestOutcome } from '@/features/case-scheduling/server/appointment-side-effects';
@@ -68,7 +67,7 @@ export async function POST(
     await prisma.caseAppointmentRequest.update({
       where: { id: requestRow.id },
       data: {
-        status: CaseAppointmentRequestStatus.CONFIRMED,
+        status: 'CONFIRMED',
         confirmedAt: new Date(),
         ...(partnerResponseNote ? { partnerResponseNote } : {})
       }
