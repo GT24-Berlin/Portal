@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/rbac';
-import { LeadStatus } from '@prisma/client';
 import { getNextCaseNumber } from '@/features/case-number/server/get-next-case-number';
 import { createCaseWithUniqueToken } from '@/features/case-token/server/case-token';
 
@@ -92,7 +91,7 @@ export async function POST(
 
       await tx.lead.update({
         where: { id: leadId },
-        data: { status: LeadStatus.IN_PROGRESS }
+        data: { status: 'IN_PROGRESS' }
       });
 
       return caseRecord;
