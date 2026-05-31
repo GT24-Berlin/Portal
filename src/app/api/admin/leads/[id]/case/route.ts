@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/rbac';
 import { getNextCaseNumber } from '@/features/case-number/server/get-next-case-number';
@@ -59,43 +60,45 @@ export async function POST(
       });
     }
 
-    const created = await prisma.$transaction(async (tx) => {
-      const caseNumber = await getNextCaseNumber(tx);
+    const created = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const caseNumber = await getNextCaseNumber(tx);
 
-      const caseRecord = await createCaseWithUniqueToken((token) =>
-        tx.case.create({
-          data: {
-            token,
-            caseNumber,
-            leadId,
-            events: {
-              create: [
-                {
-                  lane: 'GUTACHTER',
-                  status: 'EINGEGANGEN',
-                  note: 'Case erstellt aus Lead',
-                  occurredAt: new Date()
-                },
-                {
-                  lane: 'ANWALT',
-                  status: 'FALL_EINGEGANGEN',
-                  note: 'Case erstellt aus Lead',
-                  occurredAt: new Date()
-                }
-              ]
-            }
-          },
-          include: { events: { orderBy: { occurredAt: 'asc' } } }
-        })
-      );
+        const caseRecord = await createCaseWithUniqueToken((token) =>
+          tx.case.create({
+            data: {
+              token,
+              caseNumber,
+              leadId,
+              events: {
+                create: [
+                  {
+                    lane: 'GUTACHTER',
+                    status: 'EINGEGANGEN',
+                    note: 'Case erstellt aus Lead',
+                    occurredAt: new Date()
+                  },
+                  {
+                    lane: 'ANWALT',
+                    status: 'FALL_EINGEGANGEN',
+                    note: 'Case erstellt aus Lead',
+                    occurredAt: new Date()
+                  }
+                ]
+              }
+            },
+            include: { events: { orderBy: { occurredAt: 'asc' } } }
+          })
+        );
 
-      await tx.lead.update({
-        where: { id: leadId },
-        data: { status: 'IN_PROGRESS' }
-      });
+        await tx.lead.update({
+          where: { id: leadId },
+          data: { status: 'IN_PROGRESS' }
+        });
 
-      return caseRecord;
-    });
+        return caseRecord;
+      }
+    );
 
     return NextResponse.json({ ok: true, case: created });
   } catch (e: any) {
