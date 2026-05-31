@@ -1,8 +1,3 @@
-import {
-  CaseAppointmentRequestStatus,
-  CaseAppointmentRole,
-  CaseAppointmentType
-} from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { getPartnerProfile } from '@/features/partner-profile/lib/get-partner-profile';
@@ -12,16 +7,32 @@ import { prisma } from '@/lib/prisma';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const CASE_APPOINTMENT_ROLE = {
+  GUTACHTER: 'GUTACHTER',
+  ANWALT: 'ANWALT'
+} as const;
+
+type CaseAppointmentRole =
+  (typeof CASE_APPOINTMENT_ROLE)[keyof typeof CASE_APPOINTMENT_ROLE];
+
+const CASE_APPOINTMENT_TYPE = {
+  PHONE: 'PHONE',
+  IN_PERSON: 'IN_PERSON'
+} as const;
+
+type CaseAppointmentType =
+  (typeof CASE_APPOINTMENT_TYPE)[keyof typeof CASE_APPOINTMENT_TYPE];
+
 function appUrl() {
   return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 }
 
 function roleLabel(role: CaseAppointmentRole) {
-  return role === CaseAppointmentRole.GUTACHTER ? 'Gutachter' : 'Anwalt';
+  return role === CASE_APPOINTMENT_ROLE.GUTACHTER ? 'Gutachter' : 'Anwalt';
 }
 
 function typeLabel(type: CaseAppointmentType) {
-  return type === CaseAppointmentType.PHONE ? 'Telefon' : 'Persönlich';
+  return type === CASE_APPOINTMENT_TYPE.PHONE ? 'Telefon' : 'Persönlich';
 }
 
 function durationLabel(minutes: string) {
@@ -62,7 +73,7 @@ function buildLocation(input: {
   city: string;
   country: string;
 }) {
-  if (input.appointmentType === CaseAppointmentType.PHONE) {
+  if (input.appointmentType === CASE_APPOINTMENT_TYPE.PHONE) {
     return 'Telefontermin';
   }
 
@@ -133,7 +144,7 @@ export async function GET(
       );
     }
 
-    if (requestRow.status !== CaseAppointmentRequestStatus.CONFIRMED) {
+    if (requestRow.status !== 'CONFIRMED') {
       return NextResponse.json(
         { ok: false, error: 'only confirmed appointments can be downloaded' },
         { status: 409 }
