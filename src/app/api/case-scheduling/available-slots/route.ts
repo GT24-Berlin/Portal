@@ -1,15 +1,34 @@
 import { NextResponse } from 'next/server';
-import {
-  CaseAppointmentDuration,
-  CaseAppointmentRole,
-  CaseAppointmentType
-} from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { getAvailableAppointmentSlots } from '@/features/case-scheduling/server/get-available-appointment-slots';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const CASE_APPOINTMENT_ROLE = {
+  GUTACHTER: 'GUTACHTER',
+  ANWALT: 'ANWALT'
+} as const;
+
+type CaseAppointmentRole =
+  (typeof CASE_APPOINTMENT_ROLE)[keyof typeof CASE_APPOINTMENT_ROLE];
+
+const CASE_APPOINTMENT_TYPE = {
+  PHONE: 'PHONE',
+  IN_PERSON: 'IN_PERSON'
+} as const;
+
+type CaseAppointmentType =
+  (typeof CASE_APPOINTMENT_TYPE)[keyof typeof CASE_APPOINTMENT_TYPE];
+
+const CASE_APPOINTMENT_DURATION = {
+  MINUTES_15: 'MINUTES_15',
+  MINUTES_30: 'MINUTES_30'
+} as const;
+
+type CaseAppointmentDuration =
+  (typeof CASE_APPOINTMENT_DURATION)[keyof typeof CASE_APPOINTMENT_DURATION];
 
 function parseDateParam(value: string | null) {
   const raw = String(value ?? '').trim();
@@ -25,8 +44,8 @@ function parseRoleParam(value: string | null) {
   const raw = String(value ?? '')
     .trim()
     .toUpperCase();
-  if (raw === 'GUTACHTER') return CaseAppointmentRole.GUTACHTER;
-  if (raw === 'ANWALT') return CaseAppointmentRole.ANWALT;
+  if (raw === 'GUTACHTER') return CASE_APPOINTMENT_ROLE.GUTACHTER;
+  if (raw === 'ANWALT') return CASE_APPOINTMENT_ROLE.ANWALT;
   return null;
 }
 
@@ -35,8 +54,8 @@ function parseAppointmentTypeParam(value: string | null) {
     .trim()
     .toUpperCase();
   if (!raw) return null;
-  if (raw === 'PHONE') return CaseAppointmentType.PHONE;
-  if (raw === 'IN_PERSON') return CaseAppointmentType.IN_PERSON;
+  if (raw === 'PHONE') return CASE_APPOINTMENT_TYPE.PHONE;
+  if (raw === 'IN_PERSON') return CASE_APPOINTMENT_TYPE.IN_PERSON;
   return null;
 }
 
@@ -46,9 +65,9 @@ function parseDurationParam(value: string | null) {
     .toUpperCase();
   if (!raw) return null;
   if (raw === '15' || raw === 'MINUTES_15')
-    return CaseAppointmentDuration.MINUTES_15;
+    return CASE_APPOINTMENT_DURATION.MINUTES_15;
   if (raw === '30' || raw === 'MINUTES_30')
-    return CaseAppointmentDuration.MINUTES_30;
+    return CASE_APPOINTMENT_DURATION.MINUTES_30;
   return null;
 }
 

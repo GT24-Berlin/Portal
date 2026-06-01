@@ -1,4 +1,3 @@
-import { CaseAppointmentRequestStatus } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { emitAppointmentRequestOutcome } from '@/features/case-scheduling/server/appointment-side-effects';
@@ -154,7 +153,7 @@ export async function POST(
       await tx.caseAppointmentRequest.update({
         where: { id: requestRow.id },
         data: {
-          status: CaseAppointmentRequestStatus.ALTERNATIVE_PROPOSED,
+          status: 'ALTERNATIVE_PROPOSED',
           partnerResponseNote: note
             ? note
             : (requestRow.partnerResponseNote ?? null)

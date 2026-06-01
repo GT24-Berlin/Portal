@@ -1,9 +1,3 @@
-import {
-  CaseAppointmentDuration,
-  CaseAppointmentRequestStatus,
-  CaseAppointmentRole,
-  CaseAppointmentType
-} from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 import { addMinutes } from '@/features/case-scheduling/lib/add-minutes';
@@ -23,6 +17,42 @@ import { prisma } from '@/lib/prisma';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const CASE_APPOINTMENT_ROLE = {
+  GUTACHTER: 'GUTACHTER',
+  ANWALT: 'ANWALT'
+} as const;
+
+type CaseAppointmentRole =
+  (typeof CASE_APPOINTMENT_ROLE)[keyof typeof CASE_APPOINTMENT_ROLE];
+
+const CASE_APPOINTMENT_TYPE = {
+  PHONE: 'PHONE',
+  IN_PERSON: 'IN_PERSON'
+} as const;
+
+type CaseAppointmentType =
+  (typeof CASE_APPOINTMENT_TYPE)[keyof typeof CASE_APPOINTMENT_TYPE];
+
+const CASE_APPOINTMENT_DURATION = {
+  MINUTES_15: 'MINUTES_15',
+  MINUTES_30: 'MINUTES_30'
+} as const;
+
+type CaseAppointmentDuration =
+  (typeof CASE_APPOINTMENT_DURATION)[keyof typeof CASE_APPOINTMENT_DURATION];
+
+const CASE_APPOINTMENT_REQUEST_STATUS = {
+  REQUESTED: 'REQUESTED',
+  CONFIRMED: 'CONFIRMED',
+  DECLINED: 'DECLINED',
+  ALTERNATIVE_PROPOSED: 'ALTERNATIVE_PROPOSED',
+  EXPIRED: 'EXPIRED',
+  CANCELLED: 'CANCELLED'
+} as const;
+
+type CaseAppointmentRequestStatus =
+  (typeof CASE_APPOINTMENT_REQUEST_STATUS)[keyof typeof CASE_APPOINTMENT_REQUEST_STATUS];
 
 function toRow(row: {
   id: string;
@@ -210,7 +240,7 @@ export async function POST(req: Request) {
 
     const partnerProfile = await getPartnerProfile({
       clerkUserId: activeAssignment.assigneeClerkUserId,
-      role: role === CaseAppointmentRole.GUTACHTER ? 'GUTACHTER' : 'ANWALT'
+      role: role === CASE_APPOINTMENT_ROLE.GUTACHTER ? 'GUTACHTER' : 'ANWALT'
     });
 
     if (!partnerProfile.partnerId) {
@@ -285,7 +315,7 @@ export async function POST(req: Request) {
         role,
         appointmentType,
         duration,
-        status: CaseAppointmentRequestStatus.REQUESTED,
+        status: CASE_APPOINTMENT_REQUEST_STATUS.REQUESTED,
         requestedStartAt,
         requestedEndAt,
         expiresAt: addMinutes(
