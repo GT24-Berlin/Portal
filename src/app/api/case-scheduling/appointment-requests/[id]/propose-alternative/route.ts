@@ -16,6 +16,10 @@ import {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 function parseDate(value: unknown) {
   const raw = String(value ?? '').trim();
   if (!raw) return null;
@@ -140,7 +144,7 @@ export async function POST(
       );
     }
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       await tx.caseAppointmentProposal.create({
         data: {
           appointmentRequestId: requestRow.id,

@@ -4,6 +4,10 @@ import { ClaimRoute, InsuranceParty } from '@prisma/client';
 
 export const runtime = 'nodejs';
 
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 const has = (obj: any, key: string) =>
   Object.prototype.hasOwnProperty.call(obj ?? {}, key);
 
@@ -220,7 +224,7 @@ export async function POST(
     if (has(body, 'plateNumber')) data.plateNumber = opt(body.plateNumber);
     if (has(body, 'holderName')) data.holderName = opt(body.holderName);
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: TransactionClient) => {
       // 1) Intake upsert
       const intake = await tx.caseIntake.upsert({
         where: { caseId: c.id },

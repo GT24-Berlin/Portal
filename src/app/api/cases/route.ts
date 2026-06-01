@@ -5,6 +5,10 @@ import { createCaseWithUniqueToken } from '@/features/case-token/server/case-tok
 
 export const runtime = 'nodejs';
 
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 type Body = {
   leadId?: string | null;
   caseNumber?: string | null; // optional, z.B. "CS-3004"
@@ -14,7 +18,7 @@ export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => ({}))) as Body;
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: TransactionClient) => {
       const caseNumber = await getNextCaseNumber(tx);
 
       return createCaseWithUniqueToken((token) =>

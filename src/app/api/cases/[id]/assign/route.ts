@@ -10,6 +10,10 @@ import { logOperationalEvent } from '@/lib/ops-log';
 
 export const runtime = 'nodejs';
 
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
 type Body = {
@@ -121,7 +125,7 @@ export async function POST(
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
-    const created = await prisma.$transaction(async (tx) => {
+    const created = await prisma.$transaction(async (tx: TransactionClient) => {
       // ACTIVE ist ausschließlich über activeKey="ACTIVE" definiert
       let active = await tx.caseAssignment.findFirst({
         where: { caseId, role: assignRole as any, activeKey: 'ACTIVE' },

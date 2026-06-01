@@ -13,6 +13,10 @@ import { logOperationalEvent } from '@/lib/ops-log';
 
 export const runtime = 'nodejs';
 
+type TransactionClient = Parameters<
+  Parameters<typeof prisma.$transaction>[0]
+>[0];
+
 function clean(v: unknown) {
   return String(v ?? '').trim();
 }
@@ -329,7 +333,7 @@ export async function POST(
 
     const now = new Date();
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: TransactionClient) => {
       await tx.caseCustomer.update({
         where: { id: customerId },
         data: {
