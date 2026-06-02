@@ -1,38 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { requireAdmin } from '@/lib/rbac';
 
 export const runtime = 'nodejs';
-
-type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
-
-function pickRoleFromClaims(claims: any): Role {
-  const r =
-    claims?.publicMetadata?.role ??
-    claims?.metadata?.role ??
-    claims?.user?.publicMetadata?.role ??
-    '';
-  return String(r || '') as Role;
-}
-
-async function requireAdmin() {
-  const { userId, sessionClaims } = await auth();
-  if (!userId)
-    return { ok: false as const, status: 401, userId: null, role: '' as Role };
-
-  let role = pickRoleFromClaims(sessionClaims);
-  if (!role) {
-    const client = await clerkClient();
-    const u = await client.users.getUser(userId);
-    role = String((u.publicMetadata as any)?.role ?? '') as Role;
-  }
-
-  if (role !== 'ADMIN') {
-    return { ok: false as const, status: 403, userId, role };
-  }
-
-  return { ok: true as const, status: 200, userId, role };
-}
 
 export async function GET(
   _req: Request,

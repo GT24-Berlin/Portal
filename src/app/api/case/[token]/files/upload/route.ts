@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { CaseFileVisibility } from '@prisma/client';
 import { putStoredFile } from '@/lib/storage';
 import { logOperationalEvent } from '@/lib/ops-log';
-import { processCaseFile } from '@/features/gutachten-insights/lib/process-case-file';
+import type { ProcessCaseFileResult } from '@/features/gutachten-insights/lib/process-case-file';
 
 export const runtime = 'nodejs';
 
@@ -221,8 +221,7 @@ export async function POST(
       }
     });
 
-    let processingResult: Awaited<ReturnType<typeof processCaseFile>> | null =
-      null;
+    let processingResult: ProcessCaseFileResult | null = null;
 
     if (
       String(createdFile.mimeType ?? '')
@@ -230,6 +229,9 @@ export async function POST(
         .includes('pdf')
     ) {
       try {
+        const { processCaseFile } = await import(
+          '@/features/gutachten-insights/lib/process-case-file'
+        );
         processingResult = await processCaseFile({
           caseId: c.id,
           fileId: createdFileId
