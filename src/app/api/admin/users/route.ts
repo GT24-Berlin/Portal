@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { clerkClient } from '@clerk/nextjs/server';
+import { requireAdmin } from '@/lib/rbac';
 
 export const runtime = 'nodejs';
-
-type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
 /**
  * Robust gegen Clerk-Versionen:
@@ -13,36 +12,6 @@ type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 async function getClerk() {
   // @ts-ignore
   return typeof clerkClient === 'function' ? await clerkClient() : clerkClient;
-}
-
-function pickRoleFromClaims(claims: any): Role {
-  const r =
-    claims?.publicMetadata?.role ??
-    claims?.metadata?.role ??
-    claims?.user?.publicMetadata?.role ??
-    '';
-  return String(r || '') as Role;
-}
-
-async function requireAdmin() {
-  const { userId, sessionClaims } = await auth();
-  if (!userId)
-    return { ok: false as const, status: 401, userId: null, role: '' as Role };
-
-  let role = pickRoleFromClaims(sessionClaims);
-
-  // Fallback: falls Claims keine Rolle enthalten → User laden
-  if (!role) {
-    const client = await getClerk();
-    const u = await client.users.getUser(userId);
-    role = String((u.publicMetadata as any)?.role ?? '') as Role;
-  }
-
-  if (role !== 'ADMIN') {
-    return { ok: false as const, status: 403, userId, role };
-  }
-
-  return { ok: true as const, status: 200, userId, role };
 }
 
 export async function GET(req: Request) {
