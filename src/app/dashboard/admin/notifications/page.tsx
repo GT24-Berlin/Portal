@@ -1,8 +1,8 @@
 import PageContainer from '@/components/layout/page-container';
-import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import type { Metadata } from 'next';
+import { requireAdmin } from '@/lib/rbac';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,8 +10,6 @@ export const revalidate = 0;
 export const metadata: Metadata = {
   title: 'Benachrichtigungen'
 };
-
-type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
 type Item = {
   id: string;
@@ -37,19 +35,20 @@ function fmt(dt: string) {
 }
 
 export default async function AdminNotificationsPage() {
-  const { userId } = await auth();
-  if (!userId) redirect('/auth/sign-in');
-
-  const user = await currentUser();
-  const role = String(user?.publicMetadata?.role ?? '') as Role;
-  if (role !== 'ADMIN') redirect('/dashboard');
-
-  // server-side fetch auf Admin-API (gleiche Origin)
+  const guard = await requireAdmin();
+  if (!guard.ok) {
+    redirect(guard.status === 401 ? '/auth/sign-in' : '/dashboard');
+  }
 
   const h = await headers();
+  const proto = h.get('x-forwarded-proto') ?? 'https';
+  const host = h.get('x-forwarded-host') ?? h.get('host');
+  const origin = host
+    ? `${proto}://${host}`
+    : (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
 
   const res = await fetch(
-    'http://localhost:3000/api/admin/notifications?take=100',
+    new URL('/api/admin/notifications?take=100', origin),
     {
       cache: 'no-store',
       headers: {

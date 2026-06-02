@@ -8,7 +8,7 @@ import CaseAssignmentAdmin from '@/components/cases/case-assignment-admin';
 
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import CaseFilesUpload from '@/components/cases/case-files-upload';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
@@ -17,10 +17,9 @@ import CaseCustomerInfoCard from '@/features/case-detail/components/case-custome
 import CaseAccidentDataCard from '@/features/case-detail/components/case-accident-data-card';
 import CasePhotoGallery from '@/features/case-detail/components/case-photo-gallery';
 import { getCasePhotoFiles } from '@/features/case-detail/lib/get-case-photo-files';
+import { requireRole, type Role } from '@/lib/rbac';
 
 export const runtime = 'nodejs';
-
-type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
 export default async function CaseDetailPage({
   params
@@ -33,8 +32,10 @@ export default async function CaseDetailPage({
     const { userId } = await auth();
     if (!userId) redirect('/auth/sign-in');
 
-    const user = await currentUser();
-    const role = String(user?.publicMetadata?.role ?? '') as Role;
+    const guard = await requireRole();
+    if (!guard.ok) redirect('/auth/sign-in');
+
+    const role = guard.role;
 
     const isAdmin = role === 'ADMIN';
     const isGutachter = role === 'GUTACHTER';

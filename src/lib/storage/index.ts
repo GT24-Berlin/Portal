@@ -16,8 +16,26 @@ type DownloadableFile = {
   size?: number | null;
 };
 
+function isProductionStorageContext() {
+  return process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
+}
+
 function getConfiguredProviderName() {
-  return process.env.FILE_STORAGE_PROVIDER ?? 'local';
+  const raw = String(process.env.FILE_STORAGE_PROVIDER ?? '')
+    .trim()
+    .toLowerCase();
+
+  if (raw === 'local' || raw === 'supabase') {
+    return raw;
+  }
+
+  if (isProductionStorageContext()) {
+    throw new Error(
+      'FILE_STORAGE_PROVIDER fehlt oder ist ungültig. In Production muss explizit supabase gesetzt sein.'
+    );
+  }
+
+  return 'local';
 }
 
 function getConfiguredProvider(): StorageProvider {
