@@ -12,9 +12,11 @@ import type {
 const SUPABASE_PREFIX = 'supabase:';
 
 function getSupabaseConfig() {
-  const url = process.env.SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const bucket = process.env.SUPABASE_STORAGE_BUCKET;
+  const url = String(process.env.SUPABASE_URL ?? '').trim();
+  const serviceRoleKey = String(
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
+  ).trim();
+  const bucket = String(process.env.SUPABASE_STORAGE_BUCKET ?? '').trim();
 
   if (!url) {
     throw new Error('SUPABASE_URL fehlt');
@@ -45,6 +47,7 @@ function getSupabaseAdminClient() {
 function sanitizeFolder(folder: string) {
   return folder
     .replace(/\\/g, '/')
+    .replace(/^\/+/, '')
     .split('/')
     .filter(Boolean)
     .map((part) => part.replace(/[^a-zA-Z0-9._-]/g, '-'))
@@ -55,6 +58,28 @@ function sanitizeFilename(filename: string) {
   const lastPart = filename.split('/').pop()?.split('\\').pop() ?? 'upload.bin';
   const clean = lastPart.replace(/[^a-zA-Z0-9._-]/g, '-');
   return clean || 'upload.bin';
+}
+
+function normalizeObjectPath(folder: string, filename: string) {
+  const normalizedFolder = sanitizeFolder(folder);
+  const normalizedFilename = sanitizeFilename(filename);
+
+  const path = [normalizedFolder, normalizedFilename].filter(Boolean).join('/');
+  const cleaned = path
+    .replace(/\\/g, '/')
+    .replace(/^\/+/, '')
+    .replace(/\/+/g, '/')
+    .trim();
+
+  if (!cleaned) {
+    throw new Error('Supabase upload path is empty');
+  }
+
+  if (cleaned.startsWith('local:') || cleaned.startsWith('supabase:')) {
+    throw new Error(`Supabase upload path is invalid: ${cleaned}`);
+  }
+
+  return cleaned;
 }
 
 function encodeStorageKey(objectPath: string) {
@@ -86,9 +111,7 @@ export const supabaseStorageProvider: StorageProvider = {
         ? crypto.randomUUID()
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-    const objectPath = folder
-      ? `${folder}/${uniqueName}${extension}`
-      : `${uniqueName}${extension}`;
+    const objectPath = normalizeObjectPath(folder, `${uniqueName}${extension}`);
 
     const arrayBuffer = await input.file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
