@@ -113,6 +113,18 @@ export const supabaseStorageProvider: StorageProvider = {
 
     const objectPath = normalizeObjectPath(folder, `${uniqueName}${extension}`);
 
+    console.info('[storage:supabase:upload]', {
+      bucket,
+      folder,
+      originalFilename,
+      objectPath,
+      pathLength: objectPath.length,
+      startsWithSlash: objectPath.startsWith('/'),
+      hasDoubleSlash: objectPath.includes('//'),
+      startsWithSupabasePrefix: objectPath.startsWith('supabase:'),
+      startsWithLocalPrefix: objectPath.startsWith('local:')
+    });
+
     const arrayBuffer = await input.file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -125,6 +137,11 @@ export const supabaseStorageProvider: StorageProvider = {
       });
 
     if (error) {
+      console.warn('[storage:supabase:upload:error]', {
+        bucket,
+        objectPath,
+        error: error.message
+      });
       throw new Error(`Supabase upload fehlgeschlagen: ${error.message}`);
     }
 
