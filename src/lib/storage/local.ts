@@ -15,6 +15,10 @@ import type {
 
 const LOCAL_PREFIX = 'local:';
 
+function isProductionStorageContext() {
+  return process.env.VERCEL === '1' || process.env.VERCEL_ENV === 'production';
+}
+
 function getUploadRoot() {
   return path.resolve(process.cwd(), process.env.LOCAL_UPLOAD_DIR ?? 'uploads');
 }
@@ -39,6 +43,12 @@ function sanitizeFilename(filename: string) {
 }
 
 function resolveLocalPath(storageKey: string) {
+  if (isProductionStorageContext()) {
+    throw new Error(
+      `Local storage is disabled in Production. storageKey "${storageKey}" must be migrated to Supabase.`
+    );
+  }
+
   if (!storageKey.startsWith(LOCAL_PREFIX)) {
     throw new Error(`Unsupported local storageKey: ${storageKey}`);
   }
@@ -56,6 +66,10 @@ function resolveLocalPath(storageKey: string) {
 
 export const localStorageProvider: StorageProvider = {
   async put(input: PutStoredFileInput): Promise<PutStoredFileResult> {
+    if (isProductionStorageContext()) {
+      throw new Error('Local storage is disabled in Production.');
+    }
+
     const folder = sanitizeFolder(input.folder ?? 'case-files');
     const originalFilename = sanitizeFilename(input.file.name || 'upload.bin');
     const extension = path.extname(originalFilename).toLowerCase();

@@ -25,6 +25,12 @@ function getConfiguredProviderName() {
     .trim()
     .toLowerCase();
 
+  if (isProductionStorageContext() && raw !== 'supabase') {
+    throw new Error(
+      'In Production muss FILE_STORAGE_PROVIDER explizit supabase sein.'
+    );
+  }
+
   if (raw === 'local' || raw === 'supabase') {
     return raw;
   }
@@ -53,6 +59,12 @@ function getConfiguredProvider(): StorageProvider {
 
 function getProviderForStorageKey(storageKey: string): StorageProvider {
   if (storageKey.startsWith('local:')) {
+    if (isProductionStorageContext()) {
+      throw new Error(
+        `Local storageKey "${storageKey}" is not supported in Production. Re-upload the file to Supabase.`
+      );
+    }
+
     return localStorageProvider;
   }
 
