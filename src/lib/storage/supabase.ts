@@ -82,6 +82,10 @@ function normalizeObjectPath(folder: string, filename: string) {
   return cleaned;
 }
 
+function charCodesPreview(value: string, count = 12) {
+  return Array.from(value.slice(0, count)).map((char) => char.charCodeAt(0));
+}
+
 function encodeStorageKey(objectPath: string) {
   return `${SUPABASE_PREFIX}${objectPath}`;
 }
@@ -123,6 +127,17 @@ export const supabaseStorageProvider: StorageProvider = {
       hasDoubleSlash: objectPath.includes('//'),
       startsWithSupabasePrefix: objectPath.startsWith('supabase:'),
       startsWithLocalPrefix: objectPath.startsWith('local:')
+    });
+    console.info('[storage:supabase:upload:call]', {
+      bucket,
+      bucketLength: bucket.length,
+      bucketIsEmpty: bucket.length === 0,
+      bucketCharCodes: charCodesPreview(bucket),
+      objectPath,
+      objectPathLength: objectPath.length,
+      objectPathCharCodes: charCodesPreview(objectPath),
+      objectPathStartsWithSlash: objectPath.startsWith('/'),
+      objectPathHasDoubleSlash: objectPath.includes('//')
     });
 
     const arrayBuffer = await input.file.arrayBuffer();
