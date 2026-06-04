@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAdmin } from '@/lib/rbac';
+import { createRequire } from 'node:module';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+const require = createRequire(import.meta.url);
+const SUPABASE_JS_VERSION = require('@supabase/supabase-js/package.json')
+  .version as string;
+const STORAGE_JS_VERSION = require('@supabase/storage-js/package.json')
+  .version as string;
 
 function maskValue(value: string | null | undefined) {
   const v = String(value ?? '');
@@ -15,6 +21,10 @@ function maskValue(value: string | null | undefined) {
 
 function charCodesPreview(value: string, count = 12) {
   return Array.from(value.slice(0, count)).map((char) => char.charCodeAt(0));
+}
+
+function ensureTrailingSlash(value: string) {
+  return value.endsWith('/') ? value : `${value}/`;
 }
 
 function getSupabaseConfig() {
@@ -35,6 +45,18 @@ function createSupabaseClient() {
       autoRefreshToken: false
     }
   });
+}
+
+function buildStorageObjectUrl(
+  supabaseUrl: string,
+  bucket: string,
+  path: string
+) {
+  const base = new URL(ensureTrailingSlash(supabaseUrl));
+  return new URL(
+    `storage/v1/object/${encodeURIComponent(bucket)}/${path}`,
+    base
+  ).toString();
 }
 
 async function removeIfUploaded(
@@ -85,7 +107,33 @@ export async function POST() {
       serviceRoleKeyLength: number;
       serviceRoleKeyLooksJwt: boolean;
       serviceRoleKeyPreview: string | null;
+      supabaseJsVersion: string;
+      storageJsVersion: string;
+      supabaseUrlRaw: string | null;
+      supabaseUrlLength: number;
+      supabaseUrlLastChar: string | null;
+      supabaseUrlLastCharCode: number | null;
+      supabaseUrlEndsWithSlash: boolean;
+      supabaseUrlHasPathSuffix: boolean;
+      supabaseUrlPathname: string | null;
     };
+    storageListTest: {
+      ok: boolean;
+      data: unknown[] | null;
+      dataIsNull: boolean;
+      error: {
+        message: string;
+        name: string | null;
+      } | null;
+    } | null;
+    rawFetchTest: {
+      ok: boolean;
+      url: string;
+      status: number | null;
+      responseBodyText: string | null;
+      responseBodyJson: unknown | null;
+      error?: string;
+    } | null;
     tests: Array<{
       name: string;
       path: string;
@@ -109,6 +157,19 @@ export async function POST() {
       bucketCharCodes: charCodesPreview(bucket),
       bucketIsEmpty: bucket.length === 0,
       supabaseUrlSet: Boolean(url),
+      supabaseUrlRaw: url || null,
+      supabaseUrlLength: url.length,
+      supabaseUrlLastChar: url ? url.slice(-1) : null,
+      supabaseUrlLastCharCode: url ? url.charCodeAt(url.length - 1) : null,
+      supabaseUrlEndsWithSlash: url.endsWith('/'),
+      supabaseUrlHasPathSuffix: (() => {
+        try {
+          const parsed = url ? new URL(url) : null;
+          return Boolean(parsed && parsed.pathname && parsed.pathname !== '/');
+        } catch {
+          return false;
+        }
+      })(),
       supabaseUrlHost: (() => {
         try {
           return url ? new URL(url).hostname : null;
@@ -119,15 +180,43 @@ export async function POST() {
       serviceRoleKeySet: Boolean(serviceRoleKey),
       serviceRoleKeyLength: serviceRoleKey.length,
       serviceRoleKeyLooksJwt: serviceRoleKey.split('.').length === 3,
-      serviceRoleKeyPreview: maskValue(serviceRoleKey)
+      serviceRoleKeyPreview: maskValue(serviceRoleKey),
+      supabaseJsVersion: SUPABASE_JS_VERSION,
+      storageJsVersion: STORAGE_JS_VERSION,
+      supabaseUrlPathname: (() => {
+        try {
+          return url ? new URL(url).pathname : null;
+        } catch {
+          return null;
+        }
+      })()
     },
+    storageListTest: null,
+    rawFetchTest: null,
     tests: []
   };
 
   let uploaded1: string | null = null;
   let uploaded2: string | null = null;
+  let rawUploadedPath: string | null = null;
 
   try {
+    const listResult = await client.storage.from(bucket).list('', { limit: 1 });
+    result.storageListTest = {
+      ok: !listResult.error,
+      data: listResult.data ?? null,
+      dataIsNull: listResult.data === null,
+      error: listResult.error
+        ? {
+            message: listResult.error.message,
+            name: listResult.error.name ?? null
+          }
+        : null
+    };
+    if (listResult.error) {
+      result.ok = false;
+    }
+
     console.info('[storage-upload-test:test1]', {
       bucket,
       path: test1Path,
@@ -222,6 +311,49 @@ export async function POST() {
       fullPath: res2.data?.fullPath ?? null
     });
 
+    const rawFetchPath = 'test-raw.txt';
+    const rawFetchUrl = buildStorageObjectUrl(url, bucket, rawFetchPath);
+    console.info('[storage-upload-test:raw-fetch]', {
+      bucket,
+      rawFetchUrl,
+      rawFetchPath,
+      rawFetchPathLength: rawFetchPath.length,
+      rawFetchPathCharCodes: charCodesPreview(rawFetchPath),
+      bucketLength: bucket.length,
+      bucketCharCodes: charCodesPreview(bucket)
+    });
+
+    const rawResponse = await fetch(rawFetchUrl, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${serviceRoleKey}`,
+        apikey: serviceRoleKey,
+        'Content-Type': 'text/plain',
+        'x-upsert': 'true'
+      },
+      body: 'hi'
+    });
+
+    const rawResponseText = await rawResponse.text();
+    let rawResponseJson: unknown | null = null;
+    try {
+      rawResponseJson = rawResponseText ? JSON.parse(rawResponseText) : null;
+    } catch {
+      rawResponseJson = null;
+    }
+
+    result.rawFetchTest = {
+      ok: rawResponse.ok,
+      url: rawFetchUrl,
+      status: rawResponse.status,
+      responseBodyText: rawResponseText,
+      responseBodyJson: rawResponseJson
+    };
+
+    if (rawResponse.ok) {
+      rawUploadedPath = rawFetchPath;
+    }
+
     return NextResponse.json(result);
   } catch (error: any) {
     const message = String(error?.message ?? error).slice(0, 300);
@@ -246,6 +378,7 @@ export async function POST() {
     });
     return NextResponse.json(result, { status: 500 });
   } finally {
+    await removeIfUploaded(client, bucket, rawUploadedPath);
     await removeIfUploaded(client, bucket, uploaded2);
     await removeIfUploaded(client, bucket, uploaded1);
   }
