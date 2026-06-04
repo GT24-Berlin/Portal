@@ -126,11 +126,11 @@ export const supabaseStorageProvider: StorageProvider = {
     });
 
     const arrayBuffer = await input.file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const uploadBody = new Uint8Array(arrayBuffer);
 
     const { error } = await client.storage
       .from(bucket)
-      .upload(objectPath, buffer, {
+      .upload(objectPath, uploadBody, {
         cacheControl: '3600',
         contentType: input.file.type || 'application/octet-stream',
         upsert: false
