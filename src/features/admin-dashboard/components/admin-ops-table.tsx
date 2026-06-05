@@ -46,7 +46,7 @@ export default function AdminOpsTable(props: {
   }, [tab, props.withoutGutachter, props.withoutAnwalt, props.pendingCases]);
 
   return (
-    <Card className='!overflow-visible'>
+    <Card className='overflow-hidden'>
       <CardHeader
         className='space-y-3 border-b pb-4'
         style={{ borderColor: 'var(--lumen-hairline)' }}
@@ -103,7 +103,10 @@ export default function AdminOpsTable(props: {
             {current.emptyText}
           </div>
         ) : (
-          <div className='overflow-x-auto'>
+          <div
+            className='w-full overflow-x-auto'
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             <div className='min-w-[760px]'>
               <div
                 className='text-muted-foreground grid grid-cols-6 gap-3 border-b px-4 py-3 text-xs font-medium tracking-[0.08em] uppercase'
