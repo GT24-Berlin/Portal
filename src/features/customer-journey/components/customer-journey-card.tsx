@@ -144,7 +144,7 @@ export default function CustomerJourneyCard(props: {
                 key={i}
                 className='relative overflow-hidden rounded-md p-4'
                 style={
-                  step.isCurrent
+                  step.active
                     ? {
                         background: 'var(--lumen-surface)',
                         boxShadow: 'var(--lumen-rim-strong)'
@@ -152,7 +152,7 @@ export default function CustomerJourneyCard(props: {
                     : {
                         backgroundColor: 'var(--lumen-panel-raised)',
                         boxShadow: 'var(--lumen-rim)',
-                        opacity: step.isCompleted ? 0.55 : 1
+                        opacity: step.done ? 0.55 : 1
                       }
                 }
               >
@@ -171,7 +171,7 @@ export default function CustomerJourneyCard(props: {
                 >
                   {step.label}
                 </div>
-                {step.isCurrent && (
+                {step.active && (
                   <>
                     <div
                       className='mt-1'
@@ -183,7 +183,6 @@ export default function CustomerJourneyCard(props: {
                     >
                       ● Aktueller Schritt
                     </div>
-                    {/* Horizon line */}
                     <div
                       className='absolute bottom-0 left-[15%] h-px w-[70%]'
                       style={{
@@ -193,7 +192,7 @@ export default function CustomerJourneyCard(props: {
                     />
                   </>
                 )}
-                {step.isCompleted && !step.isCurrent && (
+                {step.done && !step.active && (
                   <div
                     className='mt-1'
                     style={{
