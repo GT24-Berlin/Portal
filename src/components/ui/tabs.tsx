@@ -26,7 +26,10 @@ function TabsList({
     <TabsPrimitive.List
       data-slot='tabs-list'
       className={cn(
-        'bg-muted/35 text-muted-foreground border-border/60 inline-flex h-10 w-fit items-center justify-center rounded-full border p-1 shadow-[var(--shadow-soft)]',
+        // Lumen tabs container: panel background, hairline rim, 7px radius
+        'inline-flex h-10 w-fit items-center justify-center rounded-md p-1',
+        'bg-[var(--lumen-panel)] shadow-[var(--lumen-rim)]',
+        'text-muted-foreground gap-0.5',
         className
       )}
       {...props}
@@ -42,7 +45,16 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot='tabs-trigger'
       className={cn(
-        "data-[state=active]:bg-background data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-primary/20 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/25 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-[color,box-shadow,transform] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-[var(--shadow-soft)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        // Lumen tab trigger: muted at rest, lumen-surface + horizon when active
+        'lumen-horizon inline-flex h-[calc(100%-2px)] flex-1 items-center justify-center gap-1.5',
+        'rounded-[5px] border border-transparent px-3 py-1.5 text-sm font-medium whitespace-nowrap',
+        'text-muted-foreground transition-[color,background,box-shadow] duration-[420ms] [transition-timing-function:var(--lumen-ease)]',
+        'hover:text-foreground',
+        // Active state: raised lumen surface + rim
+        'data-[state=active]:text-foreground data-[state=active]:shadow-[var(--lumen-rim)] data-[state=active]:[background:var(--lumen-surface)]',
+        'focus-visible:shadow-[var(--lumen-rim-strong),var(--lumen-focus)] focus-visible:outline-none',
+        'disabled:pointer-events-none disabled:opacity-50',
+        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

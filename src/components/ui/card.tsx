@@ -7,7 +7,10 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot='card'
       className={cn(
-        'bg-card/90 text-card-foreground border-border/60 flex flex-col gap-6 rounded-[28px] border py-6 shadow-[var(--shadow-soft)]',
+        // Lumen card: panel surface + radial gradient + hairline rim + horizon line
+        'lumen-card-horizon text-card-foreground flex flex-col gap-6 overflow-hidden rounded-lg py-6',
+        'bg-[var(--lumen-panel)] [background-image:var(--lumen-surface-panel)]',
+        'shadow-[var(--lumen-rim),var(--lumen-shadow-card)]',
         className
       )}
       {...props}
@@ -33,7 +36,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot='card-title'
       className={cn(
-        'font-heading leading-none font-semibold tracking-tight text-balance',
+        'font-display leading-none font-semibold tracking-tight text-balance',
         className
       )}
       {...props}
