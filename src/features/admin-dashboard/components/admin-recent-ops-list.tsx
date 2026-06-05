@@ -6,40 +6,64 @@ export default function AdminRecentOpsList(props: {
   items: AdminRecentOpRow[];
 }) {
   return (
-    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
-      <CardHeader className='border-border/60 bg-muted/10 border-b'>
-        <CardTitle className='font-heading text-foreground text-base font-semibold tracking-tight'>
+    <Card>
+      <CardHeader
+        className='border-b pb-4'
+        style={{ borderColor: 'var(--lumen-hairline)' }}
+      >
+        <CardTitle
+          className='text-foreground text-base font-semibold tracking-tight'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Letzte Operations Events
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className='pt-4'>
         {props.items.length === 0 ? (
-          <div className='text-muted-foreground border-border/60 bg-muted/10 rounded-2xl border border-dashed px-4 py-6 text-sm'>
+          <div
+            className='text-muted-foreground rounded-md border border-dashed px-4 py-6 text-sm'
+            style={{ borderColor: 'var(--lumen-hairline)' }}
+          >
             Keine operativen Events vorhanden.
           </div>
         ) : (
-          <div className='space-y-3'>
+          <div className='space-y-2'>
             {props.items.map((item) => (
               <div
                 key={item.id}
-                className='border-border/60 bg-background/82 hover:bg-primary/[0.03] rounded-[24px] border p-4 text-sm shadow-[var(--shadow-soft)] transition-colors'
+                className='rounded-md p-4 text-sm transition-colors duration-[200ms]'
+                style={{
+                  backgroundColor: 'var(--lumen-panel-raised)',
+                  boxShadow: 'var(--lumen-rim)'
+                }}
               >
-                <div className='flex flex-wrap items-center gap-x-2 gap-y-2'>
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-sm'>
-                    {new Date(item.createdAt).toLocaleString('de-DE')}
-                  </span>
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-sm'>
-                    {item.domain}
-                  </span>
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-sm'>
-                    {item.action}
-                  </span>
-                  <span className='border-border/60 bg-background/80 rounded-full border px-2.5 py-1 font-mono text-[11px] tracking-[0.08em] shadow-sm'>
-                    {item.result}
-                  </span>
-                  <span className='text-muted-foreground text-xs tracking-[0.12em] uppercase'>
-                    {item.actorType ?? '—'}
-                  </span>
+                <div className='flex flex-wrap items-center gap-2'>
+                  {[
+                    new Date(item.createdAt).toLocaleString('de-DE'),
+                    item.domain,
+                    item.action,
+                    item.result
+                  ].map((label, i) => (
+                    <span
+                      key={i}
+                      className='text-muted-foreground inline-flex items-center rounded-full px-2.5 py-1 text-[11px]'
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                    >
+                      {label}
+                    </span>
+                  ))}
+                  {item.actorType && (
+                    <span
+                      className='text-muted-foreground text-xs tracking-[0.08em] uppercase'
+                      style={{ fontFamily: 'var(--font-display)' }}
+                    >
+                      {item.actorType}
+                    </span>
+                  )}
                 </div>
 
                 {item.message ? (
@@ -52,7 +76,11 @@ export default function AdminRecentOpsList(props: {
                   <div className='mt-3'>
                     <Link
                       href={`/dashboard/cases/${item.caseId}`}
-                      className='border-border/60 bg-background/80 decoration-muted-foreground/40 hover:bg-muted hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 text-xs underline underline-offset-4 transition-colors'
+                      className='text-muted-foreground hover:text-foreground inline-flex items-center rounded-md px-3 py-1.5 text-xs transition-colors duration-[420ms]'
+                      style={{
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
                     >
                       Fall öffnen
                     </Link>
