@@ -319,7 +319,7 @@
   .lumen-card-horizon {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
+    /* overflow:hidden intentionally removed — breaks horizontal scroll in tables */
   }
   .lumen-card-horizon::after {
     content: '';

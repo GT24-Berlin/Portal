@@ -46,7 +46,7 @@ export default function AdminOpsTable(props: {
   }, [tab, props.withoutGutachter, props.withoutAnwalt, props.pendingCases]);
 
   return (
-    <Card>
+    <Card className='!overflow-visible'>
       <CardHeader
         className='space-y-3 border-b pb-4'
         style={{ borderColor: 'var(--lumen-hairline)' }}

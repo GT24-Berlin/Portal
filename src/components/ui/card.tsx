@@ -8,7 +8,7 @@ function Card({ className, ...props }: React.ComponentProps<'div'>) {
       data-slot='card'
       className={cn(
         // Lumen card: panel surface + radial gradient + hairline rim + horizon line
-        'lumen-card-horizon text-card-foreground flex flex-col gap-6 rounded-lg py-6',
+        'lumen-card-horizon text-card-foreground flex flex-col gap-6 overflow-hidden rounded-lg py-6',
         'bg-[var(--lumen-panel)] [background-image:var(--lumen-surface-panel)]',
         'shadow-[var(--lumen-rim),var(--lumen-shadow-card)]',
         className
