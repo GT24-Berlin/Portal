@@ -225,19 +225,44 @@ export default function AdminCasesTable(props: { cases: any[] }) {
   }
 
   return (
-    <div className='border-border/60 bg-background/82 overflow-hidden rounded-[28px] border shadow-[var(--shadow-soft)]'>
+    <div
+      className='lumen-card-horizon overflow-hidden rounded-lg'
+      style={{
+        backgroundColor: 'var(--lumen-panel)',
+        backgroundImage: 'var(--lumen-surface-panel)',
+        boxShadow: 'var(--lumen-rim), var(--lumen-shadow-card)'
+      }}
+    >
       {/* Header */}
-      <div className='from-muted/16 to-muted/6 border-border/60 grid grid-cols-8 items-center gap-3 border-b bg-gradient-to-b px-4 py-4 text-sm font-medium md:px-6'>
-        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
+      <div
+        className='grid grid-cols-8 items-center gap-3 border-b px-4 py-4 text-sm font-medium md:px-6'
+        style={{
+          backgroundColor: 'var(--lumen-panel-raised)',
+          borderColor: 'var(--lumen-hairline)'
+        }}
+      >
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Case
         </div>
-        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Kunde
         </div>
-        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Gutachter
         </div>
-        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Anwalt
         </div>
 
@@ -264,7 +289,12 @@ export default function AdminCasesTable(props: { cases: any[] }) {
             onChangeAnwalt={setAnwaltFilter}
           />
           <select
-            className='bg-background/90 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
+            className='w-full rounded-md border-0 px-3 py-2 text-xs transition-[box-shadow] duration-[420ms] outline-none'
+            style={{
+              backgroundColor: 'var(--lumen-panel)',
+              boxShadow: 'var(--lumen-rim)',
+              color: 'var(--lumen-foreground)'
+            }}
             value={opsFilter}
             onChange={(e) => setOpsFilter(e.target.value)}
             title='Operativer Schnellfilter'
@@ -277,7 +307,10 @@ export default function AdminCasesTable(props: { cases: any[] }) {
           </select>
         </div>
 
-        <div className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           Updated
         </div>
         <div className='text-muted-foreground text-right text-xs font-semibold tracking-[0.14em] uppercase'>
@@ -287,25 +320,40 @@ export default function AdminCasesTable(props: { cases: any[] }) {
 
       {/* Errors */}
       {error ? (
-        <div className='border-border/60 border-b bg-red-50/70 px-4 py-3 text-sm text-red-800 md:px-6'>
+        <div
+          className='border-b px-4 py-3 text-sm md:px-6'
+          style={{
+            borderColor: 'var(--lumen-hairline)',
+            color: 'var(--color-destructive)',
+            backgroundColor: 'rgba(255,138,138,0.08)'
+          }}
+        >
           {error}
         </div>
       ) : null}
 
-      {/* Users status */}
       {usersLoading ? (
-        <div className='text-muted-foreground border-border/60 bg-background/78 border-b px-4 py-3 text-sm md:px-6'>
+        <div
+          className='text-muted-foreground border-b px-4 py-3 text-sm md:px-6'
+          style={{ borderColor: 'var(--lumen-hairline)' }}
+        >
           Lade User-Liste…
         </div>
       ) : usersError ? (
-        <div className='border-border/60 border-b bg-red-50/70 px-4 py-3 text-sm text-red-800 md:px-6'>
+        <div
+          className='border-b px-4 py-3 text-sm md:px-6'
+          style={{
+            borderColor: 'var(--lumen-hairline)',
+            color: 'var(--color-destructive)',
+            backgroundColor: 'rgba(255,138,138,0.08)'
+          }}
+        >
           {usersError}
         </div>
       ) : null}
 
-      {/* Body */}
       {filtered.length === 0 ? (
-        <div className='text-muted-foreground bg-background/78 px-4 py-6 text-sm md:px-6'>
+        <div className='text-muted-foreground px-4 py-6 text-sm md:px-6'>
           Keine Cases passend zum Filter.
         </div>
       ) : (
@@ -320,12 +368,21 @@ export default function AdminCasesTable(props: { cases: any[] }) {
           return (
             <div
               key={c.id}
-              className='border-border/60 bg-background/84 hover:bg-primary/[0.02] mx-4 mb-3 grid grid-cols-8 gap-3 rounded-[24px] border px-4 py-4 text-sm shadow-[var(--shadow-soft)] transition-colors last:mb-4 md:mx-6'
+              className='mx-4 mb-2 grid grid-cols-8 gap-3 rounded-md px-4 py-4 text-sm transition-colors last:mb-4 md:mx-6'
+              style={{
+                backgroundColor: 'var(--lumen-panel-raised)',
+                boxShadow: 'var(--lumen-rim)'
+              }}
             >
               {/* Case */}
               <div className='text-foreground font-mono text-sm font-semibold'>
                 <Link
-                  className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex rounded-full border px-3 py-1.5 underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
+                  className='text-muted-foreground hover:text-foreground inline-flex rounded-md px-3 py-1.5 transition-colors duration-[420ms]'
+                  style={{
+                    backgroundColor: 'var(--lumen-panel)',
+                    boxShadow: 'var(--lumen-rim)',
+                    fontFamily: 'var(--font-mono)'
+                  }}
                   href={`/dashboard/cases/${c.id}`}
                 >
                   {c.caseNumber ?? '—'}
@@ -342,12 +399,26 @@ export default function AdminCasesTable(props: { cases: any[] }) {
 
               {/* Status Gutachter/Anwalt */}
               <div className='flex items-start'>
-                <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-[var(--shadow-soft)]'>
+                <span
+                  className='text-muted-foreground inline-flex rounded-full px-3 py-1 text-xs'
+                  style={{
+                    backgroundColor: 'var(--lumen-panel)',
+                    boxShadow: 'var(--lumen-rim)',
+                    fontFamily: 'var(--font-mono)'
+                  }}
+                >
                   {labelGutachter(String(c.gutachterStatus))}
                 </span>
               </div>
               <div className='flex items-start'>
-                <span className='border-border/60 bg-background/90 text-foreground inline-flex rounded-full border px-3 py-1.5 text-sm shadow-[var(--shadow-soft)]'>
+                <span
+                  className='text-muted-foreground inline-flex rounded-full px-3 py-1 text-xs'
+                  style={{
+                    backgroundColor: 'var(--lumen-panel)',
+                    boxShadow: 'var(--lumen-rim)',
+                    fontFamily: 'var(--font-mono)'
+                  }}
+                >
                   {labelAnwalt(String(c.anwaltStatus))}
                 </span>
               </div>
