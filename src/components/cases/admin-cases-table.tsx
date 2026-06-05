@@ -233,294 +233,332 @@ export default function AdminCasesTable(props: { cases: any[] }) {
         boxShadow: 'var(--lumen-rim), var(--lumen-shadow-card)'
       }}
     >
-      {/* Header */}
+      {/* ── Sticky filter header ── */}
       <div
-        className='grid grid-cols-8 items-center gap-3 border-b px-4 py-4 text-sm font-medium md:px-6'
+        className='border-b px-6 py-5'
         style={{
           backgroundColor: 'var(--lumen-panel-raised)',
           borderColor: 'var(--lumen-hairline)'
         }}
       >
-        <div
-          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Case
-        </div>
-        <div
-          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Kunde
-        </div>
-        <div
-          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Gutachter
-        </div>
-        <div
-          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Anwalt
-        </div>
+        <div className='flex flex-wrap items-center justify-between gap-4'>
+          <div>
+            <div
+              className='text-muted-foreground mb-1 text-[10px] font-medium tracking-[0.08em] uppercase'
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Case-Übersicht
+            </div>
+            <div className='text-foreground text-sm font-semibold'>
+              {filtered.length} {filtered.length === 1 ? 'Fall' : 'Fälle'}{' '}
+              angezeigt
+            </div>
+          </div>
 
-        <div className='col-span-2 space-y-2'>
-          <div className='flex items-center justify-between gap-2'>
-            <span className='text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase'>
-              Assignments
-            </span>
-            <label className='text-muted-foreground flex items-center gap-2 text-xs font-normal'>
+          <div className='flex flex-wrap items-center gap-3'>
+            <AssignmentHeaderFilters
+              valueGutachter={gutachterFilter}
+              valueAnwalt={anwaltFilter}
+              onChangeGutachter={setGutachterFilter}
+              onChangeAnwalt={setAnwaltFilter}
+            />
+            <select
+              className='rounded-md border-0 px-3 py-2 text-xs transition-[box-shadow] duration-[420ms] outline-none'
+              style={{
+                backgroundColor: 'var(--lumen-panel)',
+                boxShadow: 'var(--lumen-rim)',
+                color: 'var(--lumen-foreground)'
+              }}
+              value={opsFilter}
+              onChange={(e) => setOpsFilter(e.target.value)}
+            >
+              <option value='ALL'>Ops: Alle</option>
+              <option value='NO_GUTACHTER'>Ops: ohne Gutachter</option>
+              <option value='NO_ANWALT'>Ops: ohne Anwalt</option>
+              <option value='PENDING'>Ops: mit PENDING</option>
+              <option value='PROBLEM'>Ops: EXPIRED/RELEASED</option>
+            </select>
+            <label
+              className='text-muted-foreground flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-xs select-none'
+              style={{
+                backgroundColor: 'var(--lumen-panel)',
+                boxShadow: 'var(--lumen-rim)'
+              }}
+            >
               <input
                 type='checkbox'
-                className='h-4 w-4'
+                className='h-3.5 w-3.5 accent-[var(--lumen-glow)]'
                 checked={forceReassign}
                 onChange={(e) => setForceReassign(e.target.checked)}
               />
-              Force
+              <span style={{ fontFamily: 'var(--font-display)' }}>
+                Force-Zuweisung
+              </span>
             </label>
           </div>
-
-          <AssignmentHeaderFilters
-            valueGutachter={gutachterFilter}
-            valueAnwalt={anwaltFilter}
-            onChangeGutachter={setGutachterFilter}
-            onChangeAnwalt={setAnwaltFilter}
-          />
-          <select
-            className='w-full rounded-md border-0 px-3 py-2 text-xs transition-[box-shadow] duration-[420ms] outline-none'
-            style={{
-              backgroundColor: 'var(--lumen-panel)',
-              boxShadow: 'var(--lumen-rim)',
-              color: 'var(--lumen-foreground)'
-            }}
-            value={opsFilter}
-            onChange={(e) => setOpsFilter(e.target.value)}
-            title='Operativer Schnellfilter'
-          >
-            <option value='ALL'>Ops: Alle</option>
-            <option value='NO_GUTACHTER'>Ops: ohne Gutachter</option>
-            <option value='NO_ANWALT'>Ops: ohne Anwalt</option>
-            <option value='PENDING'>Ops: mit PENDING</option>
-            <option value='PROBLEM'>Ops: EXPIRED/RELEASED</option>
-          </select>
-        </div>
-
-        <div
-          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Updated
-        </div>
-        <div className='text-muted-foreground text-right text-xs font-semibold tracking-[0.14em] uppercase'>
-          Kunden-Link
         </div>
       </div>
 
-      {/* Errors */}
-      {error ? (
+      {/* ── Column labels ── */}
+      <div
+        className='grid grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] gap-0 border-b px-6 py-3'
+        style={{ borderColor: 'var(--lumen-hairline)' }}
+      >
+        {[
+          'Case',
+          'Kunde',
+          'Gutachter-Status',
+          'Anwalt-Status',
+          'Gutachter zuweisen',
+          'Anwalt zuweisen',
+          'Updated',
+          ''
+        ].map((label) => (
+          <div
+            key={label}
+            className='text-muted-foreground pr-4 text-[10px] font-medium tracking-[0.08em] uppercase'
+            style={{ fontFamily: 'var(--font-display)' }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {/* ── Status messages ── */}
+      {error && (
         <div
-          className='border-b px-4 py-3 text-sm md:px-6'
+          className='border-b px-6 py-3 text-sm'
           style={{
             borderColor: 'var(--lumen-hairline)',
             color: 'var(--color-destructive)',
-            backgroundColor: 'rgba(255,138,138,0.08)'
+            backgroundColor: 'rgba(255,138,138,0.06)'
           }}
         >
           {error}
         </div>
-      ) : null}
-
-      {usersLoading ? (
+      )}
+      {usersLoading && (
         <div
-          className='text-muted-foreground border-b px-4 py-3 text-sm md:px-6'
+          className='text-muted-foreground border-b px-6 py-3 text-sm'
           style={{ borderColor: 'var(--lumen-hairline)' }}
         >
           Lade User-Liste…
         </div>
-      ) : usersError ? (
+      )}
+      {usersError && (
         <div
-          className='border-b px-4 py-3 text-sm md:px-6'
+          className='border-b px-6 py-3 text-sm'
           style={{
             borderColor: 'var(--lumen-hairline)',
             color: 'var(--color-destructive)',
-            backgroundColor: 'rgba(255,138,138,0.08)'
+            backgroundColor: 'rgba(255,138,138,0.06)'
           }}
         >
           {usersError}
         </div>
-      ) : null}
+      )}
 
+      {/* ── Empty state ── */}
       {filtered.length === 0 ? (
-        <div className='text-muted-foreground px-4 py-6 text-sm md:px-6'>
+        <div className='text-muted-foreground px-6 py-12 text-center text-sm'>
           Keine Cases passend zum Filter.
         </div>
       ) : (
-        filtered.map((c: any) => {
-          const gAssign =
-            c.assignments?.find((x: any) => x.role === 'GUTACHTER') ?? null;
-          const aAssign =
-            c.assignments?.find((x: any) => x.role === 'ANWALT') ?? null;
+        <div className='space-y-3 p-4 md:p-6'>
+          {filtered.map((c: any) => {
+            const gAssign =
+              c.assignments?.find((x: any) => x.role === 'GUTACHTER') ?? null;
+            const aAssign =
+              c.assignments?.find((x: any) => x.role === 'ANWALT') ?? null;
+            const isBusy = busyCaseId === c.id;
 
-          const isBusy = busyCaseId === c.id;
+            return (
+              <div
+                key={c.id}
+                className='overflow-hidden rounded-md'
+                style={{
+                  backgroundColor: 'var(--lumen-panel-raised)',
+                  boxShadow: 'var(--lumen-rim)'
+                }}
+              >
+                {/* Row: main info */}
+                <div className='grid grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] items-start gap-0 px-5 py-5'>
+                  {/* Case number */}
+                  <div className='pr-4'>
+                    <Link
+                      href={`/dashboard/cases/${c.id}`}
+                      className='text-foreground inline-flex items-center rounded-md px-2.5 py-1 text-sm font-semibold transition-colors duration-[420ms] hover:text-[var(--lumen-glow)]'
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                    >
+                      {c.caseNumber ?? '—'}
+                    </Link>
+                  </div>
 
-          return (
-            <div
-              key={c.id}
-              className='mx-4 mb-2 grid grid-cols-8 gap-3 rounded-md px-4 py-4 text-sm transition-colors last:mb-4 md:mx-6'
-              style={{
-                backgroundColor: 'var(--lumen-panel-raised)',
-                boxShadow: 'var(--lumen-rim)'
-              }}
-            >
-              {/* Case */}
-              <div className='text-foreground font-mono text-sm font-semibold'>
-                <Link
-                  className='text-muted-foreground hover:text-foreground inline-flex rounded-md px-3 py-1.5 transition-colors duration-[420ms]'
-                  style={{
-                    backgroundColor: 'var(--lumen-panel)',
-                    boxShadow: 'var(--lumen-rim)',
-                    fontFamily: 'var(--font-mono)'
-                  }}
-                  href={`/dashboard/cases/${c.id}`}
-                >
-                  {c.caseNumber ?? '—'}
-                </Link>
-              </div>
+                  {/* Kunde */}
+                  <div className='flex items-center pt-1 pr-4'>
+                    <span className='text-foreground truncate text-sm font-medium'>
+                      {[c.customer?.firstName, c.customer?.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || '—'}
+                    </span>
+                  </div>
 
-              {/* Kunde */}
-              <div className='text-foreground min-w-0 truncate text-sm font-semibold'>
-                {[c.customer?.firstName, c.customer?.lastName]
-                  .filter(Boolean)
-                  .join(' ')
-                  .trim() || '—'}
-              </div>
+                  {/* Gutachter Status */}
+                  <div className='pt-1 pr-4'>
+                    <span className='text-foreground/80 text-xs leading-5'>
+                      {labelGutachter(String(c.gutachterStatus))}
+                    </span>
+                  </div>
 
-              {/* Status Gutachter/Anwalt */}
-              <div className='flex items-start'>
-                <span
-                  className='text-muted-foreground inline-flex rounded-full px-3 py-1 text-xs'
-                  style={{
-                    backgroundColor: 'var(--lumen-panel)',
-                    boxShadow: 'var(--lumen-rim)',
-                    fontFamily: 'var(--font-mono)'
-                  }}
-                >
-                  {labelGutachter(String(c.gutachterStatus))}
-                </span>
-              </div>
-              <div className='flex items-start'>
-                <span
-                  className='text-muted-foreground inline-flex rounded-full px-3 py-1 text-xs'
-                  style={{
-                    backgroundColor: 'var(--lumen-panel)',
-                    boxShadow: 'var(--lumen-rim)',
-                    fontFamily: 'var(--font-mono)'
-                  }}
-                >
-                  {labelAnwalt(String(c.anwaltStatus))}
-                </span>
-              </div>
+                  {/* Anwalt Status */}
+                  <div className='pt-1 pr-4'>
+                    <span className='text-foreground/80 text-xs leading-5'>
+                      {labelAnwalt(String(c.anwaltStatus))}
+                    </span>
+                  </div>
 
-              {/* Assignment G */}
-              <div className='border-border/60 bg-background/78 space-y-2 rounded-[24px] border p-3 shadow-[var(--shadow-soft)]'>
-                <div className='text-muted-foreground text-xs leading-5'>
-                  {gAssign
-                    ? `${gAssign.status} · ${fmtDt(gAssign.assignedAt)}`
-                    : '—'}
+                  {/* Assignment Gutachter */}
+                  <div className='space-y-2 pr-4'>
+                    {gAssign && (
+                      <div
+                        className='mb-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px]'
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          backgroundColor: 'var(--lumen-panel)',
+                          boxShadow: 'var(--lumen-rim)',
+                          color: 'var(--lumen-muted)'
+                        }}
+                      >
+                        {gAssign.status} · {fmtDt(gAssign.assignedAt)}
+                      </div>
+                    )}
+                    <select
+                      className='w-full rounded-md border-0 px-2.5 py-1.5 text-xs outline-none'
+                      style={{
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)',
+                        color: 'var(--lumen-foreground)'
+                      }}
+                      value={pickGutachter[c.id] ?? ''}
+                      onChange={(e) =>
+                        setPickGutachter((prev) => ({
+                          ...prev,
+                          [c.id]: e.target.value
+                        }))
+                      }
+                      disabled={usersLoading || !!usersError || isBusy}
+                    >
+                      <option value=''>Gutachter wählen…</option>
+                      {gutachterUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {(u.name || u.email || u.id).slice(0, 50)}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className='lumen-horizon text-foreground/75 hover:text-foreground w-full rounded-md px-3 py-1.5 text-xs font-medium transition-[color,box-shadow,transform] duration-[420ms] disabled:cursor-not-allowed disabled:opacity-50'
+                      style={{
+                        background: 'var(--lumen-surface)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                      onClick={() => assign(c.id, 'GUTACHTER')}
+                      disabled={usersLoading || !!usersError || isBusy}
+                      title={
+                        forceReassign ? 'Force = ersetzt aktive Zuweisung' : ''
+                      }
+                    >
+                      {isBusy ? '…' : 'Gutachter zuweisen'}
+                    </button>
+                  </div>
+
+                  {/* Assignment Anwalt */}
+                  <div className='space-y-2 pr-4'>
+                    {aAssign && (
+                      <div
+                        className='mb-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px]'
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          backgroundColor: 'var(--lumen-panel)',
+                          boxShadow: 'var(--lumen-rim)',
+                          color: 'var(--lumen-muted)'
+                        }}
+                      >
+                        {aAssign.status} · {fmtDt(aAssign.assignedAt)}
+                      </div>
+                    )}
+                    <select
+                      className='w-full rounded-md border-0 px-2.5 py-1.5 text-xs outline-none'
+                      style={{
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)',
+                        color: 'var(--lumen-foreground)'
+                      }}
+                      value={pickAnwalt[c.id] ?? ''}
+                      onChange={(e) =>
+                        setPickAnwalt((prev) => ({
+                          ...prev,
+                          [c.id]: e.target.value
+                        }))
+                      }
+                      disabled={usersLoading || !!usersError || isBusy}
+                    >
+                      <option value=''>Anwalt wählen…</option>
+                      {anwaltUsers.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {(u.name || u.email || u.id).slice(0, 50)}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className='lumen-horizon text-foreground/75 hover:text-foreground w-full rounded-md px-3 py-1.5 text-xs font-medium transition-[color,box-shadow,transform] duration-[420ms] disabled:cursor-not-allowed disabled:opacity-50'
+                      style={{
+                        background: 'var(--lumen-surface)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                      onClick={() => assign(c.id, 'ANWALT')}
+                      disabled={usersLoading || !!usersError || isBusy}
+                      title={
+                        forceReassign ? 'Force = ersetzt aktive Zuweisung' : ''
+                      }
+                    >
+                      {isBusy ? '…' : 'Anwalt zuweisen'}
+                    </button>
+                  </div>
+
+                  {/* Updated */}
+                  <div className='px-4 pt-1 text-right'>
+                    <span
+                      className='text-muted-foreground text-[11px] whitespace-nowrap'
+                      style={{ fontFamily: 'var(--font-mono)' }}
+                    >
+                      {fmtDate(new Date(c.updatedAt))}
+                    </span>
+                  </div>
+
+                  {/* Customer link */}
+                  <div className='pt-0.5 pl-2'>
+                    <Link
+                      className='lumen-horizon text-foreground/75 hover:text-foreground inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium transition-[color,box-shadow,transform] duration-[420ms]'
+                      style={{
+                        background: 'var(--lumen-surface)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                      href={`/case/${c.token}`}
+                      target='_blank'
+                    >
+                      öffnen ↗
+                    </Link>
+                  </div>
                 </div>
-
-                <select
-                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={pickGutachter[c.id] ?? ''}
-                  onChange={(e) =>
-                    setPickGutachter((prev) => ({
-                      ...prev,
-                      [c.id]: e.target.value
-                    }))
-                  }
-                  disabled={usersLoading || !!usersError || isBusy}
-                >
-                  <option value=''>Gutachter wählen…</option>
-                  {gutachterUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {(u.name || u.email || u.id).slice(0, 60)}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  className='hover:bg-muted/50 border-border/60 bg-background/90 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
-                  onClick={() => assign(c.id, 'GUTACHTER')}
-                  disabled={usersLoading || !!usersError || isBusy}
-                  title={
-                    forceReassign ? 'Force = ersetzt aktive Zuweisung' : ''
-                  }
-                >
-                  {isBusy ? '…' : 'Zuweisen G'}
-                </button>
               </div>
-
-              {/* Assignment A */}
-              <div className='border-border/60 bg-background/78 space-y-2 rounded-[24px] border p-3 shadow-[var(--shadow-soft)]'>
-                <div className='text-muted-foreground text-xs leading-5'>
-                  {aAssign
-                    ? `${aAssign.status} · ${fmtDt(aAssign.assignedAt)}`
-                    : '—'}
-                </div>
-
-                <select
-                  className='bg-background/85 border-border/60 focus-visible:ring-primary/20 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors focus-visible:ring-2 focus-visible:outline-none'
-                  value={pickAnwalt[c.id] ?? ''}
-                  onChange={(e) =>
-                    setPickAnwalt((prev) => ({
-                      ...prev,
-                      [c.id]: e.target.value
-                    }))
-                  }
-                  disabled={usersLoading || !!usersError || isBusy}
-                >
-                  <option value=''>Anwalt wählen…</option>
-                  {anwaltUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {(u.name || u.email || u.id).slice(0, 60)}
-                    </option>
-                  ))}
-                </select>
-
-                <button
-                  className='hover:bg-muted/50 border-border/60 bg-background/90 w-full rounded-2xl border px-3 py-2 text-xs shadow-[var(--shadow-soft)] transition-colors disabled:opacity-60'
-                  onClick={() => assign(c.id, 'ANWALT')}
-                  disabled={usersLoading || !!usersError || isBusy}
-                  title={
-                    forceReassign ? 'Force = ersetzt aktive Zuweisung' : ''
-                  }
-                >
-                  {isBusy ? '…' : 'Zuweisen A'}
-                </button>
-              </div>
-
-              {/* Updated */}
-              <div className='text-muted-foreground flex items-start text-sm'>
-                <span className='border-border/60 bg-background/90 inline-flex rounded-full border px-3 py-1.5 shadow-[var(--shadow-soft)]'>
-                  {fmtDate(new Date(c.updatedAt))}
-                </span>
-              </div>
-
-              {/* Customer link */}
-              <div className='text-right'>
-                <Link
-                  className='border-border/60 bg-background/90 decoration-muted-foreground/40 hover:bg-muted/50 hover:decoration-foreground/70 inline-flex items-center rounded-full border px-3 py-1.5 text-sm underline underline-offset-4 shadow-[var(--shadow-soft)] transition-colors hover:opacity-90'
-                  href={`/case/${c.token}`}
-                  target='_blank'
-                >
-                  öffnen
-                </Link>
-              </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
     </div>
   );
