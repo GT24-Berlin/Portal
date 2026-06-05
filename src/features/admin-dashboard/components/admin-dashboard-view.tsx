@@ -14,7 +14,7 @@ export default function AdminDashboardView(props: {
     <div className='space-y-8'>
       {/* ── Horizon Panel — signature hero element ── */}
       <div className='lumen-horizon-panel flex flex-wrap items-center justify-between gap-4 p-4 md:p-8'>
-        <div className='space-y-2'>
+        <div className='min-w-0 flex-1 space-y-2'>
           <p
             className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
             style={{ fontFamily: 'var(--font-display)' }}
@@ -34,7 +34,7 @@ export default function AdminDashboardView(props: {
         </div>
         {/* Live status dot */}
         <div
-          className='text-muted-foreground flex items-center gap-2 text-xs'
+          className='text-muted-foreground hidden shrink-0 items-center gap-2 text-xs sm:flex'
           style={{ fontFamily: 'var(--font-mono)' }}
         >
           <div
