@@ -12,7 +12,7 @@ import './theme.css';
 
 const META_THEME_COLORS = {
   light: '#f6f2ea',
-  dark: '#101114'
+  dark: '#1b1c22' /* Lumen void */
 };
 
 export const metadata: Metadata = {
@@ -61,7 +61,7 @@ export default async function RootLayout({
         <NuqsAdapter>
           <ThemeProvider
             attribute='class'
-            defaultTheme='system'
+            defaultTheme='dark'
             enableSystem
             disableTransitionOnChange
             enableColorScheme

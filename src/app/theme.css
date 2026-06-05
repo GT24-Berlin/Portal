@@ -36,13 +36,14 @@ body {
   --sidebar-primary-foreground: oklch(0.986 0.003 92);
 
   @variant dark {
-    --primary: oklch(0.98 0.004 92);
-    --primary-foreground: oklch(0.15 0.01 255);
-    --accent: oklch(0.26 0.01 255);
-    --accent-foreground: oklch(0.97 0.004 92);
-    --ring: oklch(0.72 0.04 255);
-    --sidebar-primary: oklch(0.98 0.004 92);
-    --sidebar-primary-foreground: oklch(0.15 0.01 255);
+    /* Lumen Edge dark palette — consistent with globals.css .dark block */
+    --primary: #cfd8e6; /* lumen glow */
+    --primary-foreground: #0b151e; /* graphite */
+    --accent: #262932; /* panel-raised */
+    --accent-foreground: #ffffff;
+    --ring: #cfd8e6; /* lumen focus ring */
+    --sidebar-primary: #cfd8e6;
+    --sidebar-primary-foreground: #0b151e;
   }
 }
 

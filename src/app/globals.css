@@ -1,5 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import 'tailwindcss';
-
 @import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
@@ -7,23 +7,24 @@
 @import './theme.css';
 
 :root {
-  --radius: 1rem;
+  --radius: 0.4375rem; /* 7px — Lumen primary control radius */
 
-  /* Local system font fallbacks for production builds */
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'SFMono-Regular', 'SF Mono', ui-monospace, 'Cascadia Mono',
-    'Segoe UI Mono', Menlo, Monaco, Consolas, monospace;
-  --font-instrument: var(--font-sans);
+  /* Typography — Lumen three-font system */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', 'SF Mono', ui-monospace,
+    monospace;
+  --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-instrument: var(--font-display);
   --font-inter: var(--font-sans);
   --font-mullish: var(--font-sans);
   --font-noto-mono: var(--font-mono);
 
   /* Core brand typography aliases */
-  --font-heading: var(--font-sans);
-  --font-display: var(--font-instrument);
+  --font-heading: var(--font-display);
   --font-body-alt: var(--font-inter);
 
-  /* Light mode: warm ivory + graphite + restrained sand accent */
+  /* Light mode: warm ivory + graphite + restrained sand accent (unchanged) */
   --background: oklch(0.987 0.003 92);
   --foreground: oklch(0.18 0.008 255);
   --card: oklch(1 0 0 / 0.92);
@@ -56,7 +57,7 @@
   --sidebar-border: oklch(0.9 0.006 92);
   --sidebar-ring: oklch(0.62 0.05 255);
 
-  /* Semantic surface layers for future use */
+  /* Semantic surface layers */
   --surface-muted: oklch(0.965 0.003 92);
   --surface-elevated: oklch(1 0 0 / 0.88);
   --surface-overlay: oklch(1 0 0 / 0.95);
@@ -70,55 +71,138 @@
   --shadow-glass: 0 18px 48px rgb(16 17 20 / 10%);
 }
 
+/* =========================================================
+   Dark Mode — Lumen Edge Palette
+   Sub-chromatic: hierarchy via luminance, never hue.
+   ========================================================= */
 .dark {
-  --background: oklch(0.12 0.008 255);
-  --foreground: oklch(0.97 0.004 92);
-  --card: oklch(0.17 0.009 255);
-  --card-foreground: oklch(0.97 0.004 92);
-  --popover: oklch(0.18 0.009 255 / 0.96);
-  --popover-foreground: oklch(0.97 0.004 92);
-  --primary: oklch(0.98 0.004 92);
-  --primary-foreground: oklch(0.15 0.01 255);
-  --secondary: oklch(0.22 0.01 255);
-  --secondary-foreground: oklch(0.97 0.004 92);
-  --muted: oklch(0.21 0.009 255);
-  --muted-foreground: oklch(0.72 0.01 92);
-  --accent: oklch(0.26 0.01 255);
-  --accent-foreground: oklch(0.97 0.004 92);
-  --destructive: oklch(0.68 0.18 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.72 0.04 255);
-  --chart-1: oklch(0.67 0.08 255);
-  --chart-2: oklch(0.72 0.06 150);
-  --chart-3: oklch(0.8 0.08 84);
-  --chart-4: oklch(0.73 0.07 300);
-  --chart-5: oklch(0.68 0.08 35);
-  --sidebar: oklch(0.15 0.01 255);
-  --sidebar-foreground: oklch(0.97 0.004 92);
-  --sidebar-primary: oklch(0.98 0.004 92);
-  --sidebar-primary-foreground: oklch(0.16 0.01 255);
-  --sidebar-accent: oklch(0.23 0.01 255);
-  --sidebar-accent-foreground: oklch(0.97 0.004 92);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.04 255);
+  --background: #1b1c22; /* void — canvas and page base */
+  --foreground: #ffffff;
+  --card: #20222a; /* panel — card and sheet surface */
+  --card-foreground: #ffffff;
+  --popover: #20222a;
+  --popover-foreground: #ffffff;
+  --primary: #cfd8e6; /* lumen — horizon highlight and focus */
+  --primary-foreground: #0b151e; /* graphite — text on lumen */
+  --secondary: #47515c; /* slate-rise — gradient peak */
+  --secondary-foreground: #ffffff;
+  --muted: #20222a; /* panel */
+  --muted-foreground: #a8aebb; /* muted text */
+  --accent: #262932; /* panel-raised — focused surface */
+  --accent-foreground: #ffffff;
+  --destructive: #ff8a8a;
+  --border: rgba(255, 255, 255, 0.1); /* hairline rim */
+  --input: #20222a;
+  --ring: #cfd8e6; /* lumen focus ring */
 
-  --surface-muted: oklch(0.2 0.01 255);
-  --surface-elevated: oklch(0.22 0.01 255 / 0.9);
-  --surface-overlay: oklch(0.24 0.01 255 / 0.96);
-  --surface-glass: oklch(0.18 0.01 255 / 0.76);
-  --surface-glass-border: oklch(1 0 0 / 12%);
+  /* Charts — luminance-only scale */
+  --chart-1: #cfd8e6;
+  --chart-2: #a8aebb;
+  --chart-3: #47515c;
+  --chart-4: #2f3441;
+  --chart-5: #262932;
 
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 22%), 0 10px 26px rgb(0 0 0 / 18%);
-  --shadow-elevated: 0 2px 8px rgb(0 0 0 / 24%), 0 20px 44px rgb(0 0 0 / 20%);
-  --shadow-glass: 0 18px 48px rgb(0 0 0 / 24%);
+  /* Sidebar */
+  --sidebar: #20222a;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #cfd8e6;
+  --sidebar-primary-foreground: #0b151e;
+  --sidebar-accent: #262932;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #cfd8e6;
+
+  /* Surface layers */
+  --surface-muted: #262932;
+  --surface-elevated: #262932;
+  --surface-overlay: rgba(32, 34, 42, 0.96);
+  --surface-glass: rgba(32, 34, 42, 0.76);
+  --surface-glass-border: rgba(255, 255, 255, 0.12);
+
+  /* Shadows — soft, dark, downward only */
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 26px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 2px 8px rgba(0, 0, 0, 0.5),
+    0 20px 44px rgba(0, 0, 0, 0.4);
+  --shadow-glass: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================================
+   Lumen Signal Layer
+   Four reusable signals: surface · rim · horizon · focus
+   Available globally — components activate what they need.
+   ========================================================= */
+:root {
+  /* Palette reference tokens */
+  --lumen-void: #1b1c22;
+  --lumen-graphite: #0b151e;
+  --lumen-panel: #20222a;
+  --lumen-panel-raised: #262932;
+  --lumen-slate-rise: #47515c;
+  --lumen-hairline: #2f3441;
+  --lumen-foreground: #ffffff;
+  --lumen-muted: #a8aebb;
+  --lumen-glow: #cfd8e6;
+
+  /* Alpha tokens */
+  --lumen-alpha-rim: rgba(255, 255, 255, 0.1);
+  --lumen-alpha-rim-strong: rgba(255, 255, 255, 0.16);
+  --lumen-alpha-66: rgba(255, 255, 255, 0.66);
+  --lumen-alpha-0: rgba(255, 255, 255, 0);
+
+  /* Signal 1 — Radial surface gradient (bottom-lit) */
+  --lumen-surface: radial-gradient(ellipse at bottom, #47515c 0%, #0b151e 45%);
+  --lumen-surface-soft: radial-gradient(
+    ellipse at bottom,
+    rgba(71, 81, 92, 0.55) 0%,
+    rgba(11, 21, 30, 0.95) 55%
+  );
+  --lumen-surface-panel: radial-gradient(
+    ellipse at bottom,
+    rgba(47, 52, 65, 0.6) 0%,
+    rgba(20, 22, 30, 1) 65%
+  );
+
+  /* Signal 2 — Horizon line (70%-wide bottom-edge highlight) */
+  --lumen-horizon: linear-gradient(
+    90deg,
+    transparent 0%,
+    #ffffff 50%,
+    transparent 100%
+  );
+  --lumen-horizon-glow: linear-gradient(
+    90deg,
+    transparent 0%,
+    #cfd8e6 50%,
+    transparent 100%
+  );
+
+  /* Signal 3 — Hairline rim (1px inset highlight) */
+  --lumen-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --lumen-rim-strong: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+
+  /* Signal 4 — Focus glow (Lumen cool-white ring) */
+  --lumen-focus: 0 0 0 1px #cfd8e6, 0 0 16px rgba(207, 216, 230, 0.25);
+
+  /* Elevation */
+  --lumen-shadow-card: 0 1px 1px rgba(0, 0, 0, 0.4),
+    0 12px 32px -12px rgba(0, 0, 0, 0.6);
+  --lumen-shadow-raised: 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 24px 48px -16px rgba(0, 0, 0, 0.7);
+
+  /* Motion — single signature ease curve */
+  --lumen-ease: cubic-bezier(0.15, 0.83, 0.66, 1);
+  --lumen-slow: 1s cubic-bezier(0.15, 0.83, 0.66, 1);
+  --lumen-medium: 420ms cubic-bezier(0.15, 0.83, 0.66, 1);
+  --lumen-fast: 200ms cubic-bezier(0.15, 0.83, 0.66, 1);
 }
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Lumen radius scale (7 / 14 / 20px vocabulary) */
+  --radius-sm: 4px;
+  --radius-md: 7px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  /* Color mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -162,7 +246,9 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
     font-feature-settings: 'liga', 'kern', 'calt';
+    /* Light mode: warm ivory gradient overlay */
     background-image: radial-gradient(
         circle at top,
         rgb(255 255 255 / 0.66),
@@ -176,17 +262,15 @@
     background-attachment: fixed;
   }
 
+  /* Lumen dark: flat void canvas — radial gradients live on components */
   .dark body {
-    background-image: radial-gradient(
-        circle at top,
-        rgb(255 255 255 / 0.05),
-        transparent 42%
-      ),
-      radial-gradient(
-        circle at 84% 12%,
-        rgb(214 197 171 / 0.06),
-        transparent 28%
-      );
+    background-image: none;
+  }
+
+  /* Lumen selection — cool white on graphite */
+  .dark ::selection {
+    background: var(--lumen-glow);
+    color: var(--lumen-graphite);
   }
 }
 
@@ -198,7 +282,18 @@
 
   .font-display {
     font-family: var(--font-display), var(--font-sans), sans-serif;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Reduced motion — collapses all Lumen transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 
@@ -210,29 +305,24 @@
 }
 
 ::view-transition-old(root) {
-  /* Ensure the outgoing view (old theme) is beneath */
   z-index: 0;
 }
 
 ::view-transition-new(root) {
-  /* Ensure the incoming view (new theme) is always on top */
   z-index: 1;
 }
 
 @keyframes reveal {
   from {
-    /* Use CSS variables for the origin, defaulting to center if not set */
     clip-path: circle(0% at var(--x, 50%) var(--y, 50%));
     opacity: 0.7;
   }
   to {
-    /* Use CSS variables for the origin, defaulting to center if not set */
     clip-path: circle(150% at var(--x, 50%) var(--y, 50%));
     opacity: 1;
   }
 }
 
 ::view-transition-new(root) {
-  /* Apply the reveal animation */
   animation: reveal 0.4s ease-in-out forwards;
 }
