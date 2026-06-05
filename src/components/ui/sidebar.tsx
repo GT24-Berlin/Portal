@@ -187,9 +187,9 @@ function Sidebar({
           data-slot='sidebar'
           data-mobile='true'
           className='text-foreground w-(--sidebar-width) border-r border-[var(--lumen-hairline)] p-0 [&>button]:hidden'
-          style={{ backgroundColor: 'var(--lumen-panel)' }}
           style={
             {
+              backgroundColor: 'var(--lumen-panel)',
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE
             } as React.CSSProperties
           }
