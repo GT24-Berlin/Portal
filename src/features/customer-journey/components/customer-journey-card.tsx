@@ -165,10 +165,7 @@ export default function CustomerJourneyCard(props: {
                 >
                   Schritt {i + 1}
                 </div>
-                <div
-                  className='text-foreground mt-1 text-sm font-semibold'
-                  style={step.isCurrent ? {} : {}}
-                >
+                <div className='text-foreground mt-1 text-sm font-semibold'>
                   {step.label}
                 </div>
                 {step.active && (
