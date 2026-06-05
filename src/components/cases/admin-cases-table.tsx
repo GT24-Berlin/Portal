@@ -299,9 +299,9 @@ export default function AdminCasesTable(props: { cases: any[] }) {
         </div>
       </div>
 
-      {/* ── Column labels ── */}
+      {/* ── Column labels — desktop only ── */}
       <div
-        className='grid grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] gap-0 border-b px-6 py-3'
+        className='hidden grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] gap-0 border-b px-6 py-3 md:grid'
         style={{ borderColor: 'var(--lumen-hairline)' }}
       >
         {[
@@ -381,8 +381,8 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                   boxShadow: 'var(--lumen-rim)'
                 }}
               >
-                {/* Row: main info */}
-                <div className='grid grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] items-start gap-0 px-5 py-5'>
+                {/* Row: main info — responsive */}
+                <div className='hidden grid-cols-[1fr_1fr_1fr_1fr_1.4fr_1.4fr_auto_auto] items-start gap-0 px-5 py-5 md:grid'>
                   {/* Case number */}
                   <div className='pr-4'>
                     <Link
@@ -553,6 +553,192 @@ export default function AdminCasesTable(props: { cases: any[] }) {
                     >
                       öffnen ↗
                     </Link>
+                  </div>
+                </div>
+
+                {/* ── Mobile card layout ── */}
+                <div className='space-y-4 p-4 md:hidden'>
+                  {/* Header row */}
+                  <div className='flex items-center justify-between gap-3'>
+                    <Link
+                      href={`/dashboard/cases/${c.id}`}
+                      className='text-foreground inline-flex items-center rounded-md px-2.5 py-1 text-sm font-semibold'
+                      style={{
+                        fontFamily: 'var(--font-mono)',
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                    >
+                      {c.caseNumber ?? '—'}
+                    </Link>
+                    <span className='text-foreground truncate text-sm font-medium'>
+                      {[c.customer?.firstName, c.customer?.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim() || '—'}
+                    </span>
+                    <Link
+                      className='lumen-horizon text-foreground/75 inline-flex shrink-0 items-center rounded-md px-3 py-1.5 text-xs font-medium'
+                      style={{
+                        background: 'var(--lumen-surface)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                      href={`/case/${c.token}`}
+                      target='_blank'
+                    >
+                      öffnen ↗
+                    </Link>
+                  </div>
+
+                  {/* Status row */}
+                  <div className='grid grid-cols-2 gap-2'>
+                    <div
+                      className='space-y-1 rounded-md p-3'
+                      style={{
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                    >
+                      <div
+                        className='text-muted-foreground text-[10px] tracking-[0.08em] uppercase'
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        Gutachter
+                      </div>
+                      <div className='text-foreground/80 text-xs'>
+                        {labelGutachter(String(c.gutachterStatus))}
+                      </div>
+                    </div>
+                    <div
+                      className='space-y-1 rounded-md p-3'
+                      style={{
+                        backgroundColor: 'var(--lumen-panel)',
+                        boxShadow: 'var(--lumen-rim)'
+                      }}
+                    >
+                      <div
+                        className='text-muted-foreground text-[10px] tracking-[0.08em] uppercase'
+                        style={{ fontFamily: 'var(--font-display)' }}
+                      >
+                        Anwalt
+                      </div>
+                      <div className='text-foreground/80 text-xs'>
+                        {labelAnwalt(String(c.anwaltStatus))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Assignment rows */}
+                  <div className='grid grid-cols-2 gap-3'>
+                    {/* Gutachter */}
+                    <div className='space-y-2'>
+                      {gAssign && (
+                        <div
+                          className='text-muted-foreground inline-flex rounded-full px-2 py-0.5 text-[10px]'
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            backgroundColor: 'var(--lumen-panel)',
+                            boxShadow: 'var(--lumen-rim)'
+                          }}
+                        >
+                          {gAssign.status} · {fmtDt(gAssign.assignedAt)}
+                        </div>
+                      )}
+                      <select
+                        className='w-full rounded-md border-0 px-2.5 py-2 text-xs outline-none'
+                        style={{
+                          backgroundColor: 'var(--lumen-panel)',
+                          boxShadow: 'var(--lumen-rim)',
+                          color: 'var(--lumen-foreground)'
+                        }}
+                        value={pickGutachter[c.id] ?? ''}
+                        onChange={(e) =>
+                          setPickGutachter((prev) => ({
+                            ...prev,
+                            [c.id]: e.target.value
+                          }))
+                        }
+                        disabled={usersLoading || !!usersError || isBusy}
+                      >
+                        <option value=''>Gutachter…</option>
+                        {gutachterUsers.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {(u.name || u.email || u.id).slice(0, 30)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className='lumen-horizon text-foreground/75 w-full rounded-md px-2 py-1.5 text-xs font-medium disabled:opacity-50'
+                        style={{
+                          background: 'var(--lumen-surface)',
+                          boxShadow: 'var(--lumen-rim)'
+                        }}
+                        onClick={() => assign(c.id, 'GUTACHTER')}
+                        disabled={usersLoading || !!usersError || isBusy}
+                      >
+                        {isBusy ? '…' : 'Zuweisen'}
+                      </button>
+                    </div>
+
+                    {/* Anwalt */}
+                    <div className='space-y-2'>
+                      {aAssign && (
+                        <div
+                          className='text-muted-foreground inline-flex rounded-full px-2 py-0.5 text-[10px]'
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            backgroundColor: 'var(--lumen-panel)',
+                            boxShadow: 'var(--lumen-rim)'
+                          }}
+                        >
+                          {aAssign.status} · {fmtDt(aAssign.assignedAt)}
+                        </div>
+                      )}
+                      <select
+                        className='w-full rounded-md border-0 px-2.5 py-2 text-xs outline-none'
+                        style={{
+                          backgroundColor: 'var(--lumen-panel)',
+                          boxShadow: 'var(--lumen-rim)',
+                          color: 'var(--lumen-foreground)'
+                        }}
+                        value={pickAnwalt[c.id] ?? ''}
+                        onChange={(e) =>
+                          setPickAnwalt((prev) => ({
+                            ...prev,
+                            [c.id]: e.target.value
+                          }))
+                        }
+                        disabled={usersLoading || !!usersError || isBusy}
+                      >
+                        <option value=''>Anwalt…</option>
+                        {anwaltUsers.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {(u.name || u.email || u.id).slice(0, 30)}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        className='lumen-horizon text-foreground/75 w-full rounded-md px-2 py-1.5 text-xs font-medium disabled:opacity-50'
+                        style={{
+                          background: 'var(--lumen-surface)',
+                          boxShadow: 'var(--lumen-rim)'
+                        }}
+                        onClick={() => assign(c.id, 'ANWALT')}
+                        disabled={usersLoading || !!usersError || isBusy}
+                      >
+                        {isBusy ? '…' : 'Zuweisen'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Updated */}
+                  <div className='text-right'>
+                    <span
+                      className='text-muted-foreground text-[11px]'
+                      style={{ fontFamily: 'var(--font-mono)' }}
+                    >
+                      Aktualisiert: {fmtDate(new Date(c.updatedAt))}
+                    </span>
                   </div>
                 </div>
               </div>

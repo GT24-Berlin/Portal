@@ -13,7 +13,7 @@ export default function AdminDashboardView(props: {
   return (
     <div className='space-y-8'>
       {/* ── Horizon Panel — signature hero element ── */}
-      <div className='lumen-horizon-panel flex flex-wrap items-center justify-between gap-4 p-6 md:p-8'>
+      <div className='lumen-horizon-panel flex flex-wrap items-center justify-between gap-4 p-4 md:p-8'>
         <div className='space-y-2'>
           <p
             className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'

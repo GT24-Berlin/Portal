@@ -55,9 +55,9 @@ export default function PageContainer({
 
   return scrollable ? (
     <ScrollArea className='h-[calc(100dvh-52px)]'>
-      <div className='flex flex-1 flex-col px-5 py-5 md:px-8 md:py-7'>
+      <div className='flex flex-1 flex-col px-3 py-4 md:px-8 md:py-7'>
         <div
-          className='lumen-card-horizon mb-6 flex items-start justify-between gap-4 rounded-lg px-5 py-4 md:px-6 md:py-5'
+          className='lumen-card-horizon mb-4 flex items-start justify-between gap-4 rounded-lg px-4 py-3 md:mb-6 md:px-6 md:py-5'
           style={{
             backgroundColor: 'var(--lumen-panel)',
             backgroundImage: 'var(--lumen-surface-panel)',

@@ -80,7 +80,7 @@ export default function Landing() {
     >
       {/* ── Nav ─────────────────────────────────────────────────── */}
       <nav
-        className='sticky top-0 z-30 flex items-center justify-between border-b px-6 py-4'
+        className='sticky top-0 z-30 flex items-center justify-between border-b px-4 py-3 md:px-6 md:py-4'
         style={{
           borderColor: 'var(--lumen-hairline)',
           backgroundColor: 'var(--lumen-panel)'
@@ -160,7 +160,7 @@ export default function Landing() {
             </div>
 
             {/* Stat chips */}
-            <div className='grid grid-cols-3 gap-3'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
               {[
                 { label: 'Fallstatus', value: 'Jederzeit sichtbar' },
                 { label: 'Dokumente', value: 'Zentral & strukturiert' },
