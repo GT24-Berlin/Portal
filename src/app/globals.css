@@ -332,6 +332,37 @@
     opacity: 0.18;
     pointer-events: none;
   }
+
+  /* Horizon Panel — signature element with pulsing horizon */
+  .lumen-horizon-panel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background: var(--lumen-surface);
+    box-shadow: var(--lumen-rim), var(--lumen-shadow-raised);
+    border-radius: 14px;
+  }
+  .lumen-horizon-panel::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 1px;
+    background: var(--lumen-horizon-glow);
+    animation: lumen-pulse 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes lumen-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Reduced motion — collapses all Lumen transitions */
