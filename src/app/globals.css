@@ -286,6 +286,54 @@
   }
 }
 
+/* =========================================================
+   Lumen Component Utilities
+   Horizon line, rim, and surface helpers used by UI components.
+   ========================================================= */
+@layer components {
+  /* Horizon line — interactive: 20% at rest, 100% on hover/focus/active */
+  .lumen-horizon {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .lumen-horizon::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 1px;
+    background: var(--lumen-horizon-glow);
+    opacity: 0.2;
+    transition: opacity var(--lumen-medium);
+    pointer-events: none;
+  }
+  .lumen-horizon:hover::before,
+  .lumen-horizon:focus-visible::before,
+  .lumen-horizon[data-state='active']::before {
+    opacity: 1;
+  }
+
+  /* Horizon line — card: permanent at 18%, no interaction */
+  .lumen-card-horizon {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .lumen-card-horizon::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 15%;
+    width: 70%;
+    height: 1px;
+    background: var(--lumen-horizon-glow);
+    opacity: 0.18;
+    pointer-events: none;
+  }
+}
+
 /* Reduced motion — collapses all Lumen transitions */
 @media (prefers-reduced-motion: reduce) {
   *,
