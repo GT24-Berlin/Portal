@@ -61,8 +61,7 @@ export default async function RootLayout({
         <NuqsAdapter>
           <ThemeProvider
             attribute='class'
-            defaultTheme='dark'
-            enableSystem
+            forcedTheme='dark'
             disableTransitionOnChange
             enableColorScheme
           >
