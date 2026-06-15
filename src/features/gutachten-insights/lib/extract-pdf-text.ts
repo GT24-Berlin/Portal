@@ -7,6 +7,17 @@ import 'server-only';
 // pdfjs-dist v5 approach (pdf.mjs + dynamically-loaded pdf.worker.mjs)
 // was fundamentally incompatible with Turbopack bundling.
 
+// pdf2json URL-encodes all text items (T fields). Some PDFs contain raw %
+// characters or invalid percent sequences that cause decodeURIComponent to
+// throw "URI malformed". We fall back to the raw string in that case.
+function safeDecode(t: string): string {
+  try {
+    return decodeURIComponent(t);
+  } catch {
+    return t;
+  }
+}
+
 function sanitizeExtractedText(text: string): string {
   return text
     .replace(/\x00/g, '')
@@ -29,9 +40,7 @@ export async function extractPdfTextFromBuffer(
         const text = (data?.Pages ?? [])
           .flatMap((page: any) => page?.Texts ?? [])
           .map((t: any) =>
-            (t?.R ?? [])
-              .map((r: any) => decodeURIComponent(r?.T ?? ''))
-              .join('')
+            (t?.R ?? []).map((r: any) => safeDecode(r?.T ?? '')).join('')
           )
           .join(' ');
         resolve(sanitizeExtractedText(text));
