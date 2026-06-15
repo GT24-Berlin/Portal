@@ -3,15 +3,6 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
-  // pdfjs-dist loads pdf.worker.mjs via a dynamic import. When Turbopack bundles
-  // pdfjs-dist the worker file is not automatically included in the Vercel Lambda
-  // output. We use outputFileTracingIncludes to force-include it so the absolute
-  // path we set in extract-pdf-text.ts (process.cwd()/node_modules/.../pdf.worker.mjs)
-  // resolves at runtime inside /var/task.
-  serverExternalPackages: ['pdfjs-dist'],
-  outputFileTracingIncludes: {
-    '**': ['./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs']
-  },
   images: {
     remotePatterns: [
       {
