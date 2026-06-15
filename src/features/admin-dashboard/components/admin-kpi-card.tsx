@@ -1,19 +1,26 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { AdminKpiCard } from '../types';
 
 export default function AdminKpiCardView(props: { item: AdminKpiCard }) {
   const { item } = props;
 
   return (
-    <Card className='border-border/60 bg-background/82 overflow-hidden shadow-[var(--shadow-soft)]'>
-      <CardHeader className='border-border/50 bg-muted/10 border-b pb-3'>
-        <div className='from-primary/30 via-primary/10 mb-2 h-1.5 w-16 rounded-full bg-gradient-to-r to-transparent' />
-        <CardTitle className='text-foreground text-sm font-semibold tracking-tight'>
+    <Card>
+      <CardHeader className='pb-2'>
+        {/* Lumen label-sm eyebrow */}
+        <div
+          className='text-muted-foreground text-[10px] font-medium tracking-[0.08em] uppercase'
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
           {item.label}
-        </CardTitle>
+        </div>
       </CardHeader>
-      <CardContent className='space-y-1.5 pt-4'>
-        <div className='font-heading text-foreground text-[2rem] font-semibold tracking-tight tabular-nums md:text-[2.25rem]'>
+      <CardContent className='space-y-1 pt-0'>
+        {/* Value in mono font — data unchanged */}
+        <div
+          className='text-foreground text-[2rem] leading-none font-bold tracking-[-0.02em] tabular-nums md:text-[2.25rem]'
+          style={{ fontFamily: 'var(--font-mono)' }}
+        >
           {item.value}
         </div>
         {item.hint ? (

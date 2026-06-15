@@ -16,7 +16,7 @@ export const Heading: React.FC<HeadingProps> = ({
   return (
     <div className='space-y-2'>
       <div className='flex items-center gap-2'>
-        <h2 className='font-heading text-[2rem] font-semibold tracking-tight md:text-[2.6rem]'>
+        <h2 className='font-display text-2xl font-bold tracking-[-0.02em] md:text-[2.6rem]'>
           {title}
         </h2>
         {infoContent && (
@@ -25,7 +25,7 @@ export const Heading: React.FC<HeadingProps> = ({
           </div>
         )}
       </div>
-      <p className='text-muted-foreground max-w-2xl text-sm leading-6'>
+      <p className='text-muted-foreground max-w-2xl text-sm leading-6 break-words'>
         {description}
       </p>
     </div>
