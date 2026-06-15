@@ -1,10 +1,10 @@
 import 'server-only';
+import path from 'path';
 
-// pdfjs-dist v5 (bundled inside pdf-parse@2) requires DOMMatrix as a global.
-// Vercel's Node.js runtime does not expose it, and @napi-rs/canvas (the
-// intended polyfill) fails to load because its native binary is unavailable.
-// We install a minimal 2-D affine-matrix polyfill that covers every method
-// pdfjs uses during text-content extraction.
+// pdfjs-dist v5 requires DOMMatrix as a global.
+// Vercel's Node.js runtime does not expose it, so we install a minimal
+// 2-D affine-matrix polyfill that covers every method pdfjs uses during
+// text-content extraction.
 function ensureDOMMatrix() {
   if (typeof (globalThis as any).DOMMatrix !== 'undefined') return;
 
@@ -185,12 +185,41 @@ function sanitizeExtractedText(text: string): string {
 export async function extractPdfTextFromBuffer(
   buffer: Buffer
 ): Promise<string> {
-  // Polyfill must run before pdf-parse is imported for the first time.
   ensureDOMMatrix();
 
-  const { PDFParse } = await import('pdf-parse');
-  const parser = new PDFParse({ data: buffer });
-  const result = await parser.getText();
-  const text = String(result?.text ?? '');
-  return sanitizeExtractedText(text);
+  // We import pdfjs-dist directly (not via pdf-parse) so that
+  // serverExternalPackages can keep it out of the Next.js bundle.
+  // When not bundled, pdfjs resolves pdf.worker.mjs relative to its own
+  // location in node_modules — the path is always correct.
+  // As a belt-and-suspenders fallback we also set an absolute workerSrc so
+  // that even if Turbopack does bundle pdfjs the runtime import() targets
+  // the real file in /var/task/node_modules on Vercel.
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+
+  pdfjs.GlobalWorkerOptions.workerSrc = path.join(
+    process.cwd(),
+    'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'
+  );
+
+  const data = new Uint8Array(buffer);
+  const doc = await pdfjs.getDocument({
+    data,
+    useSystemFonts: true,
+    disableFontFace: true,
+    verbosity: 0
+  }).promise;
+
+  const pageTexts: string[] = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const content = await page.getTextContent();
+    const pageText = (content.items as Array<{ str?: string }>)
+      .map((item) => item.str ?? '')
+      .join(' ');
+    pageTexts.push(pageText);
+    page.cleanup();
+  }
+  await doc.destroy();
+
+  return sanitizeExtractedText(pageTexts.join('\n'));
 }
