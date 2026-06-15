@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { fontVariables } from '@/lib/font';
 import ThemeProvider from '@/components/layout/ThemeToggle/theme-provider';
 import { cn } from '@/lib/utils';
+import { Analytics } from '@vercel/analytics/react';
 import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import NextTopLoader from 'nextjs-toploader';
@@ -70,6 +71,7 @@ export default async function RootLayout({
               <Toaster />
               {children}
             </Providers>
+            <Analytics />
           </ThemeProvider>
         </NuqsAdapter>
       </body>
