@@ -3,6 +3,11 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
+  // pdf-parse (and its bundled pdfjs-dist) use relative dynamic imports to load
+  // pdf.worker.mjs at runtime. When Next.js bundles these packages, the relative
+  // path breaks (/var/task/.next/server/chunks/pdf.worker.mjs not found).
+  // Marking them as external keeps them in node_modules where paths resolve correctly.
+  serverExternalPackages: ['pdf-parse', 'pdfjs-dist'],
   images: {
     remotePatterns: [
       {
