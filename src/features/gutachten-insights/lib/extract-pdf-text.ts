@@ -196,9 +196,12 @@ export async function extractPdfTextFromBuffer(
   // the real file in /var/task/node_modules on Vercel.
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
 
+  // The build script copies pdf.worker.mjs into .next/server/chunks/ so it
+  // is always present inside /var/task on Vercel, regardless of whether
+  // Turbopack externalises pdfjs-dist or not.
   pdfjs.GlobalWorkerOptions.workerSrc = path.join(
     process.cwd(),
-    'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs'
+    '.next/server/chunks/pdf.worker.mjs'
   );
 
   const data = new Uint8Array(buffer);
