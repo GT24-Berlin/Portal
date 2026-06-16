@@ -73,6 +73,7 @@ type FormState = {
   endTime: string;
   bufferMinutes: string;
   isActive: boolean;
+  recurring: boolean; // true = jede Woche, false = nur dieses eine Datum
 };
 
 function emptyForm(
@@ -87,7 +88,8 @@ function emptyForm(
     startTime: '09:00',
     endTime: '12:00',
     bufferMinutes: '15',
-    isActive: true
+    isActive: true,
+    recurring: true
   };
 }
 
@@ -100,7 +102,8 @@ function rowToForm(slot: PartnerAvailabilitySlotRow): FormState {
     startTime: slot.startTime,
     endTime: slot.endTime,
     bufferMinutes: String(slot.bufferMinutes),
-    isActive: slot.isActive
+    isActive: slot.isActive,
+    recurring: slot.specificDate == null
   };
 }
 
@@ -211,7 +214,10 @@ export default function PartnerAvailabilityManager(props: {
         startTime: form.startTime,
         endTime: form.endTime,
         bufferMinutes: Number(form.bufferMinutes || '15'),
-        isActive: form.isActive
+        isActive: form.isActive,
+        // One-time slot: send the specific date; recurring: send null
+        specificDate:
+          !form.recurring && selectedDay ? selectedDay.toISOString() : null
       };
       const res = await fetch(
         editingId
@@ -307,24 +313,63 @@ export default function PartnerAvailabilityManager(props: {
 
   // ── Derived calendar data ────────────────────────────────────────────────────
 
+  // Helper: produce a stable date key "YYYY-M-D" (no zero-padding needed for Set lookup)
+  function dateKey(d: Date): string {
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }
+
+  // Recurring slots: weekdays that have at least one active slot
   const activeWeekdays = useMemo(() => {
     const set = new Set<number>();
     slots.forEach((s) => {
-      if (s.isActive) set.add(s.weekday);
+      if (s.isActive && s.specificDate == null) set.add(s.weekday);
     });
     return set;
   }, [slots]);
 
+  // Recurring slots: weekdays that have any slot (active or inactive)
   const allWeekdaysWithSlots = useMemo(() => {
     const set = new Set<number>();
-    slots.forEach((s) => set.add(s.weekday));
+    slots.forEach((s) => {
+      if (s.specificDate == null) set.add(s.weekday);
+    });
+    return set;
+  }, [slots]);
+
+  // One-time slots: specific dates that have an active slot
+  const activeSpecificDates = useMemo(() => {
+    const set = new Set<string>();
+    slots.forEach((s) => {
+      if (s.isActive && s.specificDate != null) {
+        set.add(dateKey(new Date(s.specificDate)));
+      }
+    });
+    return set;
+  }, [slots]);
+
+  // One-time slots: specific dates that have any slot
+  const allSpecificDates = useMemo(() => {
+    const set = new Set<string>();
+    slots.forEach((s) => {
+      if (s.specificDate != null) {
+        set.add(dateKey(new Date(s.specificDate)));
+      }
+    });
     return set;
   }, [slots]);
 
   const slotsForSelectedDay = useMemo(() => {
     if (!selectedDay) return [];
     const wd = isoWeekday(selectedDay);
-    return slots.filter((s) => s.weekday === wd);
+    const dk = dateKey(selectedDay);
+    return slots.filter((s) => {
+      // One-time slots: match exact date
+      if (s.specificDate != null) {
+        return dateKey(new Date(s.specificDate)) === dk;
+      }
+      // Recurring slots: match weekday
+      return s.weekday === wd;
+    });
   }, [slots, selectedDay]);
 
   // Build flat array of Date | null for the calendar grid (null = empty leading cell)
@@ -495,8 +540,11 @@ export default function PartnerAvailabilityManager(props: {
                 }
 
                 const wd = isoWeekday(day);
-                const hasSlots = allWeekdaysWithSlots.has(wd);
-                const hasActiveSlots = activeWeekdays.has(wd);
+                const dk = dateKey(day);
+                const hasSlots =
+                  allWeekdaysWithSlots.has(wd) || allSpecificDates.has(dk);
+                const hasActiveSlots =
+                  activeWeekdays.has(wd) || activeSpecificDates.has(dk);
                 const isSelected = selectedDay
                   ? isSameDay(day, selectedDay)
                   : false;
@@ -673,6 +721,11 @@ export default function PartnerAvailabilityManager(props: {
                             {durationLabel(slot.duration)} · Puffer{' '}
                             {slot.bufferMinutes} Min
                           </div>
+                          <div className='text-muted-foreground text-xs'>
+                            {slot.specificDate != null
+                              ? `Einmalig · ${new Date(slot.specificDate).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' })}`
+                              : `Wiederkehrend · jeden ${WEEKDAY_FULL[slot.weekday - 1]}`}
+                          </div>
                         </div>
                         <div className='border-border/60 bg-background/90 rounded-full border px-3 py-1.5 text-xs font-medium shadow-[var(--shadow-soft)]'>
                           {slot.startTime} – {slot.endTime}
@@ -848,29 +901,87 @@ export default function PartnerAvailabilityManager(props: {
                     </div>
                   </div>
 
-                  {/* Recurrence info badge */}
-                  <div className='border-border/60 bg-background/70 flex items-center gap-3 rounded-[20px] border px-4 py-3 shadow-[var(--shadow-soft)]'>
-                    <svg
-                      className='text-muted-foreground h-4 w-4 shrink-0'
-                      fill='none'
-                      stroke='currentColor'
-                      viewBox='0 0 24 24'
-                      aria-hidden='true'
-                    >
-                      <path
-                        strokeLinecap='round'
-                        strokeLinejoin='round'
-                        strokeWidth={1.5}
-                        d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
-                      />
-                    </svg>
-                    <div>
-                      <div className='text-foreground text-xs font-medium'>
-                        Wiederkehrend · jeden {selectedWdLabel}
-                      </div>
-                      <div className='text-muted-foreground text-xs'>
-                        Gilt für alle zukünftigen {selectedWdLabel}e
-                      </div>
+                  {/* Recurrence toggle */}
+                  <div className='space-y-2'>
+                    <div className='text-muted-foreground text-[11px] font-semibold tracking-[0.14em] uppercase'>
+                      Gilt für
+                    </div>
+                    <div className='grid grid-cols-2 gap-2'>
+                      {/* Wiederkehrend */}
+                      <button
+                        type='button'
+                        onClick={() => update('recurring', true)}
+                        className={`flex items-center gap-2.5 rounded-[20px] border px-4 py-3 text-left text-sm transition-all ${
+                          form.recurring
+                            ? 'border-foreground/25 bg-foreground text-background shadow-[var(--shadow-soft)]'
+                            : 'border-border/60 bg-background/80 text-foreground hover:bg-background/95'
+                        }`}
+                      >
+                        <svg
+                          className='h-3.5 w-3.5 shrink-0'
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                          aria-hidden='true'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={1.75}
+                            d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'
+                          />
+                        </svg>
+                        <div>
+                          <div className='text-xs font-semibold'>
+                            Wiederkehrend
+                          </div>
+                          <div
+                            className={`text-[11px] ${form.recurring ? 'text-background/70' : 'text-muted-foreground'}`}
+                          >
+                            Jeden {selectedWdLabel}
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Einmalig */}
+                      <button
+                        type='button'
+                        onClick={() => update('recurring', false)}
+                        className={`flex items-center gap-2.5 rounded-[20px] border px-4 py-3 text-left text-sm transition-all ${
+                          !form.recurring
+                            ? 'border-foreground/25 bg-foreground text-background shadow-[var(--shadow-soft)]'
+                            : 'border-border/60 bg-background/80 text-foreground hover:bg-background/95'
+                        }`}
+                      >
+                        <svg
+                          className='h-3.5 w-3.5 shrink-0'
+                          fill='none'
+                          stroke='currentColor'
+                          viewBox='0 0 24 24'
+                          aria-hidden='true'
+                        >
+                          <path
+                            strokeLinecap='round'
+                            strokeLinejoin='round'
+                            strokeWidth={1.75}
+                            d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                          />
+                        </svg>
+                        <div>
+                          <div className='text-xs font-semibold'>Einmalig</div>
+                          <div
+                            className={`text-[11px] ${!form.recurring ? 'text-background/70' : 'text-muted-foreground'}`}
+                          >
+                            {selectedDay
+                              ? selectedDay.toLocaleDateString('de-DE', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })
+                              : 'Nur diesen Tag'}
+                          </div>
+                        </div>
+                      </button>
                     </div>
                   </div>
 

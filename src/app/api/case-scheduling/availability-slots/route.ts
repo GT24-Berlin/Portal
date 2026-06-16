@@ -31,7 +31,11 @@ function toRow(slot: any): PartnerAvailabilitySlotRow {
     startTime: slot.startTime,
     endTime: slot.endTime,
     bufferMinutes: slot.bufferMinutes,
-    isActive: slot.isActive
+    isActive: slot.isActive,
+    specificDate:
+      slot.specificDate instanceof Date
+        ? slot.specificDate.toISOString()
+        : (slot.specificDate ?? null)
   };
 }
 
@@ -128,6 +132,19 @@ export async function POST(req: Request) {
     const isActive =
       body.isActive === undefined ? true : parseNullableBoolean(body.isActive);
 
+    // specificDate is optional — null/absent = recurring, ISO string = one-time
+    let specificDate: Date | null = null;
+    if (body.specificDate != null && body.specificDate !== '') {
+      const parsed = new Date(String(body.specificDate));
+      if (isNaN(parsed.getTime())) {
+        return NextResponse.json(
+          { ok: false, error: 'specificDate invalid' },
+          { status: 400 }
+        );
+      }
+      specificDate = parsed;
+    }
+
     if (!role) {
       return NextResponse.json(
         { ok: false, error: 'role missing or invalid' },
@@ -201,7 +218,8 @@ export async function POST(req: Request) {
         startTime,
         endTime,
         bufferMinutes: parsedBufferMinutes ?? undefined,
-        isActive
+        isActive,
+        specificDate
       }
     });
 

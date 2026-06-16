@@ -38,6 +38,7 @@ export type PartnerAvailabilitySlotRow = {
   endTime: string;
   bufferMinutes: number;
   isActive: boolean;
+  specificDate: string | null; // null = recurring weekly, ISO string = one-time date
 };
 
 export type CaseAppointmentRequestRow = {

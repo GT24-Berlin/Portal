@@ -598,8 +598,9 @@ model PartnerAvailabilitySlot {
   weekday        Int
   startTime      String
   endTime        String
-  bufferMinutes  Int     @default(15)
-  isActive       Boolean @default(true)
+  bufferMinutes  Int       @default(15)
+  isActive       Boolean   @default(true)
+  specificDate   DateTime? // null = recurring weekly, set = one-time for this exact date
 
   @@index([partnerId])
   @@index([partnerId, role, isActive])

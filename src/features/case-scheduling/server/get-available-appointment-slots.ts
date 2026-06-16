@@ -36,6 +36,7 @@ type SlotTemplate = {
   startTime: string;
   endTime: string;
   bufferMinutes: number;
+  specificDate: Date | null;
 };
 
 type BlockedRequest = {
@@ -167,7 +168,18 @@ export async function getAvailableAppointmentSlots(input: QueryInput) {
     const isoWeekday = getWeekdayFromDate(dayCursor);
 
     const templatesForDay = availabilitySlots.filter((slot) => {
-      if (slot.weekday !== isoWeekday) return false;
+      // One-time slot: only apply on the exact stored date
+      if (slot.specificDate != null) {
+        const sd = slot.specificDate as Date;
+        const matchesDate =
+          sd.getFullYear() === dayCursor.getFullYear() &&
+          sd.getMonth() === dayCursor.getMonth() &&
+          sd.getDate() === dayCursor.getDate();
+        if (!matchesDate) return false;
+      } else {
+        // Recurring slot: match by ISO weekday
+        if (slot.weekday !== isoWeekday) return false;
+      }
       if (
         input.appointmentType &&
         slot.appointmentType !== input.appointmentType
@@ -181,7 +193,7 @@ export async function getAvailableAppointmentSlots(input: QueryInput) {
       )
         return false;
       return true;
-    }) as SlotTemplate[];
+    }) as unknown as SlotTemplate[];
 
     for (const template of templatesForDay) {
       const durationMinutes = getSlotDurationMinutes(template.duration);

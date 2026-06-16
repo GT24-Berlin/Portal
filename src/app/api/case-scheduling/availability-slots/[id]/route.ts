@@ -35,7 +35,11 @@ function toRow(slot: any): PartnerAvailabilitySlotRow {
     startTime: slot.startTime,
     endTime: slot.endTime,
     bufferMinutes: slot.bufferMinutes,
-    isActive: slot.isActive
+    isActive: slot.isActive,
+    specificDate:
+      slot.specificDate instanceof Date
+        ? slot.specificDate.toISOString()
+        : (slot.specificDate ?? null)
   };
 }
 
@@ -203,6 +207,21 @@ export async function PATCH(
         );
       }
       data.isActive = isActive;
+    }
+
+    if (hasOwn(body, 'specificDate')) {
+      if (body.specificDate == null || body.specificDate === '') {
+        data.specificDate = null;
+      } else {
+        const parsed = new Date(String(body.specificDate));
+        if (isNaN(parsed.getTime())) {
+          return NextResponse.json(
+            { ok: false, error: 'specificDate invalid' },
+            { status: 400 }
+          );
+        }
+        data.specificDate = parsed;
+      }
     }
 
     const nextDuration = (data.duration as any) ?? existing.duration;
