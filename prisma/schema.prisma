@@ -315,8 +315,9 @@ model Partner {
 
   leads Lead[]
   cases Case[] @relation("CasePartner")
-  availabilitySlots PartnerAvailabilitySlot[]
+  availabilitySlots   PartnerAvailabilitySlot[]
   appointmentRequests CaseAppointmentRequest[]
+  calendarConnections PartnerCalendarConnection[]
 }
 
 model PartnerProfile {
@@ -604,6 +605,58 @@ model PartnerAvailabilitySlot {
 
   @@index([partnerId])
   @@index([partnerId, role, isActive])
+}
+
+// ---------------------------------------------------------------------------
+// External Calendar Sync
+// ---------------------------------------------------------------------------
+
+enum CalendarProvider {
+  GOOGLE
+  MICROSOFT
+  APPLE
+}
+
+model PartnerCalendarConnection {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  partnerId String
+  partner   Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  provider     CalendarProvider
+  accountEmail String?
+
+  // AES-256-GCM encrypted: "iv:authTag:ciphertext" (all hex)
+  accessToken    String?   @db.Text
+  refreshToken   String?   @db.Text
+  tokenExpiresAt DateTime?
+  calendarId     String?   @db.Text // calendar home URL (Apple) or calendar ID (Google/MS)
+
+  isActive     Boolean   @default(true)
+  lastSyncedAt DateTime?
+
+  events PartnerCalendarEvent[]
+
+  @@unique([partnerId, provider])
+  @@index([partnerId])
+}
+
+model PartnerCalendarEvent {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  connectionId String
+  connection   PartnerCalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  appointmentRequestId String
+  externalEventId      String @db.Text
+  provider             CalendarProvider
+  syncedAt             DateTime @default(now())
+
+  @@unique([connectionId, appointmentRequestId])
+  @@index([appointmentRequestId])
 }
 
 model CaseAppointmentRequest {

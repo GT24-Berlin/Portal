@@ -8,6 +8,7 @@ import {
   canRespondToAppointmentRequest,
   loadPartnerAppointmentRequest
 } from '@/features/case-scheduling/server/partner-appointment-requests';
+import { syncAppointmentToCalendars } from '@/features/calendar-sync/server/sync-appointment';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -131,6 +132,15 @@ export async function POST(
         outcome: 'DECLINED'
       });
     }
+
+    // Fire-and-forget calendar event deletion — must never block or crash the main flow
+    syncAppointmentToCalendars({
+      partnerId: resolved.context.partnerId,
+      appointmentRequestId: requestRow.id,
+      action: 'delete'
+    }).catch(() => {
+      /* intentional silent fail */
+    });
 
     return NextResponse.json({
       ok: true,

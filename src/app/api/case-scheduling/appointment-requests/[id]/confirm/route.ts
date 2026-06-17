@@ -8,6 +8,7 @@ import {
   canRespondToAppointmentRequest,
   loadPartnerAppointmentRequest
 } from '@/features/case-scheduling/server/partner-appointment-requests';
+import { syncAppointmentToCalendars } from '@/features/calendar-sync/server/sync-appointment';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -40,7 +41,11 @@ export async function POST(
       },
       select: {
         id: true,
-        status: true
+        status: true,
+        appointmentType: true,
+        role: true,
+        requestedStartAt: true,
+        requestedEndAt: true
       }
     });
 
@@ -131,6 +136,20 @@ export async function POST(
         outcome: 'CONFIRMED'
       });
     }
+
+    // Fire-and-forget calendar sync — must never block or crash the main flow
+    syncAppointmentToCalendars({
+      partnerId: resolved.context.partnerId,
+      appointmentRequestId: requestRow.id,
+      action: 'create',
+      appointmentType: String(requestRow.appointmentType),
+      role: String(requestRow.role),
+      startAt: requestRow.requestedStartAt,
+      endAt: requestRow.requestedEndAt,
+      caseNumber: caseRow?.caseNumber ?? null
+    }).catch(() => {
+      /* intentional silent fail */
+    });
 
     return NextResponse.json({
       ok: true,

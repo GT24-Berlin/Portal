@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import PageContainer from '@/components/layout/page-container';
 import { requireRole, isPartner } from '@/lib/rbac';
@@ -7,6 +8,7 @@ import { getPartnerProfile } from '@/features/partner-profile/lib/get-partner-pr
 import PartnerAvailabilityManager from '@/features/case-scheduling/components/partner-availability-manager';
 import PartnerAppointmentRequestBoard from '@/features/case-scheduling/components/partner-appointment-request-board';
 import { loadPartnerAppointmentRequests } from '@/features/case-scheduling/server/partner-appointment-requests';
+import CalendarConnectionsPanel from '@/features/calendar-sync/components/calendar-connections-panel';
 
 export const runtime = 'nodejs';
 
@@ -124,6 +126,10 @@ export default async function PartnerProfileCalendarPage() {
             <PartnerAppointmentRequestBoard
               initialRequests={appointmentRequests}
             />
+
+            <Suspense fallback={null}>
+              <CalendarConnectionsPanel />
+            </Suspense>
           </div>
         )}
       </div>
