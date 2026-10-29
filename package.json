@@ -16,6 +16,10 @@
     "lint:strict": "eslint --max-warnings=0 src",
     "format": "prettier --write .",
     "format:check": "prettier -c -w .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -125,7 +129,16 @@
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "prisma": "^7.4.2",
-    "tw-animate-css": "^1.2.4"
+    "@playwright/test": "^1.49.1",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "tw-animate-css": "^1.2.4",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "pnpm": {
     "overrides": {
