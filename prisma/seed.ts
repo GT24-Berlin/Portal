@@ -1,113 +1,137 @@
 /**
- * GT24 NEXT — Deterministic Synthetic Seed
+ * GT24 NEXT — Deterministic Synthetic Seed (v2)
  *
  * All data is synthetic. No real customer information.
- * All emails use @gt24-test.internal domain (SC-18).
+ * All emails use @gt24-test.internal domain (SC-10/SC-18).
  * All names are fictional.
  *
- * Run: pnpm prisma db seed
+ * Run: pnpm exec tsx prisma/seed.ts
  * Requires: GT24 NEXT Supabase database (not production).
  */
 
+import { config } from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+config({ path: '.env' });
+config({ path: '.env.local', override: true });
 
-// Synthetic Clerk userIds (format matches Clerk user_ prefix, clearly fake)
-const ADMIN_CLERK_ID = 'user_test_admin_001';
+// SC-11: Refuse if production bucket is configured
+const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? '';
+if (bucket === 'gt24-case-files') {
+  throw new Error(
+    '[seed] SUPABASE_STORAGE_BUCKET is gt24-case-files (production). Refusing. SC-11.'
+  );
+}
+
+const connectionString = process.env.DATABASE_URL || '';
+if (!connectionString) throw new Error('[seed] DATABASE_URL not set');
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(new Pool({ connectionString })),
+  log: ['error']
+});
+
+// Synthetic Clerk userIds (clearly fake — user_test_ prefix)
 const GUTACHTER_1_CLERK_ID = 'user_test_gutachter_001';
 const GUTACHTER_2_CLERK_ID = 'user_test_gutachter_002';
 const ANWALT_1_CLERK_ID = 'user_test_anwalt_001';
 
 async function main() {
-  console.log('[seed] Starting GT24 NEXT synthetic seed...');
-
-  // Safety check: refuse to seed if production bucket is configured
-  const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? '';
-  if (bucket === 'gt24-case-files') {
-    throw new Error(
-      '[seed] SUPABASE_STORAGE_BUCKET is gt24-case-files (production). ' +
-        'Refusing to seed. SC-11.'
-    );
-  }
+  console.log('[seed] Starting GT24 NEXT synthetic seed v2...');
 
   // -------------------------------------------------------------------------
-  // Partners (Gutachter + Anwalt)
+  // Partners
   // -------------------------------------------------------------------------
 
-  const gutachter1 = await prisma.partner.upsert({
+  const partner1 = await prisma.partner.upsert({
     where: { id: 'seed-partner-gutachter-1' },
     update: {},
     create: {
       id: 'seed-partner-gutachter-1',
-      clerkUserId: GUTACHTER_1_CLERK_ID,
-      email: 'max.muster@gt24-test.internal',
       name: 'Max Muster',
       type: 'GUTACHTER',
-      phone: '+49300000001'
+      email: 'max.muster@gt24-test.internal',
+      region: 'Berlin'
     }
   });
 
-  const gutachter2 = await prisma.partner.upsert({
+  const partner2 = await prisma.partner.upsert({
     where: { id: 'seed-partner-gutachter-2' },
     update: {},
     create: {
       id: 'seed-partner-gutachter-2',
-      clerkUserId: GUTACHTER_2_CLERK_ID,
-      email: 'anna.beispiel@gt24-test.internal',
       name: 'Anna Beispiel',
       type: 'GUTACHTER',
-      phone: '+49300000002'
+      email: 'anna.beispiel@gt24-test.internal',
+      region: 'Berlin'
     }
   });
 
-  const anwalt1 = await prisma.partner.upsert({
+  const partner3 = await prisma.partner.upsert({
     where: { id: 'seed-partner-anwalt-1' },
     update: {},
     create: {
       id: 'seed-partner-anwalt-1',
-      clerkUserId: ANWALT_1_CLERK_ID,
-      email: 'thomas.kanzlei@gt24-test.internal',
       name: 'Thomas Kanzlei',
       type: 'ANWALT',
-      phone: '+49300000003'
+      email: 'thomas.kanzlei@gt24-test.internal',
+      region: 'Berlin'
     }
   });
 
   console.log(
     '[seed] Partners created:',
-    gutachter1.id,
-    gutachter2.id,
-    anwalt1.id
+    partner1.id,
+    partner2.id,
+    partner3.id
   );
 
   // -------------------------------------------------------------------------
-  // Partner Profiles
+  // PartnerProfiles (clerkUserId is on PartnerProfile, not Partner)
   // -------------------------------------------------------------------------
 
   await prisma.partnerProfile.upsert({
-    where: { id: 'seed-profile-gutachter-1' },
+    where: { clerkUserId: GUTACHTER_1_CLERK_ID },
     update: {},
     create: {
-      id: 'seed-profile-gutachter-1',
-      partnerId: gutachter1.id,
-      bio: 'Kfz-Sachverständiger mit 10 Jahren Erfahrung.',
+      clerkUserId: GUTACHTER_1_CLERK_ID,
+      role: 'GUTACHTER',
+      companyName: 'Muster Gutachten GmbH',
+      phone: '+49300000001',
       street: 'Musterstraße 1',
       zipCode: '10115',
-      city: 'Berlin'
+      city: 'Berlin',
+      partnerId: partner1.id
     }
   });
 
   await prisma.partnerProfile.upsert({
-    where: { id: 'seed-profile-anwalt-1' },
+    where: { clerkUserId: GUTACHTER_2_CLERK_ID },
     update: {},
     create: {
-      id: 'seed-profile-anwalt-1',
-      partnerId: anwalt1.id,
-      bio: 'Rechtsanwalt für Verkehrsrecht.',
+      clerkUserId: GUTACHTER_2_CLERK_ID,
+      role: 'GUTACHTER',
+      companyName: 'Beispiel Sachverständige',
+      phone: '+49300000002',
+      city: 'Berlin',
+      partnerId: partner2.id
+    }
+  });
+
+  await prisma.partnerProfile.upsert({
+    where: { clerkUserId: ANWALT_1_CLERK_ID },
+    update: {},
+    create: {
+      clerkUserId: ANWALT_1_CLERK_ID,
+      role: 'ANWALT',
+      companyName: 'Kanzlei Testrecht',
+      phone: '+49300000003',
       street: 'Kanzleiweg 5',
       zipCode: '10117',
-      city: 'Berlin'
+      city: 'Berlin',
+      partnerId: partner3.id
     }
   });
 
@@ -120,14 +144,11 @@ async function main() {
     update: {},
     create: {
       id: 'seed-lead-1',
+      name: 'Karl Testfahrer',
       firstName: 'Karl',
       lastName: 'Testfahrer',
       phone: '+49170000001',
       email: 'karl.testfahrer@gt24-test.internal',
-      street: 'Teststraße 1',
-      houseNumber: '1a',
-      zipCode: '10115',
-      city: 'Berlin',
       status: 'NEW',
       source: 'COFORM'
     }
@@ -138,14 +159,11 @@ async function main() {
     update: {},
     create: {
       id: 'seed-lead-2',
+      name: 'Maria Probekundin',
       firstName: 'Maria',
       lastName: 'Probekundin',
       phone: '+49170000002',
       email: 'maria.probe@gt24-test.internal',
-      street: 'Beispielweg 2',
-      houseNumber: '2b',
-      zipCode: '10116',
-      city: 'Berlin',
       status: 'CONTACTED',
       source: 'SIPGATE'
     }
@@ -154,7 +172,7 @@ async function main() {
   console.log('[seed] Leads created:', lead1.id, lead2.id);
 
   // -------------------------------------------------------------------------
-  // Cases (multiple statuses)
+  // Cases
   // -------------------------------------------------------------------------
 
   const case1 = await prisma.case.upsert({
@@ -165,8 +183,8 @@ async function main() {
       token: 'SEED1TESTTOKEN16',
       caseNumber: 'GT-0001',
       gutachterStatus: 'EINGEGANGEN',
-      anwaltStatus: 'OFFEN',
-      partnerId: gutachter1.id,
+      anwaltStatus: 'FALL_EINGEGANGEN',
+      partnerId: partner1.id,
       leadId: lead1.id,
       customer: {
         create: {
@@ -174,24 +192,20 @@ async function main() {
           firstName: 'Karl',
           lastName: 'Testfahrer',
           email: 'karl.testfahrer@gt24-test.internal',
-          phone: '+49170000001',
-          street: 'Teststraße 1',
-          houseNumber: '1a',
-          zipCode: '10115',
-          city: 'Berlin'
+          phone: '+49170000001'
         }
       },
       intake: {
         create: {
           id: 'seed-intake-1',
+          claimRoute: 'OPPONENT_LIABILITY',
           accidentDate: new Date('2026-09-01'),
           accidentLocation: 'Berlin, Alexanderplatz',
-          damageDescription: 'Heckauffahrunfall, Stoßstange beschädigt.',
-          vehicleMake: 'Volkswagen',
-          vehicleModel: 'Golf',
-          vehicleYear: 2021,
-          licensePlate: 'B-TE-0001',
-          mileage: 45000
+          accidentDescription: 'Heckauffahrunfall, Stoßstange beschädigt.',
+          ownCarMake: 'Volkswagen',
+          ownCarModel: 'Golf',
+          ownCarYear: 2021,
+          ownPlateNumber: 'B-TE-0001'
         }
       }
     }
@@ -205,19 +219,15 @@ async function main() {
       token: 'SEED2TESTTOKEN16',
       caseNumber: 'GT-0002',
       gutachterStatus: 'GUTACHTER_KONTAKTIERT',
-      anwaltStatus: 'OFFEN',
-      partnerId: gutachter2.id,
+      anwaltStatus: 'FALL_EINGEGANGEN',
+      partnerId: partner2.id,
       customer: {
         create: {
           id: 'seed-customer-2',
           firstName: 'Maria',
           lastName: 'Probekundin',
           email: 'maria.probe@gt24-test.internal',
-          phone: '+49170000002',
-          street: 'Beispielweg 2',
-          houseNumber: '2b',
-          zipCode: '10116',
-          city: 'Berlin'
+          phone: '+49170000002'
         }
       }
     }
@@ -231,16 +241,18 @@ async function main() {
       token: 'SEED3TESTTOKEN16',
       caseNumber: 'GT-0003',
       gutachterStatus: 'GUTACHTEN_ERSTELLT',
-      anwaltStatus: 'IN_BEARBEITUNG',
-      partnerId: gutachter1.id
+      anwaltStatus: 'FALL_IN_PRUEFUNG',
+      partnerId: partner1.id
     }
   });
 
   console.log('[seed] Cases created:', case1.id, case2.id, case3.id);
 
   // -------------------------------------------------------------------------
-  // CaseAssignments
+  // CaseAssignments (expiresAt required)
   // -------------------------------------------------------------------------
+
+  const oneYear = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
 
   await prisma.caseAssignment.upsert({
     where: { id: 'seed-assign-1' },
@@ -248,10 +260,11 @@ async function main() {
     create: {
       id: 'seed-assign-1',
       caseId: case1.id,
-      partnerId: gutachter1.id,
       role: 'GUTACHTER',
-      status: 'ACTIVE',
-      activeKey: 'seed-key-001'
+      assigneeClerkUserId: GUTACHTER_1_CLERK_ID,
+      status: 'ACCEPTED',
+      active: true,
+      expiresAt: oneYear
     }
   });
 
@@ -261,33 +274,16 @@ async function main() {
     create: {
       id: 'seed-assign-2',
       caseId: case3.id,
-      partnerId: anwalt1.id,
       role: 'ANWALT',
-      status: 'ACTIVE',
-      activeKey: 'seed-key-002'
+      assigneeClerkUserId: ANWALT_1_CLERK_ID,
+      status: 'ACCEPTED',
+      active: true,
+      expiresAt: oneYear
     }
   });
 
   // -------------------------------------------------------------------------
-  // CaseInsurance
-  // -------------------------------------------------------------------------
-
-  await prisma.caseInsurance.upsert({
-    where: { id: 'seed-insurance-1' },
-    update: {},
-    create: {
-      id: 'seed-insurance-1',
-      caseId: case1.id,
-      insurerName: 'Musterversicherung AG',
-      policyNumber: 'TEST-POL-001',
-      claimNumber: 'TEST-CLAIM-001',
-      insuranceParty: 'OPPONENT',
-      claimRoute: 'HAFTPFLICHT'
-    }
-  });
-
-  // -------------------------------------------------------------------------
-  // CaseFiles (metadata only — no actual storage objects)
+  // CaseFiles (metadata only — storageKey prefixed supabase:seed/ = no real object)
   // -------------------------------------------------------------------------
 
   await prisma.caseFile.upsert({
@@ -329,7 +325,7 @@ async function main() {
   });
 
   // -------------------------------------------------------------------------
-  // GutachtenInsight
+  // CaseGutachtenInsight
   // -------------------------------------------------------------------------
 
   await prisma.caseGutachtenInsight.upsert({
@@ -358,10 +354,11 @@ async function main() {
     update: {},
     create: {
       id: 'seed-notif-1',
+      userId: GUTACHTER_1_CLERK_ID,
       caseId: case1.id,
-      recipientId: GUTACHTER_1_CLERK_ID,
+      role: 'GUTACHTER',
       type: 'ASSIGNMENT_CREATED',
-      read: false
+      title: 'Neue Fallzuweisung: GT-0001'
     }
   });
 
@@ -370,46 +367,34 @@ async function main() {
     update: {},
     create: {
       id: 'seed-notif-2',
+      userId: ANWALT_1_CLERK_ID,
       caseId: case3.id,
-      recipientId: ANWALT_1_CLERK_ID,
+      role: 'ANWALT',
       type: 'ASSIGNMENT_CREATED',
-      read: true
+      title: 'Neue Fallzuweisung: GT-0003',
+      readAt: new Date('2026-10-01')
     }
   });
 
   // -------------------------------------------------------------------------
-  // PartnerAvailabilitySlot + AppointmentRequest
+  // PartnerAvailabilitySlot
   // -------------------------------------------------------------------------
 
-  const slot1 = await prisma.partnerAvailabilitySlot.upsert({
+  await prisma.partnerAvailabilitySlot.upsert({
     where: { id: 'seed-slot-1' },
     update: {},
     create: {
       id: 'seed-slot-1',
-      partnerId: gutachter1.id,
-      dayOfWeek: 1, // Monday
+      partnerId: partner1.id,
+      role: 'GUTACHTER',
+      appointmentType: 'IN_PERSON',
+      duration: 'MINUTES_30',
+      weekday: 1, // Monday
       startTime: '09:00',
       endTime: '17:00',
-      specificDate: new Date('2026-11-03')
+      isActive: true
     }
   });
-
-  await prisma.caseAppointmentRequest.upsert({
-    where: { id: 'seed-appt-req-1' },
-    update: {},
-    create: {
-      id: 'seed-appt-req-1',
-      caseId: case1.id,
-      requestedByPartnerId: gutachter1.id,
-      role: 'GUTACHTER',
-      appointmentType: 'INSPECTION',
-      durationMinutes: 60,
-      status: 'PENDING',
-      notes: 'Fahrzeugbesichtigung beim Kunden'
-    }
-  });
-
-  console.log('[seed] Scheduling records created:', slot1.id);
 
   // -------------------------------------------------------------------------
   // CaseNumberSequence
@@ -420,16 +405,16 @@ async function main() {
     update: {},
     create: {
       id: 'seed-seq-1',
-      lastNumber: 3
+      currentValue: 3
     }
   });
 
-  console.log('[seed] GT24 NEXT synthetic seed complete.');
-  console.log('[seed] Summary: 3 Partners, 2 Leads, 3 Cases, 2 Assignments,');
+  console.log('[seed] GT24 NEXT synthetic seed v2 complete.');
+  console.log('[seed] Summary: 3 Partners + Profiles, 2 Leads, 3 Cases,');
+  console.log('[seed]          2 Assignments, 2 Files, 1 Insight,');
   console.log(
-    '[seed]          1 Insurance, 2 Files, 1 Insight, 2 Notifications,'
+    '[seed]          2 Notifications, 1 AvailabilitySlot, 1 Sequence'
   );
-  console.log('[seed]          1 AvailabilitySlot, 1 AppointmentRequest');
 }
 
 main()
