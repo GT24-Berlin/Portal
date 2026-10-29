@@ -1,0 +1,111 @@
+name: CI — GT24 NEXT
+
+on:
+  push:
+    branches:
+      - next/develop
+  pull_request:
+    branches:
+      - next/develop
+    paths:
+      - 'src/**'
+      - 'prisma/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'next.config.ts'
+      - 'tsconfig.json'
+      - '.github/workflows/ci-next.yml'
+
+# SAFETY: This workflow must never deploy to production or touch production resources.
+# - No DATABASE_URL pointing to production Supabase
+# - No CLERK_SECRET_KEY from production Clerk instance
+# - No deploy step to portal.gutachtery24.de or Vercel 'portal' project
+# - No production SMTP credentials
+
+env:
+  # NEXT environment identity — required by env-guard
+  GT24_ENVIRONMENT: next
+  # Sentry disabled in CI
+  NEXT_PUBLIC_SENTRY_DISABLED: 'true'
+  # Synthetic mail config
+  MAIL_FROM: noreply@gt24-test.internal
+  ADMIN_NOTIFY_EMAIL: admin@gt24-test.internal
+
+jobs:
+  ci:
+    name: Build & Test (NEXT)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout next/develop
+        uses: actions/checkout@v4
+        with:
+          ref: next/develop
+
+      - name: Setup pnpm (pinned 9.15.0 via corepack)
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies (frozen lockfile — SC-16)
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+        env:
+          # Prisma generate does not need a real DB — uses schema only
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/test?schema=public
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm exec eslint src --max-warnings=0 || true
+        # 'true' fallback: existing ESLint warnings (pre-Phase-2) must not block CI
+        # Remove '|| true' once SEC-001–SEC-014 linting rules are added in Phase 2
+
+      - name: Unit tests
+        run: pnpm test
+        env:
+          # No real database in unit tests — tests mock Prisma
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/test?schema=public
+
+      - name: Build (Sentry disabled, no external connections)
+        run: pnpm run build
+        env:
+          NEXT_PUBLIC_SENTRY_DISABLED: 'true'
+          # Build requires Clerk key to be present (even if dummy for build-time check)
+          # In Vercel gt24-portal-next these are set as env vars
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.NEXT_CLERK_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.NEXT_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.NEXT_DIRECT_URL }}
+          SUPABASE_URL: ${{ secrets.NEXT_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.NEXT_SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_STORAGE_BUCKET: gt24-next-case-files
+          OTP_SECRET: ${{ secrets.NEXT_OTP_SECRET }}
+
+  # E2E tests run separately when NEXT Vercel deployment is available
+  # Uncomment when Vercel gt24-portal-next preview URL is stable:
+  # e2e:
+  #   name: E2E smoke test (NEXT)
+  #   needs: ci
+  #   runs-on: ubuntu-latest
+  #   if: github.event_name == 'push'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #       with: { version: 9.15.0 }
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm exec playwright install --with-deps chromium
+  #     - run: pnpm test:e2e
+  #       env:
+  #         PLAYWRIGHT_BASE_URL: ${{ secrets.NEXT_VERCEL_URL }}
