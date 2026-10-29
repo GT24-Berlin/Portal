@@ -1,31 +1,31 @@
 import * as Sentry from '@sentry/nextjs';
+import { assertNextEnvironment } from '@/lib/env-guard';
 
 const sentryOptions: Sentry.NodeOptions | Sentry.EdgeOptions = {
-  // Sentry DSN
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-
-  // Enable Spotlight in development
   spotlight: process.env.NODE_ENV === 'development',
-
-  // Adds request headers and IP for users, for more info visit
+  // SEC-014: sendDefaultPii=true sends PII to Sentry — review before enabling Sentry in NEXT
   sendDefaultPii: true,
-
-  // Adjust this value in production, or use tracesSampler for greater control
+  // SEC-014: tracesSampleRate=1 samples 100% of requests — reduce before production
   tracesSampleRate: 1,
-
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
   debug: false
 };
 
 export async function register() {
-  if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
+  // GT24 environment guard — runs at startup, fail-closed
+  // Only enforced when GT24_ENVIRONMENT is set (skips in raw local dev without .env)
+  if (process.env.GT24_ENVIRONMENT) {
+    assertNextEnvironment();
+  }
+
+  // Sentry disabled when NEXT_PUBLIC_SENTRY_DISABLED=true (required in initial NEXT bootstrap)
+  const sentryEnabled = process.env.NEXT_PUBLIC_SENTRY_DISABLED !== 'true';
+
+  if (sentryEnabled) {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
-      // Node.js Sentry configuration
       Sentry.init(sentryOptions);
     }
-
     if (process.env.NEXT_RUNTIME === 'edge') {
-      // Edge Sentry configuration
       Sentry.init(sentryOptions);
     }
   }
