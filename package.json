@@ -1,7 +1,8 @@
 {
-  "name": "next-shadcn-dashboard-starter",
-  "version": "1.0.0",
+  "name": "gt24-portal",
+  "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "author": {
     "name": "Kiran",
     "url": "https://github.com/Kiranism"
@@ -10,8 +11,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint next.config.js postcss.config.js",
-    "lint:fix": "eslint src --fix && bun format",
+    "lint": "eslint next.config.ts postcss.config.js",
+    "lint:fix": "eslint src --fix && prettier --write .",
     "lint:strict": "eslint --max-warnings=0 src",
     "format": "prettier --write .",
     "format:check": "prettier -c -w .",
