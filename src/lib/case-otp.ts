@@ -2,7 +2,13 @@ import crypto from 'node:crypto';
 
 import { prisma } from '@/lib/prisma';
 
-const OTP_SECRET = process.env.OTP_SECRET || 'dev-secret-change-me';
+const _OTP_SECRET = process.env.OTP_SECRET;
+if (!_OTP_SECRET || _OTP_SECRET === 'dev-secret-change-me') {
+  throw new Error(
+    '[case-otp] OTP_SECRET is not set or uses the insecure fallback. SEC-005.'
+  );
+}
+const OTP_SECRET = _OTP_SECRET;
 const OTP_LENGTH = 6;
 const OTP_TTL_MINUTES = 10;
 const OTP_RESEND_COOLDOWN_SECONDS = 60;

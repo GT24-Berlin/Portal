@@ -48,7 +48,8 @@ const SAFE_NEXT_ENV = {
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_abc123',
   CLERK_SECRET_KEY: 'sk_test_abc123',
   MAIL_FROM: 'noreply@gt24-test.internal',
-  ADMIN_NOTIFY_EMAIL: 'admin@gt24-test.internal'
+  ADMIN_NOTIFY_EMAIL: 'admin@gt24-test.internal',
+  OTP_SECRET: 'a'.repeat(64)
 };
 
 describe('env-guard: assertNextEnvironment()', () => {

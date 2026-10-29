@@ -66,6 +66,16 @@ export function assertNextEnvironment(): void {
     );
   }
 
+  // SEC-005: Reject absent or insecure OTP_SECRET
+  const otpSecret = process.env.OTP_SECRET;
+  if (!otpSecret || otpSecret === 'dev-secret-change-me') {
+    throw new Error(
+      `[env-guard] OTP_SECRET is ${otpSecret ? 'set to the insecure fallback value' : 'not set'}. ` +
+        `Generate a secure value: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" ` +
+        `and set it as OTP_SECRET in Vercel NEXT. SEC-005.`
+    );
+  }
+
   // SC-10: Reject real @gutachtery24.de email addresses in mail config
   const mailFrom = process.env.MAIL_FROM ?? '';
   const adminEmail = process.env.ADMIN_NOTIFY_EMAIL ?? '';
@@ -88,6 +98,7 @@ export function assertNextEnvironment(): void {
         ? 'development'
         : 'UNKNOWN'
       : '(unset)',
+    OTP_SECRET: 'present',
     SENTRY_DISABLED: process.env.NEXT_PUBLIC_SENTRY_DISABLED ?? '(unset)'
   };
 
