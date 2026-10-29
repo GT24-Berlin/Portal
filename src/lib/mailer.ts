@@ -60,7 +60,10 @@ export async function sendMail(opts: {
 
   // jsonTransport returns the serialized message — log it in dev/next
   if (!process.env.SMTP_HOST) {
-    console.log('[mailer] null-transport (no delivery):', result.message);
+    console.log(
+      '[mailer] null-transport (no delivery):',
+      result.messageId ?? result
+    );
   }
 
   return result;
