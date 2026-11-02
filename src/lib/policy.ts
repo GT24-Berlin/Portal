@@ -82,6 +82,29 @@ export async function getInternalMembership(
   return membership;
 }
 
+// ── requireInternalAdmin ──────────────────────────────────────────────────────
+//
+// Enforces that the caller is an authenticated INTERNAL org ADMIN or OWNER.
+// Returns 401 if no Clerk session, 403 if identity exists but authorization fails.
+// No Clerk-role fallback. No publicMetadata fallback. Default deny.
+
+export type InternalAdminResult =
+  | { ok: true; clerkUserId: string }
+  | { ok: false; status: 401 | 403 };
+
+export async function requireInternalAdmin(): Promise<InternalAdminResult> {
+  const identity = await requireIdentity();
+  if (!identity.ok) return { ok: false, status: 401 };
+
+  const membership = await getInternalMembership(identity.clerkUserId);
+  if (!membership) return { ok: false, status: 403 };
+
+  const adminRoles: MembershipRole[] = ['ADMIN', 'OWNER'];
+  if (!adminRoles.includes(membership.role)) return { ok: false, status: 403 };
+
+  return { ok: true, clerkUserId: identity.clerkUserId };
+}
+
 // ── getCaseOrganizations ──────────────────────────────────────────────────────
 //
 // Returns all CaseOrganization rows for a case, with the Organization relation.

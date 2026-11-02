@@ -317,6 +317,11 @@ describe('Phase 3A policy: policy.ts file structure', () => {
     expect(content).toContain('export async function getCaseOrganizations');
   });
 
+  it('exports requireInternalAdmin', () => {
+    const content = readFileSync(POLICY_PATH, 'utf-8');
+    expect(content).toContain('export async function requireInternalAdmin');
+  });
+
   it('does NOT import from rbac.ts (keeps separation)', () => {
     const content = readFileSync(POLICY_PATH, 'utf-8');
     expect(content).not.toContain("from '@/lib/rbac'");
@@ -510,5 +515,182 @@ describe('Phase 3A policy: getCaseOrganizations()', () => {
     expect(result).toHaveLength(1);
     expect(result[0].role).toBe('OWNER');
     expect(result[0].organization.type).toBe('INTERNAL');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 3B: requireInternalAdmin() — functional tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Phase 3B policy: requireInternalAdmin()', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.clearAllMocks();
+  });
+
+  it('returns ok:false status 401 when no Clerk session', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(401);
+  });
+
+  it('returns ok:false status 403 when user has no INTERNAL membership', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({
+      userId: 'user_test_gutachter_001'
+    } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue(null);
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(403);
+  });
+
+  it('returns ok:false status 403 when INTERNAL membership role is MEMBER', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({ userId: 'user_test_member' } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue({
+      id: 'mem-1',
+      clerkUserId: 'user_test_member',
+      organizationId: 'org-gt24-internal',
+      role: 'MEMBER',
+      status: 'ACTIVE',
+      organization: {
+        id: 'org-gt24-internal',
+        type: 'INTERNAL',
+        status: 'ACTIVE'
+      }
+    });
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(403);
+  });
+
+  it('returns ok:false status 403 when INTERNAL membership role is VIEWER', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({ userId: 'user_test_viewer' } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue({
+      id: 'mem-2',
+      clerkUserId: 'user_test_viewer',
+      organizationId: 'org-gt24-internal',
+      role: 'VIEWER',
+      status: 'ACTIVE',
+      organization: {
+        id: 'org-gt24-internal',
+        type: 'INTERNAL',
+        status: 'ACTIVE'
+      }
+    });
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.status).toBe(403);
+  });
+
+  it('returns ok:true with clerkUserId when INTERNAL membership role is ADMIN', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({ userId: 'user_test_admin' } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue({
+      id: 'mem-3',
+      clerkUserId: 'user_test_admin',
+      organizationId: 'org-gt24-internal',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      organization: {
+        id: 'org-gt24-internal',
+        type: 'INTERNAL',
+        status: 'ACTIVE'
+      }
+    });
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.clerkUserId).toBe('user_test_admin');
+  });
+
+  it('returns ok:true with clerkUserId when INTERNAL membership role is OWNER', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    vi.mocked(auth).mockResolvedValue({ userId: 'user_test_owner' } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue({
+      id: 'mem-4',
+      clerkUserId: 'user_test_owner',
+      organizationId: 'org-gt24-internal',
+      role: 'OWNER',
+      status: 'ACTIVE',
+      organization: {
+        id: 'org-gt24-internal',
+        type: 'INTERNAL',
+        status: 'ACTIVE'
+      }
+    });
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.clerkUserId).toBe('user_test_owner');
+  });
+
+  it('does not rely on Clerk publicMetadata — DB-only authorization', async () => {
+    const { auth } = await import('@clerk/nextjs/server');
+    // Provide userId but empty sessionClaims — no publicMetadata.role
+    vi.mocked(auth).mockResolvedValue({
+      userId: 'user_test_admin',
+      sessionClaims: {}
+    } as any);
+    mockPrisma.membership.findFirst.mockResolvedValue({
+      id: 'mem-5',
+      clerkUserId: 'user_test_admin',
+      organizationId: 'org-gt24-internal',
+      role: 'ADMIN',
+      status: 'ACTIVE',
+      organization: {
+        id: 'org-gt24-internal',
+        type: 'INTERNAL',
+        status: 'ACTIVE'
+      }
+    });
+    const { requireInternalAdmin } = await import('@/lib/policy');
+    const result = await requireInternalAdmin();
+    // Authorization is DB-only — passes without publicMetadata.role
+    expect(result.ok).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PHASE 3B: gutachten/extract route — structure verification
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('Phase 3B: gutachten/extract route uses DB policy (no direct auth())', () => {
+  const EXTRACT_ROUTE_PATH = path.resolve(
+    __dirname,
+    '../../src/app/api/cases/[id]/gutachten/extract/route.ts'
+  );
+
+  it('extract route file exists', () => {
+    expect(existsSync(EXTRACT_ROUTE_PATH)).toBe(true);
+  });
+
+  it('imports requireInternalAdmin from policy', () => {
+    const content = readFileSync(EXTRACT_ROUTE_PATH, 'utf-8');
+    expect(content).toContain("from '@/lib/policy'");
+    expect(content).toContain('requireInternalAdmin');
+  });
+
+  it('does NOT import auth directly from @clerk/nextjs/server', () => {
+    const content = readFileSync(EXTRACT_ROUTE_PATH, 'utf-8');
+    expect(content).not.toContain("from '@clerk/nextjs/server'");
+  });
+
+  it('does NOT use publicMetadata fallback', () => {
+    const content = readFileSync(EXTRACT_ROUTE_PATH, 'utf-8');
+    expect(content).not.toContain('publicMetadata');
+  });
+
+  it('does NOT use rbac.ts helpers', () => {
+    const content = readFileSync(EXTRACT_ROUTE_PATH, 'utf-8');
+    expect(content).not.toContain("from '@/lib/rbac'");
   });
 });
