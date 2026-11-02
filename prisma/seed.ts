@@ -1,9 +1,16 @@
 /**
- * GT24 NEXT — Deterministic Synthetic Seed (v2)
+ * GT24 NEXT — Deterministic Synthetic Seed (v3)
  *
  * All data is synthetic. No real customer information.
  * All emails use @gt24-test.internal domain (SC-10/SC-18).
  * All names are fictional.
+ *
+ * Phase 3A additions:
+ *   Organizations, Memberships, Partner→Org links, CaseOrganization(OWNER)
+ *
+ * Bootstrap optional admin:
+ *   BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID=user_xxx pnpm exec tsx prisma/seed.ts
+ *   If absent, INTERNAL admin membership is skipped (warning logged).
  *
  * Run: pnpm exec tsx prisma/seed.ts
  * Requires: GT24 NEXT Supabase database (not production).
@@ -37,6 +44,11 @@ const prisma = new PrismaClient({
 const GUTACHTER_1_CLERK_ID = 'user_test_gutachter_001';
 const GUTACHTER_2_CLERK_ID = 'user_test_gutachter_002';
 const ANWALT_1_CLERK_ID = 'user_test_anwalt_001';
+
+// Phase 3A: Optional one-time bootstrap variable (never commit to .env)
+// Pass inline: BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID=user_xxx pnpm exec tsx prisma/seed.ts
+const BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID =
+  process.env.BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID?.trim() || null;
 
 async function main() {
   console.log('[seed] Starting GT24 NEXT synthetic seed v2...');
@@ -409,11 +421,205 @@ async function main() {
     }
   });
 
-  console.log('[seed] GT24 NEXT synthetic seed v2 complete.');
+  // -------------------------------------------------------------------------
+  // Phase 3A: Organizations
+  // -------------------------------------------------------------------------
+
+  const orgInternal = await prisma.organization.upsert({
+    where: { id: 'org-gt24-internal' },
+    update: {},
+    create: {
+      id: 'org-gt24-internal',
+      slug: 'gt24-internal',
+      name: 'Gutachtery24 Intern',
+      type: 'INTERNAL',
+      status: 'ACTIVE'
+    }
+  });
+
+  const orgGutachter1 = await prisma.organization.upsert({
+    where: { id: 'org-gutachter-1' },
+    update: {},
+    create: {
+      id: 'org-gutachter-1',
+      slug: 'muster-gutachten',
+      name: 'Muster Gutachten GmbH',
+      type: 'GUTACHTER',
+      status: 'ACTIVE'
+    }
+  });
+
+  const orgGutachter2 = await prisma.organization.upsert({
+    where: { id: 'org-gutachter-2' },
+    update: {},
+    create: {
+      id: 'org-gutachter-2',
+      slug: 'beispiel-sachverstaendige',
+      name: 'Beispiel Sachverständige',
+      type: 'GUTACHTER',
+      status: 'ACTIVE'
+    }
+  });
+
+  const orgLegal1 = await prisma.organization.upsert({
+    where: { id: 'org-legal-1' },
+    update: {},
+    create: {
+      id: 'org-legal-1',
+      slug: 'thomas-kanzlei',
+      name: 'Thomas Kanzlei',
+      type: 'LEGAL',
+      status: 'ACTIVE'
+    }
+  });
+
+  console.log(
+    '[seed] Phase 3A Organizations created:',
+    orgInternal.id,
+    orgGutachter1.id,
+    orgGutachter2.id,
+    orgLegal1.id
+  );
+
+  // -------------------------------------------------------------------------
+  // Phase 3A: Memberships
+  // -------------------------------------------------------------------------
+
+  await prisma.membership.upsert({
+    where: {
+      organizationId_clerkUserId: {
+        organizationId: orgGutachter1.id,
+        clerkUserId: GUTACHTER_1_CLERK_ID
+      }
+    },
+    update: {},
+    create: {
+      organizationId: orgGutachter1.id,
+      clerkUserId: GUTACHTER_1_CLERK_ID,
+      role: 'MEMBER',
+      status: 'ACTIVE'
+    }
+  });
+
+  await prisma.membership.upsert({
+    where: {
+      organizationId_clerkUserId: {
+        organizationId: orgGutachter2.id,
+        clerkUserId: GUTACHTER_2_CLERK_ID
+      }
+    },
+    update: {},
+    create: {
+      organizationId: orgGutachter2.id,
+      clerkUserId: GUTACHTER_2_CLERK_ID,
+      role: 'MEMBER',
+      status: 'ACTIVE'
+    }
+  });
+
+  await prisma.membership.upsert({
+    where: {
+      organizationId_clerkUserId: {
+        organizationId: orgLegal1.id,
+        clerkUserId: ANWALT_1_CLERK_ID
+      }
+    },
+    update: {},
+    create: {
+      organizationId: orgLegal1.id,
+      clerkUserId: ANWALT_1_CLERK_ID,
+      role: 'MEMBER',
+      status: 'ACTIVE'
+    }
+  });
+
+  if (BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID) {
+    await prisma.membership.upsert({
+      where: {
+        organizationId_clerkUserId: {
+          organizationId: orgInternal.id,
+          clerkUserId: BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID
+        }
+      },
+      update: {},
+      create: {
+        organizationId: orgInternal.id,
+        clerkUserId: BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID,
+        role: 'ADMIN',
+        status: 'ACTIVE'
+      }
+    });
+    console.log(
+      '[seed] Phase 3A Bootstrap admin membership created in INTERNAL org'
+    );
+  } else {
+    console.warn(
+      '[seed] Phase 3A BOOTSTRAP_INTERNAL_ADMIN_CLERK_ID not set — ' +
+        'skipping INTERNAL admin membership. Set it on first run.'
+    );
+  }
+
+  console.log(
+    '[seed] Phase 3A Memberships created: 3 partner + optional admin'
+  );
+
+  // -------------------------------------------------------------------------
+  // Phase 3A: Partner → Organization links
+  // -------------------------------------------------------------------------
+
+  await prisma.partner.update({
+    where: { id: 'seed-partner-gutachter-1' },
+    data: { organizationId: orgGutachter1.id }
+  });
+
+  await prisma.partner.update({
+    where: { id: 'seed-partner-gutachter-2' },
+    data: { organizationId: orgGutachter2.id }
+  });
+
+  await prisma.partner.update({
+    where: { id: 'seed-partner-anwalt-1' },
+    data: { organizationId: orgLegal1.id }
+  });
+
+  console.log('[seed] Phase 3A Partner→Organization links set');
+
+  // -------------------------------------------------------------------------
+  // Phase 3A: CaseOrganization (OWNER for seed-case-1)
+  // -------------------------------------------------------------------------
+
+  await prisma.caseOrganization.upsert({
+    where: {
+      caseId_organizationId_role: {
+        caseId: 'seed-case-1',
+        organizationId: orgInternal.id,
+        role: 'OWNER'
+      }
+    },
+    update: {},
+    create: {
+      caseId: 'seed-case-1',
+      organizationId: orgInternal.id,
+      role: 'OWNER'
+    }
+  });
+
+  console.log(
+    '[seed] Phase 3A CaseOrganization(OWNER) for seed-case-1 created'
+  );
+
+  // -------------------------------------------------------------------------
+  // Done
+  // -------------------------------------------------------------------------
+
+  console.log('[seed] GT24 NEXT synthetic seed v3 complete.');
   console.log('[seed] Summary: 3 Partners + Profiles, 2 Leads, 3 Cases,');
   console.log('[seed]          2 Assignments, 2 Files, 1 Insight,');
   console.log(
-    '[seed]          2 Notifications, 1 AvailabilitySlot, 1 Sequence'
+    '[seed]          2 Notifications, 1 AvailabilitySlot, 1 Sequence,'
+  );
+  console.log(
+    '[seed]          4 Organizations, 3+ Memberships, 3 Partner→Org, 1 CaseOrg'
   );
 }
 
