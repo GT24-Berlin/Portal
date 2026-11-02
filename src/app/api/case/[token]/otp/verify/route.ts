@@ -10,6 +10,10 @@ import {
   normalizeOtpEmail
 } from '@/lib/case-otp';
 import { logOperationalEvent } from '@/lib/ops-log';
+import {
+  mintCaseAccessGrant,
+  caseAccessCookieName
+} from '@/lib/case-access-grant';
 
 export const runtime = 'nodejs';
 
@@ -21,8 +25,14 @@ function clean(v: unknown) {
   return String(v ?? '').trim();
 }
 
-function setCaseCookie(res: NextResponse, token: string) {
-  res.cookies.set(`case_access_${token}`, '1', {
+function setGrantCookie(
+  res: NextResponse,
+  token: string,
+  caseId: string,
+  customerId: string
+) {
+  const grant = mintCaseAccessGrant(caseId, customerId);
+  res.cookies.set(caseAccessCookieName(token), grant, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -198,7 +208,7 @@ export async function POST(
         { ok: true, alreadyVerified: true },
         { status: 200 }
       );
-      setCaseCookie(res, token);
+      setGrantCookie(res, token, c.id, customerId);
       return res;
     }
 
@@ -252,7 +262,7 @@ export async function POST(
         { ok: true, alreadyVerified: true },
         { status: 200 }
       );
-      setCaseCookie(res, token);
+      setGrantCookie(res, token, c.id, customerId);
       return res;
     }
 
@@ -372,7 +382,7 @@ export async function POST(
     });
 
     const res = NextResponse.json({ ok: true }, { status: 200 });
-    setCaseCookie(res, token);
+    setGrantCookie(res, token, c.id, customerId);
     return res;
   } catch (e: any) {
     await logOperationalEvent({

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { caseAccessCookieName } from '@/lib/case-access-grant';
 
 export const runtime = 'nodejs';
 
@@ -48,18 +49,37 @@ export async function POST(
     const data = await res.json().catch(() => null);
 
     // Erfolg: Cookie MUSS hier gesetzt werden (fetch forwarded kein Set-Cookie an Browser)
+    // Grant value comes from otp/verify's Set-Cookie header via res headers
     if (res.ok && data?.ok) {
       const out = NextResponse.redirect(new URL(`/case/${token}`, req.url), {
         status: 303
       });
 
-      out.cookies.set(`case_access_${token}`, '1', {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7
-      });
+      // Extract the signed grant from the internal response Set-Cookie header
+      const setCookieHeader = res.headers.get('set-cookie') ?? '';
+      const cookieName = caseAccessCookieName(token);
+      const cookieNamePrefix = `${cookieName}=`;
+      let grantValue: string | null = null;
+      for (const part of setCookieHeader.split(',')) {
+        const trimmed = part.trim();
+        if (trimmed.startsWith(cookieNamePrefix)) {
+          grantValue = trimmed
+            .slice(cookieNamePrefix.length)
+            .split(';')[0]
+            .trim();
+          break;
+        }
+      }
+
+      if (grantValue) {
+        out.cookies.set(cookieName, grantValue, {
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: process.env.NODE_ENV === 'production',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7
+        });
+      }
 
       return out;
     }
