@@ -76,6 +76,16 @@ export function assertNextEnvironment(): void {
     );
   }
 
+  // SEC-003: Reject absent or too-short CASE_ACCESS_SECRET
+  const caseAccessSecret = process.env.CASE_ACCESS_SECRET;
+  if (!caseAccessSecret || caseAccessSecret.length < 64) {
+    throw new Error(
+      `[env-guard] CASE_ACCESS_SECRET is ${caseAccessSecret ? 'too short (min 64 chars)' : 'not set'}. ` +
+        `Generate a secure value: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" ` +
+        `and set it as CASE_ACCESS_SECRET in Vercel NEXT. SEC-003.`
+    );
+  }
+
   // SC-10: Reject real @gutachtery24.de email addresses in mail config
   const mailFrom = process.env.MAIL_FROM ?? '';
   const adminEmail = process.env.ADMIN_NOTIFY_EMAIL ?? '';
@@ -99,6 +109,7 @@ export function assertNextEnvironment(): void {
         : 'UNKNOWN'
       : '(unset)',
     OTP_SECRET: 'present',
+    CASE_ACCESS_SECRET: 'present',
     SENTRY_DISABLED: process.env.NEXT_PUBLIC_SENTRY_DISABLED ?? '(unset)'
   };
 
