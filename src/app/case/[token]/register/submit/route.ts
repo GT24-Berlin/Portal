@@ -34,7 +34,7 @@ export async function POST(
 
   const found = await prisma.case.findUnique({
     where: { token },
-    select: { id: true, token: true, customer: { select: { id: true } } }
+    select: { id: true, token: true }
   });
 
   if (!found)
@@ -43,17 +43,20 @@ export async function POST(
       { status: 404 }
     );
 
-  // Idempotent: upsert (falls Kunde refresh/submit doppelt)
-  await prisma.caseCustomer.upsert({
+  // SEC-002: Reject if customer already exists (prevents PII overwrite)
+  const existing = await prisma.caseCustomer.findUnique({
     where: { caseId: found.id },
-    create: {
+    select: { id: true }
+  });
+  if (existing) {
+    return NextResponse.redirect(new URL(`/case/${token}/verify`, req.url), {
+      status: 303
+    });
+  }
+
+  await prisma.caseCustomer.create({
+    data: {
       caseId: found.id,
-      firstName,
-      lastName,
-      email,
-      phone
-    },
-    update: {
       firstName,
       lastName,
       email,

@@ -53,16 +53,21 @@ export async function POST(
       );
     }
 
-    const customer = await prisma.caseCustomer.upsert({
+    // SEC-002: Reject if customer already exists (prevents PII overwrite)
+    const existing = await prisma.caseCustomer.findUnique({
       where: { caseId: c.id },
-      create: {
+      select: { id: true }
+    });
+    if (existing) {
+      return NextResponse.json(
+        { ok: false, error: 'already_registered' },
+        { status: 409 }
+      );
+    }
+
+    const customer = await prisma.caseCustomer.create({
+      data: {
         caseId: c.id,
-        firstName,
-        lastName,
-        email,
-        phone
-      },
-      update: {
         firstName,
         lastName,
         email,
