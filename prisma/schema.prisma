@@ -13,6 +13,97 @@ datasource db {
   provider = "postgresql"
 }
 
+// ── Phase 3A: Organization & Tenancy ─────────────────────────────────────────
+
+enum OrganizationType {
+  INTERNAL
+  GUTACHTER
+  LEGAL
+  FLEET
+  AGENCY
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+enum CaseOrganizationRole {
+  OWNER
+  ORIGINATOR
+  ASSIGNED
+  INVOLVED
+}
+
+model Organization {
+  id        String             @id @default(cuid())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  name   String
+  slug   String             @unique
+  type   OrganizationType
+  status OrganizationStatus @default(ACTIVE)
+
+  memberships       Membership[]
+  partners          Partner[]
+  caseOrganizations CaseOrganization[]
+
+  @@index([type, status])
+  @@index([slug])
+}
+
+model Membership {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  clerkUserId String
+
+  role   MembershipRole
+  status MembershipStatus @default(ACTIVE)
+
+  @@unique([organizationId, clerkUserId])
+  @@index([clerkUserId, status])
+  @@index([organizationId, status])
+}
+
+model CaseOrganization {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  caseId         String
+  case           Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  role CaseOrganizationRole
+
+  @@unique([caseId, organizationId, role])
+  @@index([caseId])
+  @@index([organizationId, role])
+}
+
+// ── Existing enums ────────────────────────────────────────────────────────────
+
 enum PartnerType {
   GUTACHTER
   ANWALT
@@ -313,6 +404,10 @@ model Partner {
   region String?
   email  String?
 
+  // Phase 3A: organization FK (nullable — additive)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
   leads Lead[]
   cases Case[] @relation("CasePartner")
   availabilitySlots   PartnerAvailabilitySlot[]
@@ -412,6 +507,9 @@ model Case {
   operationalEvents OperationalEvent[]
   caseCustomerOtps CaseCustomerOtp[]
   appointmentRequests CaseAppointmentRequest[]
+
+  // Phase 3A: organizational relationships
+  caseOrganizations CaseOrganization[]
 }
 
 model CaseNumberSequence {
