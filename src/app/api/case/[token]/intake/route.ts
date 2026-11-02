@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { ClaimRoute, InsuranceParty } from '@prisma/client';
+import {
+  verifyCaseAccessGrant,
+  caseAccessCookieName
+} from '@/lib/case-access-grant';
 
 export const runtime = 'nodejs';
 
@@ -68,13 +73,39 @@ export async function GET(
 
     const c = await prisma.case.findUnique({
       where: { token },
-      select: { id: true }
+      select: {
+        id: true,
+        customer: { select: { id: true, otpVerifiedAt: true } }
+      }
     });
 
     if (!c) {
       return NextResponse.json(
         { ok: false, error: 'case not found' },
         { status: 404 }
+      );
+    }
+
+    // SEC-003: 4-layer auth
+    if (!c.customer?.id || !c.customer.otpVerifiedAt) {
+      return NextResponse.json(
+        { ok: false, error: 'not verified' },
+        { status: 403 }
+      );
+    }
+    const jar = await cookies();
+    const grantToken = jar.get(caseAccessCookieName(token))?.value ?? '';
+    const grant = verifyCaseAccessGrant(grantToken, c.id);
+    if (!grant.ok) {
+      return NextResponse.json(
+        { ok: false, error: 'unauthorized' },
+        { status: 401 }
+      );
+    }
+    if (grant.customerId !== c.customer.id) {
+      return NextResponse.json(
+        { ok: false, error: 'customer_mismatch' },
+        { status: 403 }
       );
     }
 
@@ -154,13 +185,39 @@ export async function POST(
 
     const c = await prisma.case.findUnique({
       where: { token },
-      select: { id: true }
+      select: {
+        id: true,
+        customer: { select: { id: true, otpVerifiedAt: true } }
+      }
     });
 
     if (!c) {
       return NextResponse.json(
         { ok: false, error: 'case not found' },
         { status: 404 }
+      );
+    }
+
+    // SEC-003: 4-layer auth
+    if (!c.customer?.id || !c.customer.otpVerifiedAt) {
+      return NextResponse.json(
+        { ok: false, error: 'not verified' },
+        { status: 403 }
+      );
+    }
+    const jar = await cookies();
+    const grantToken = jar.get(caseAccessCookieName(token))?.value ?? '';
+    const grant = verifyCaseAccessGrant(grantToken, c.id);
+    if (!grant.ok) {
+      return NextResponse.json(
+        { ok: false, error: 'unauthorized' },
+        { status: 401 }
+      );
+    }
+    if (grant.customerId !== c.customer.id) {
+      return NextResponse.json(
+        { ok: false, error: 'customer_mismatch' },
+        { status: 403 }
       );
     }
 
