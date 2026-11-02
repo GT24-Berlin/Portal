@@ -49,7 +49,8 @@ const SAFE_NEXT_ENV = {
   CLERK_SECRET_KEY: 'sk_test_abc123',
   MAIL_FROM: 'noreply@gt24-test.internal',
   ADMIN_NOTIFY_EMAIL: 'admin@gt24-test.internal',
-  OTP_SECRET: 'a'.repeat(64)
+  OTP_SECRET: 'a'.repeat(64),
+  CASE_ACCESS_SECRET: 'b'.repeat(64)
 };
 
 describe('env-guard: assertNextEnvironment()', () => {
@@ -163,5 +164,27 @@ describe('env-guard: assertNextEnvironment()', () => {
         expect(() => assertNextEnvironment()).toThrow(/@gutachtery24\.de/);
       }
     );
+  });
+
+  // SEC-003: CASE_ACCESS_SECRET
+  it('SEC-003: rejects when CASE_ACCESS_SECRET is absent', async () => {
+    const { assertNextEnvironment } = await loadGuard();
+    withEnv({ ...SAFE_NEXT_ENV, CASE_ACCESS_SECRET: undefined }, () => {
+      expect(() => assertNextEnvironment()).toThrow(/CASE_ACCESS_SECRET/);
+    });
+  });
+
+  it('SEC-003: rejects when CASE_ACCESS_SECRET is too short', async () => {
+    const { assertNextEnvironment } = await loadGuard();
+    withEnv({ ...SAFE_NEXT_ENV, CASE_ACCESS_SECRET: 'short' }, () => {
+      expect(() => assertNextEnvironment()).toThrow(/CASE_ACCESS_SECRET/);
+    });
+  });
+
+  it('SEC-003: passes when CASE_ACCESS_SECRET is 64+ chars', async () => {
+    const { assertNextEnvironment } = await loadGuard();
+    withEnv({ ...SAFE_NEXT_ENV, CASE_ACCESS_SECRET: 'c'.repeat(64) }, () => {
+      expect(() => assertNextEnvironment()).not.toThrow();
+    });
   });
 });
