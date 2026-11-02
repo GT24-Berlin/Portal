@@ -8,6 +8,10 @@ import CaseTopNav from '@/components/case/case-top-nav';
 import CaseCustomerUploadsMini from '@/components/case/case-customer-uploads-mini';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
+import {
+  verifyCaseAccessGrant,
+  caseAccessCookieName
+} from '@/lib/case-access-grant';
 import CustomerJourneyCard from '@/features/customer-journey/components/customer-journey-card';
 import { getCustomerJourney } from '@/features/customer-journey/lib/get-customer-journey';
 import { getPartnerProfile } from '@/features/partner-profile/lib/get-partner-profile';
@@ -179,11 +183,13 @@ export default async function CaseTokenPage({
       redirect(`/case/${token}/verify`);
     }
 
-    // 3) OPTIONAL: Cookie-Gate nur als Zusatzschutz (nicht mehr Pflicht)
+    // 3) Signed grant check — validates active session (SEC-003)
     const jar = await cookies();
-    const hasAccess = jar.get(`case_access_${token}`)?.value === '1';
+    const grantToken = jar.get(caseAccessCookieName(token))?.value ?? '';
+    const grantResult = verifyCaseAccessGrant(grantToken, found.id);
+    const hasAccess = grantResult.ok;
 
-    // Wenn verified aber Cookie fehlt -> NICHT mehr blocken (kein Redirect!)
+    // If verified but grant missing/expired -> show refresh component (no redirect)
 
     const events = (found.events ?? []).map((e) => ({
       lane: e.lane as 'GUTACHTER' | 'ANWALT',
