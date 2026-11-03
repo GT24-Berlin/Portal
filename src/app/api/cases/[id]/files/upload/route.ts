@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
+import { requireCaseWrite } from '@/lib/policy';
 import { putStoredFile } from '@/lib/storage';
 import { logOperationalEvent } from '@/lib/ops-log';
 import type { ProcessCaseFileResult } from '@/features/gutachten-insights/lib/process-case-file';
@@ -63,88 +63,131 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const guard = await requireRole();
-
-    if (!guard.ok) {
-      await logOperationalEvent({
-        caseId: null,
-        domain: 'FILE',
-        action: 'UPLOAD',
-        result: 'DENIED',
-        actorType: 'SYSTEM',
-        actorId: null,
-        message:
-          guard.status === 401
-            ? 'Partner/Admin upload denied: unauthorized'
-            : 'Partner/Admin upload denied: forbidden',
-        metadata: {
-          status: guard.status
-        }
-      });
-
-      return NextResponse.json(
-        {
-          ok: false,
-          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
-        },
-        { status: guard.status }
-      );
-    }
-
     const { id: caseId } = await params;
     if (!caseId) {
-      await logOperationalEvent({
-        caseId: null,
-        domain: 'FILE',
-        action: 'UPLOAD',
-        result: 'DENIED',
-        actorType: isAdmin(guard.role) ? 'ADMIN' : 'PARTNER',
-        actorId: guard.userId ?? null,
-        message: 'Partner/Admin upload denied: missing case id',
-        metadata: {}
-      });
-
       return NextResponse.json(
         { ok: false, error: 'Missing case id' },
         { status: 400 }
       );
     }
 
-    const role = guard.role;
-    const userId = guard.userId!;
+    // ── Step 1: Authorization — DB-backed, no Clerk metadata fallback ─────────
+    //
+    // Try INTERNAL admin path first (FILES_ADMIN: INTERNAL org + ADMIN/OWNER +
+    // OWNER CaseOrg). If that fails for any reason other than 401 (unauthenticated),
+    // try the partner path (FILES_PARTNER: ASSIGNED CaseOrg + ACCEPTED active
+    // assignment with activeKey='ACTIVE').
 
-    if (isPartner(role) && !isAdmin(role)) {
-      const a = await prisma.caseAssignment.findFirst({
-        where: {
-          caseId,
-          assigneeClerkUserId: userId,
-          role: role as any,
-          activeKey: 'ACTIVE',
-          status: 'ACCEPTED' as any
-        },
-        select: { id: true }
+    const adminGuard = await requireCaseWrite(caseId, 'FILES_ADMIN');
+
+    let isAdminCaller: boolean;
+    let clerkUserId: string;
+    let derivedLane: CaseLane | null;
+
+    if (adminGuard.ok) {
+      isAdminCaller = true;
+      clerkUserId = adminGuard.clerkUserId;
+      derivedLane = null; // admin uploads go to the admin folder
+    } else if (adminGuard.status === 401) {
+      await logOperationalEvent({
+        caseId,
+        domain: 'FILE',
+        action: 'UPLOAD',
+        result: 'DENIED',
+        actorType: 'SYSTEM',
+        actorId: null,
+        message: 'Upload denied: unauthorized',
+        metadata: { status: 401 }
       });
+      return NextResponse.json(
+        { ok: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    } else {
+      // Not an INTERNAL admin (403 or 404) — try partner path
+      const partnerGuard = await requireCaseWrite(caseId, 'FILES_PARTNER');
 
-      if (!a) {
+      if (!partnerGuard.ok) {
+        const status = partnerGuard.status === 401 ? 401 : 403;
+        await logOperationalEvent({
+          caseId,
+          domain: 'FILE',
+          action: 'UPLOAD',
+          result: 'DENIED',
+          actorType: 'SYSTEM',
+          actorId: null,
+          message:
+            status === 401
+              ? 'Upload denied: unauthorized'
+              : 'Upload denied: forbidden (no write capability)',
+          metadata: {
+            adminStatus: adminGuard.status,
+            partnerStatus: partnerGuard.status
+          }
+        });
+        return NextResponse.json(
+          { ok: false, error: status === 401 ? 'Unauthorized' : 'Forbidden' },
+          { status }
+        );
+      }
+
+      // ── Step 2: Derive lane from DB org type — never trust client input ─────
+      //
+      // The CaseLane is determined exclusively from the caller's DB organization
+      // type. GUTACHTER org → GUTACHTER lane; LEGAL org → ANWALT lane.
+
+      const assignedCaseOrg = partnerGuard.caseOrgs.find(
+        (co) => co.role === 'ASSIGNED'
+      );
+      if (!assignedCaseOrg) {
+        // Invariant violation: FILES_PARTNER succeeded but no ASSIGNED CaseOrg
         await logOperationalEvent({
           caseId,
           domain: 'FILE',
           action: 'UPLOAD',
           result: 'DENIED',
           actorType: 'PARTNER',
-          actorId: userId,
-          message: 'Partner upload denied: no accepted active assignment',
-          metadata: {
-            role
-          }
+          actorId: partnerGuard.clerkUserId,
+          message:
+            'Upload denied: no ASSIGNED CaseOrg despite FILES_PARTNER grant',
+          metadata: {}
         });
-
         return NextResponse.json(
           { ok: false, error: 'Forbidden' },
           { status: 403 }
         );
       }
+
+      const orgType = assignedCaseOrg.organization.type;
+      if (orgType === 'GUTACHTER') {
+        derivedLane = CaseLane.GUTACHTER;
+      } else if (orgType === 'LEGAL') {
+        derivedLane = CaseLane.ANWALT;
+      } else {
+        await logOperationalEvent({
+          caseId,
+          domain: 'FILE',
+          action: 'UPLOAD',
+          result: 'DENIED',
+          actorType: 'PARTNER',
+          actorId: partnerGuard.clerkUserId,
+          message: `Upload denied: unexpected partner org type ${orgType}`,
+          metadata: { orgType }
+        });
+        return NextResponse.json(
+          { ok: false, error: `Unsupported partner org type: ${orgType}` },
+          { status: 422 }
+        );
+      }
+
+      isAdminCaller = false;
+      clerkUserId = partnerGuard.clerkUserId;
     }
+
+    // ── Step 3: Parse and validate file + metadata ────────────────────────────
+    //
+    // Authorization is complete before any form data is read. Storage is never
+    // touched for unauthorized requests.
 
     const form = await req.formData();
     const file = form.get('file');
@@ -155,14 +198,11 @@ export async function POST(
         domain: 'FILE',
         action: 'UPLOAD',
         result: 'DENIED',
-        actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
-        actorId: userId,
-        message: 'Partner/Admin upload denied: file missing',
-        metadata: {
-          role
-        }
+        actorType: isAdminCaller ? 'ADMIN' : 'PARTNER',
+        actorId: clerkUserId,
+        message: 'Upload denied: file missing',
+        metadata: { isAdminCaller, derivedLane }
       });
-
       return NextResponse.json(
         { ok: false, error: 'file required' },
         { status: 400 }
@@ -173,55 +213,30 @@ export async function POST(
     const visibility = asVisibility(form.get('visibility'));
     const category = asCategory(clean(form.get('category')));
 
-    const c = await prisma.case.findUnique({
-      where: { id: caseId },
-      select: { id: true }
-    });
+    // ── Step 4: Write to storage ──────────────────────────────────────────────
+    //
+    // Only reached after full authorization. caseId is always from the route
+    // param — no client-supplied override is accepted.
 
-    if (!c) {
-      await logOperationalEvent({
-        caseId,
-        domain: 'FILE',
-        action: 'UPLOAD',
-        result: 'DENIED',
-        actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
-        actorId: userId,
-        message: 'Partner/Admin upload denied: case not found',
-        metadata: {
-          role
-        }
-      });
+    const folder = derivedLane
+      ? `cases/${caseId}/partners/${String(derivedLane).toLowerCase()}`
+      : `cases/${caseId}/partners/admin`;
 
-      return NextResponse.json(
-        { ok: false, error: 'case not found' },
-        { status: 404 }
-      );
-    }
+    const saved = await putStoredFile({ file, folder });
 
-    const lane: CaseLane | null =
-      role === 'GUTACHTER'
-        ? CaseLane.GUTACHTER
-        : role === 'ANWALT'
-          ? CaseLane.ANWALT
-          : null;
-
-    const folder = lane
-      ? `cases/${c.id}/partners/${String(lane).toLowerCase()}`
-      : `cases/${c.id}/partners/admin`;
-
-    const saved = await putStoredFile({
-      file,
-      folder
-    });
+    // ── Step 5: Create CaseFile record ────────────────────────────────────────
+    //
+    // storageKey stored in DB but excluded from the select — never returned
+    // to the client response.
 
     const createdFile = await prisma.caseFile.create({
       data: {
-        caseId: c.id,
-        uploaderType: isAdmin(role)
+        caseId,
+        uploaderType: isAdminCaller
           ? CaseFileUploaderType.ADMIN
           : CaseFileUploaderType.PARTNER,
-        uploaderId: userId,
-        role: lane,
+        uploaderId: clerkUserId,
+        role: derivedLane,
         visibility,
         category,
         title,
@@ -242,7 +257,7 @@ export async function POST(
         filename: true,
         mimeType: true,
         size: true,
-        storageKey: true,
+        // storageKey intentionally omitted — never expose to clients
         createdAt: true
       } as any
     });
@@ -250,16 +265,15 @@ export async function POST(
     const createdFileId = String(createdFile.id);
 
     await logOperationalEvent({
-      caseId: c.id,
+      caseId,
       domain: 'FILE',
       action: 'UPLOAD',
       result: 'SUCCESS',
-      actorType: isAdmin(role) ? 'ADMIN' : 'PARTNER',
-      actorId: userId,
-      message: 'Partner/Admin file upload successful',
+      actorType: isAdminCaller ? 'ADMIN' : 'PARTNER',
+      actorId: clerkUserId,
+      message: 'File upload successful',
       metadata: {
-        role,
-        lane,
+        lane: derivedLane,
         fileId: createdFileId,
         filename: createdFile.filename,
         title: createdFile.title,
@@ -267,7 +281,7 @@ export async function POST(
         size: createdFile.size,
         visibility: createdFile.visibility,
         category: createdFile.category,
-        storageKey: createdFile.storageKey
+        storageKey: saved.storageKey // internal log only
       }
     });
 
@@ -283,12 +297,12 @@ export async function POST(
           '@/features/gutachten-insights/lib/process-case-file'
         );
         processingResult = await processCaseFile({
-          caseId: c.id,
+          caseId,
           fileId: createdFileId
         });
       } catch (error) {
         console.warn('[file-upload] post-process degraded', {
-          caseId: c.id,
+          caseId,
           fileId: createdFileId,
           message: error instanceof Error ? error.message : String(error)
         });
@@ -364,10 +378,8 @@ export async function POST(
       result: 'FAILED',
       actorType: 'SYSTEM',
       actorId: null,
-      message: 'Partner/Admin file upload failed',
-      metadata: {
-        error: String(e?.message ?? e)
-      }
+      message: 'File upload failed',
+      metadata: { error: String(e?.message ?? e) }
     });
 
     return NextResponse.json(
