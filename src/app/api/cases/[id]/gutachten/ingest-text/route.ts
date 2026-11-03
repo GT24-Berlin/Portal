@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/prisma';
 import { findCaseGutachtenFile } from '@/features/gutachten-insights/lib/find-case-gutachten-file';
+import { requireInternalAdmin } from '@/lib/policy';
 
 export const runtime = 'nodejs';
 
@@ -9,16 +9,18 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireInternalAdmin();
+  if (!authResult.ok) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: authResult.status === 401 ? 'Unauthorized' : 'Forbidden'
+      },
+      { status: authResult.status }
+    );
+  }
+
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
-      return NextResponse.json(
-        { ok: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     const { id: caseId } = await params;
 
     const found = await prisma.case.findUnique({
