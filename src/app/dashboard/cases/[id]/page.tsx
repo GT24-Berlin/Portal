@@ -36,12 +36,19 @@ export default async function CaseDetailPage({
       (co) => co.organization.type === 'INTERNAL'
     );
 
+    // Admin controls require INTERNAL org + ADMIN or OWNER membership role
+    const isInternalAdmin = caseAccess.memberships.some(
+      (m) =>
+        m.organization.type === 'INTERNAL' &&
+        (m.role === 'ADMIN' || m.role === 'OWNER')
+    );
+
     let canEdit: boolean;
     let effectiveRole: 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
     if (isInternalCaller) {
-      canEdit = true;
-      effectiveRole = 'ADMIN';
+      canEdit = isInternalAdmin;
+      effectiveRole = isInternalAdmin ? 'ADMIN' : '';
     } else {
       // Level 2: partner must have a live ACCEPTED assignment
       const assignmentAccess = await requireCaseAssignmentAccess(id);
@@ -261,7 +268,7 @@ export default async function CaseDetailPage({
           </section>
 
           <div className='grid gap-6'>
-            {isInternalCaller ? <CaseAssignmentAdmin caseId={c.id} /> : null}
+            {isInternalAdmin ? <CaseAssignmentAdmin caseId={c.id} /> : null}
 
             <CaseStatusEditor
               caseId={c.id}

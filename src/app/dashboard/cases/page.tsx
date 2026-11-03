@@ -63,7 +63,9 @@ export default async function CasesPage({
     if (memberships.length === 0) redirect('/auth/sign-in');
 
     const isInternalUser = memberships.some(
-      (m) => m.organization.type === 'INTERNAL'
+      (m) =>
+        m.organization.type === 'INTERNAL' &&
+        (m.role === 'ADMIN' || m.role === 'OWNER')
     );
 
     let adminCases: any[] = [];
