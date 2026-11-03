@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/rbac';
+import { requireInternalAdmin, getInternalMembership } from '@/lib/policy';
 import { getNextCaseNumber } from '@/features/case-number/server/get-next-case-number';
 import { createCaseWithUniqueToken } from '@/features/case-token/server/case-token';
 
@@ -12,7 +12,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const guard = await requireAdmin();
+    // DB-backed authorization — no Clerk metadata fallback
+    const guard = await requireInternalAdmin();
     if (!guard.ok) {
       return NextResponse.json(
         {
@@ -22,6 +23,17 @@ export async function POST(
         { status: guard.status }
       );
     }
+
+    // Fetch the INTERNAL org ID for the OWNER CaseOrganization
+    const internalMembership = await getInternalMembership(guard.clerkUserId);
+    if (!internalMembership) {
+      return NextResponse.json(
+        { ok: false, error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    const internalOrgId = internalMembership.organizationId;
 
     const { id: leadId } = await params;
     if (!leadId) {
@@ -89,6 +101,23 @@ export async function POST(
           include: { events: { orderBy: { occurredAt: 'asc' } } }
         })
       );
+
+      // Establish tenant ownership atomically — OWNER CaseOrganization
+      await tx.caseOrganization.upsert({
+        where: {
+          caseId_organizationId_role: {
+            caseId: caseRecord.id,
+            organizationId: internalOrgId,
+            role: 'OWNER'
+          }
+        },
+        update: {},
+        create: {
+          caseId: caseRecord.id,
+          organizationId: internalOrgId,
+          role: 'OWNER'
+        }
+      });
 
       await tx.lead.update({
         where: { id: leadId },

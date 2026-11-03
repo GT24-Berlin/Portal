@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { prisma } from '@/lib/prisma';
-import { requireRole, isAdmin, isPartner, type Role } from '@/lib/rbac';
+import { requireIdentity, getActiveMemberships } from '@/lib/policy';
 import { redirect } from 'next/navigation';
 import AdminCasesTable from '@/components/cases/admin-cases-table';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
@@ -53,18 +53,35 @@ export default async function CasesPage({
   try {
     const sp = (await searchParams) ?? {};
     const view = String(sp.view ?? '').toLowerCase(); // "accepted" | "pending" | ""
-    const guard = await requireRole();
-    if (!guard.ok) redirect('/auth/sign-in');
 
-    const userId = guard.userId!;
-    const role = guard.role as Role;
+    // DB-backed identity — no Clerk metadata fallback
+    const identity = await requireIdentity();
+    if (!identity.ok) redirect('/auth/sign-in');
+
+    const clerkUserId = identity.clerkUserId;
+    const memberships = await getActiveMemberships(clerkUserId);
+    if (memberships.length === 0) redirect('/auth/sign-in');
+
+    const isInternalUser = memberships.some(
+      (m) => m.organization.type === 'INTERNAL'
+    );
 
     let adminCases: any[] = [];
     let pendingCases: any[] = [];
     let activeCases: any[] = [];
 
-    if (isAdmin(role)) {
+    if (isInternalUser) {
+      // Tenant-scoped: only cases where this INTERNAL org has OWNER CaseOrganization
+      const internalOrgIds = memberships
+        .filter((m) => m.organization.type === 'INTERNAL')
+        .map((m) => m.organizationId);
+
       adminCases = await prisma.case.findMany({
+        where: {
+          caseOrganizations: {
+            some: { organizationId: { in: internalOrgIds }, role: 'OWNER' }
+          }
+        },
         orderBy: { updatedAt: 'desc' },
         include: {
           customer: {
@@ -92,7 +109,13 @@ export default async function CasesPage({
         },
         take: 50
       });
-    } else if (isPartner(role)) {
+    } else {
+      // Partner: cases where this user's org has ASSIGNED CaseOrganization
+      // and the user has an active assignment on the case
+      const partnerOrgIds = memberships
+        .filter((m) => m.organization.type !== 'INTERNAL')
+        .map((m) => m.organizationId);
+
       const wantAccepted = view === 'accepted';
       const wantPending = view === 'pending';
 
@@ -104,12 +127,15 @@ export default async function CasesPage({
 
       const partnerCases = await prisma.case.findMany({
         where: {
+          caseOrganizations: {
+            some: { organizationId: { in: partnerOrgIds }, role: 'ASSIGNED' }
+          },
           assignments: {
             some: {
+              assigneeClerkUserId: clerkUserId,
+              activeKey: 'ACTIVE',
               active: true,
-              status: { in: statuses as any },
-              assigneeClerkUserId: userId,
-              role: role as any
+              status: { in: statuses as any }
             }
           }
         },
@@ -134,8 +160,8 @@ export default async function CasesPage({
             c.assignments?.some(
               (a: any) =>
                 a.active &&
-                a.role === role &&
-                a.assigneeClerkUserId === userId &&
+                a.activeKey === 'ACTIVE' &&
+                a.assigneeClerkUserId === clerkUserId &&
                 a.status === 'PENDING'
             )
           );
@@ -146,8 +172,8 @@ export default async function CasesPage({
             c.assignments?.some(
               (a: any) =>
                 a.active &&
-                a.role === role &&
-                a.assigneeClerkUserId === userId &&
+                a.activeKey === 'ACTIVE' &&
+                a.assigneeClerkUserId === clerkUserId &&
                 a.status === 'ACCEPTED'
             )
           );
@@ -158,7 +184,7 @@ export default async function CasesPage({
         pageTitle='Cases'
         pageDescription='Fälle – Status & Fortschritt'
       >
-        {isAdmin(role) ? (
+        {isInternalUser ? (
           <AdminCasesTable cases={adminCases as any} />
         ) : (
           <div className='space-y-6'>

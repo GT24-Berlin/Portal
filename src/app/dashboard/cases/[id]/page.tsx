@@ -1,14 +1,9 @@
-import {
-  expireAssignmentIfNeeded,
-  isAssignmentUsable
-} from '@/lib/assignments';
 import PageContainer from '@/components/layout/page-container';
 import CaseStatusEditor from '@/components/cases/case-status-editor';
 import CaseAssignmentAdmin from '@/components/cases/case-assignment-admin';
 
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
-import { auth } from '@clerk/nextjs/server';
 import CaseFilesUpload from '@/components/cases/case-files-upload';
 import DatabaseUnavailableState from '@/components/system/database-unavailable';
 import { isDatabaseUnavailableError } from '@/lib/database-error';
@@ -17,7 +12,7 @@ import CaseCustomerInfoCard from '@/features/case-detail/components/case-custome
 import CaseAccidentDataCard from '@/features/case-detail/components/case-accident-data-card';
 import CasePhotoGallery from '@/features/case-detail/components/case-photo-gallery';
 import { getCasePhotoFiles } from '@/features/case-detail/lib/get-case-photo-files';
-import { requireRole, type Role } from '@/lib/rbac';
+import { requireCaseAccess, requireCaseAssignmentAccess } from '@/lib/policy';
 
 export const runtime = 'nodejs';
 
@@ -29,55 +24,42 @@ export default async function CaseDetailPage({
   try {
     const { id } = await params;
 
-    const { userId } = await auth();
-    if (!userId) redirect('/auth/sign-in');
+    // Level 1: case-level access — ACTIVE membership + CaseOrganization
+    const caseAccess = await requireCaseAccess(id);
+    if (!caseAccess.ok) {
+      if (caseAccess.status === 401) redirect('/auth/sign-in');
+      notFound();
+    }
 
-    const guard = await requireRole();
-    if (!guard.ok) redirect('/auth/sign-in');
+    // Determine caller tier from CaseOrganization org types
+    const isInternalCaller = caseAccess.caseOrgs.some(
+      (co) => co.organization.type === 'INTERNAL'
+    );
 
-    const role = guard.role;
+    let canEdit: boolean;
+    let effectiveRole: 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
 
-    const isAdmin = role === 'ADMIN';
-    const isGutachter = role === 'GUTACHTER';
-    const isAnwalt = role === 'ANWALT';
+    if (isInternalCaller) {
+      canEdit = true;
+      effectiveRole = 'ADMIN';
+    } else {
+      // Level 2: partner must have a live ACCEPTED assignment
+      const assignmentAccess = await requireCaseAssignmentAccess(id);
+      if (!assignmentAccess.ok) notFound();
 
-    // ---- RBAC: Zugriff auf Case Detail nur für ADMIN oder assigned user ----
-    const requiredRole = isGutachter ? 'GUTACHTER' : isAnwalt ? 'ANWALT' : null;
+      canEdit = assignmentAccess.assignment.status === 'ACCEPTED';
 
-    // wird genutzt, um Editing zu erlauben (ACCEPTED) vs. nur Preview
-    let canEdit = isAdmin;
-
-    if (!isAdmin) {
-      if (!requiredRole) notFound();
-
-      const assignment = await prisma.caseAssignment.findFirst({
-        where: {
-          caseId: id,
-          role: requiredRole as any,
-          assigneeClerkUserId: userId,
-          activeKey: 'ACTIVE'
-        },
-        select: {
-          id: true,
-          status: true,
-          active: true,
-          activeKey: true,
-          expiresAt: true
-        },
-        orderBy: { assignedAt: 'desc' }
-      });
-
-      if (!assignment) notFound();
-
-      const now = new Date();
-      const expiredResult = await expireAssignmentIfNeeded(assignment, now);
-
-      if (expiredResult.expired) notFound();
-
-      if (!isAssignmentUsable(assignment)) notFound();
-
-      // Editing erst nach Accept
-      canEdit = assignment.status === 'ACCEPTED';
+      // Derive effective lane from partner's ASSIGNED CaseOrg org type
+      const assignedCaseOrg = caseAccess.caseOrgs.find(
+        (co) => co.role === 'ASSIGNED'
+      );
+      const orgType = assignedCaseOrg?.organization.type;
+      effectiveRole =
+        orgType === 'GUTACHTER'
+          ? 'GUTACHTER'
+          : orgType === 'LEGAL'
+            ? 'ANWALT'
+            : '';
     }
 
     const c = await prisma.case.findUnique({
@@ -140,7 +122,7 @@ export default async function CaseDetailPage({
       .trim();
 
     const files = await prisma.caseFile.findMany({
-      where: { caseId: c.id }, // oder einfach { caseId: id }
+      where: { caseId: c.id },
       orderBy: { createdAt: 'desc' },
       take: 50,
       select: {
@@ -279,13 +261,13 @@ export default async function CaseDetailPage({
           </section>
 
           <div className='grid gap-6'>
-            {isAdmin ? <CaseAssignmentAdmin caseId={c.id} /> : null}
+            {isInternalCaller ? <CaseAssignmentAdmin caseId={c.id} /> : null}
 
             <CaseStatusEditor
               caseId={c.id}
               gutachterStatus={String(c.gutachterStatus)}
               anwaltStatus={String(c.anwaltStatus)}
-              role={canEdit ? role : ''} // <- Trick: nicht editierbar => Editor zeigt "Keine Berechtigung"
+              role={canEdit ? effectiveRole : ''}
             />
           </div>
 

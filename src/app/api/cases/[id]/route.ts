@@ -1,10 +1,6 @@
-import {
-  expireAssignmentIfNeeded,
-  isAssignmentUsable
-} from '@/lib/assignments';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth, currentUser } from '@clerk/nextjs/server';
+import { requireCaseWrite } from '@/lib/policy';
 
 export const runtime = 'nodejs';
 
@@ -39,17 +35,6 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json(
-        { ok: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const user = await currentUser();
-    const role = String(user?.publicMetadata?.role ?? '').toUpperCase();
-
     const { id } = await params;
     if (!id) {
       return NextResponse.json(
@@ -70,100 +55,78 @@ export async function PATCH(
       );
     }
 
-    const isAdmin = role === 'ADMIN';
+    // DB-backed authorization — no Clerk metadata fallback.
+    // STATUS capability tries INTERNAL first, then ASSIGNED partner path.
+    const guard = await requireCaseWrite(id, 'STATUS');
+    if (!guard.ok) {
+      const status = guard.status === 401 ? 401 : 403;
+      return NextResponse.json(
+        { ok: false, error: status === 401 ? 'Unauthorized' : 'Forbidden' },
+        { status }
+      );
+    }
+
+    // Determine caller tier from CaseOrganization org types
+    const isInternalCaller = guard.caseOrgs.some(
+      (co) => co.organization.type === 'INTERNAL'
+    );
+
     const wantsBoth = Boolean(nextGutachter && nextAnwalt);
 
-    if (!isAdmin) {
-      const requiredLane = wantsBoth
-        ? null
-        : nextGutachter
-          ? 'GUTACHTER'
-          : nextAnwalt
-            ? 'ANWALT'
-            : null;
+    if (!isInternalCaller) {
+      // Partners cannot update both lanes simultaneously
+      if (wantsBoth) {
+        return NextResponse.json(
+          { ok: false, error: 'Forbidden: cannot update both lanes' },
+          { status: 403 }
+        );
+      }
 
-      if (!requiredLane || role !== requiredLane) {
+      // Derive partner lane from ASSIGNED CaseOrganization's DB org type
+      const assignedCaseOrg = guard.caseOrgs.find(
+        (co) => co.role === 'ASSIGNED'
+      );
+      if (!assignedCaseOrg) {
         return NextResponse.json(
           { ok: false, error: 'Forbidden' },
           { status: 403 }
         );
       }
 
-      const assignment = await prisma.caseAssignment.findFirst({
-        where: {
-          caseId: id,
-          role: requiredLane as any,
-          assigneeClerkUserId: userId,
-          activeKey: 'ACTIVE'
-        },
-        select: {
-          id: true,
-          status: true,
-          expiresAt: true,
-          active: true,
-          activeKey: true
-        },
-        orderBy: { assignedAt: 'desc' }
-      });
+      const orgType = assignedCaseOrg.organization.type;
+      const partnerLane =
+        orgType === 'GUTACHTER'
+          ? 'GUTACHTER'
+          : orgType === 'LEGAL'
+            ? 'ANWALT'
+            : null;
 
-      if (!assignment) {
+      if (!partnerLane) {
         return NextResponse.json(
-          { ok: false, error: 'Not found' },
-          { status: 404 }
-        );
-      }
-
-      if (assignment.activeKey !== 'ACTIVE') {
-        return NextResponse.json(
-          { ok: false, error: 'Not found' },
-          { status: 404 }
-        );
-      }
-
-      const now = new Date();
-      const expiredResult = await expireAssignmentIfNeeded(assignment, now);
-
-      if (expiredResult.expired) {
-        return NextResponse.json(
-          { ok: false, error: 'Not found' },
-          { status: 404 }
-        );
-      }
-
-      if (!isAssignmentUsable(assignment) || assignment.status !== 'ACCEPTED') {
-        return NextResponse.json(
-          { ok: false, error: 'Forbidden: assignment not accepted' },
+          { ok: false, error: 'Forbidden: unexpected partner org type' },
           { status: 403 }
         );
       }
-    }
 
-    if (wantsBoth && !isAdmin) {
-      return NextResponse.json(
-        { ok: false, error: 'Forbidden: cannot update both lanes' },
-        { status: 403 }
-      );
-    }
+      if (partnerLane === 'ANWALT' && nextGutachter) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: 'Forbidden: ANWALT cannot update gutachterStatus'
+          },
+          { status: 403 }
+        );
+      }
 
-    if (role === 'ANWALT' && nextGutachter) {
-      return NextResponse.json(
-        { ok: false, error: 'Forbidden: ANWALT cannot update gutachterStatus' },
-        { status: 403 }
-      );
-    }
-
-    if (role === 'GUTACHTER' && nextAnwalt) {
-      return NextResponse.json(
-        { ok: false, error: 'Forbidden: GUTACHTER cannot update anwaltStatus' },
-        { status: 403 }
-      );
-    }
-
-    if (role !== 'ANWALT' && role !== 'GUTACHTER' && role !== 'ADMIN') {
-      return NextResponse.json(
-        { ok: false, error: 'Forbidden: role not allowed' },
-        { status: 403 }
-      );
+      if (partnerLane === 'GUTACHTER' && nextAnwalt) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: 'Forbidden: GUTACHTER cannot update anwaltStatus'
+          },
+          { status: 403 }
+        );
+      }
     }
 
     if (nextGutachter && !GUTACHTER_STATUS.has(nextGutachter)) {
