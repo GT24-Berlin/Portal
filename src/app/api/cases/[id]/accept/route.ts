@@ -1,16 +1,86 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@clerk/nextjs/server';
-import { NotificationType } from '@prisma/client';
+import {
+  NotificationType,
+  type PartnerType,
+  type OrganizationType
+} from '@prisma/client';
 import { sendMail } from '@/lib/mailer';
 import { logOperationalEvent } from '@/lib/ops-log';
 
 export const runtime = 'nodejs';
 
+// GUTACHTER assignment: profile+partner=GUTACHTER, org=GUTACHTER
+// ANWALT assignment:    profile+partner=ANWALT, org=LEGAL
+const ROLE_INVARIANTS: Record<
+  'GUTACHTER' | 'ANWALT',
+  { partnerType: PartnerType; orgType: OrganizationType }
+> = {
+  GUTACHTER: { partnerType: 'GUTACHTER', orgType: 'GUTACHTER' },
+  ANWALT: { partnerType: 'ANWALT', orgType: 'LEGAL' }
+};
+
+type OrgResolutionResult =
+  | { ok: true; organizationId: string }
+  | { ok: false; error: string };
+
+// Resolves the caller's organization from the DB chain.
+// Must run OUTSIDE the transaction so we do not hold a tx slot during network I/O.
+async function resolveCallerOrg(
+  clerkUserId: string,
+  assignRole: 'GUTACHTER' | 'ANWALT'
+): Promise<OrgResolutionResult> {
+  const profile = await prisma.partnerProfile.findUnique({
+    where: { clerkUserId }
+  });
+  if (!profile) return { ok: false, error: 'Caller has no PartnerProfile' };
+  if (!profile.partnerId)
+    return { ok: false, error: 'PartnerProfile has no linked Partner' };
+
+  const partner = await prisma.partner.findUnique({
+    where: { id: profile.partnerId }
+  });
+  if (!partner) return { ok: false, error: 'Partner not found' };
+  if (!partner.organizationId)
+    return { ok: false, error: 'Partner has no linked Organization' };
+
+  const organization = await prisma.organization.findUnique({
+    where: { id: partner.organizationId }
+  });
+  if (!organization) return { ok: false, error: 'Organization not found' };
+  if (organization.status !== 'ACTIVE')
+    return { ok: false, error: 'Organization is not ACTIVE' };
+
+  const { partnerType, orgType } = ROLE_INVARIANTS[assignRole];
+
+  if (profile.role !== partnerType)
+    return {
+      ok: false,
+      error: `Profile role mismatch: expected ${partnerType}, got ${profile.role}`
+    };
+  if (partner.type !== partnerType)
+    return {
+      ok: false,
+      error: `Partner type mismatch: expected ${partnerType}, got ${partner.type}`
+    };
+  if (organization.type !== orgType)
+    return {
+      ok: false,
+      error: `Organization type mismatch: expected ${orgType}, got ${organization.type}`
+    };
+
+  const membership = await prisma.membership.findFirst({
+    where: { clerkUserId, organizationId: organization.id, status: 'ACTIVE' }
+  });
+  if (!membership)
+    return { ok: false, error: 'No ACTIVE Membership in organization' };
+
+  return { ok: true, organizationId: organization.id };
+}
+
 type AcceptResult =
-  | {
-      kind: 'NOT_ASSIGNED';
-    }
+  | { kind: 'NOT_ASSIGNED' }
   | {
       kind: 'ALREADY_ACCEPTED';
       assignment: {
@@ -21,11 +91,7 @@ type AcceptResult =
         role: string;
       };
     }
-  | {
-      kind: 'EXPIRED';
-      assignmentId: string;
-      role: string;
-    }
+  | { kind: 'EXPIRED'; assignmentId: string; role: string }
   | {
       kind: 'ACCEPTED';
       assignment: {
@@ -60,14 +126,113 @@ export async function POST(
 
     const now = new Date();
 
+    // ── Step 1: Read current assignment state outside transaction ───────────
+    // Needed to detect ALREADY_ACCEPTED early and to get the role for org
+    // resolution before entering a transaction.
+
+    const currentAssignment = await prisma.caseAssignment.findFirst({
+      where: { caseId, assigneeClerkUserId: userId, activeKey: 'ACTIVE' },
+      orderBy: { assignedAt: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        active: true,
+        activeKey: true,
+        expiresAt: true,
+        role: true
+      }
+    });
+
+    if (!currentAssignment) {
+      await logOperationalEvent({
+        caseId,
+        domain: 'ASSIGNMENT',
+        action: 'ACCEPT',
+        result: 'DENIED',
+        actorType: 'PARTNER',
+        actorId: userId,
+        message: 'Accept denied: no active assignment found',
+        metadata: {}
+      });
+      return NextResponse.json(
+        { ok: false, error: 'Not assigned' },
+        { status: 404 }
+      );
+    }
+
+    const assignRole = String(currentAssignment.role) as 'GUTACHTER' | 'ANWALT';
+
+    // ── Step 2: Idempotency — already accepted ──────────────────────────────
+    // Return existing state without re-running the transaction (avoids
+    // duplicate notifications and redundant CaseOrganization upserts).
+
+    if (currentAssignment.status === 'ACCEPTED') {
+      await logOperationalEvent({
+        caseId,
+        domain: 'ASSIGNMENT',
+        action: 'ACCEPT',
+        result: 'ALREADY_DONE',
+        actorType: 'PARTNER',
+        actorId: userId,
+        message: `Assignment already accepted for role ${assignRole}`,
+        metadata: { assignmentId: currentAssignment.id, role: assignRole }
+      });
+      return NextResponse.json({
+        ok: true,
+        assignment: {
+          id: currentAssignment.id,
+          status: 'ACCEPTED',
+          active: Boolean(currentAssignment.active),
+          expiresAt: currentAssignment.expiresAt
+        }
+      });
+    }
+
+    if (currentAssignment.status !== 'PENDING') {
+      await logOperationalEvent({
+        caseId,
+        domain: 'ASSIGNMENT',
+        action: 'ACCEPT',
+        result: 'DENIED',
+        actorType: 'PARTNER',
+        actorId: userId,
+        message: 'Accept denied: assignment not in PENDING state',
+        metadata: { status: String(currentAssignment.status) }
+      });
+      return NextResponse.json(
+        { ok: false, error: 'Not assigned' },
+        { status: 404 }
+      );
+    }
+
+    // ── Step 3: Resolve caller's organization (outside transaction) ─────────
+    // The resolved organizationId is used inside the transaction to upsert
+    // CaseOrganization. Failing here does not modify any assignment state.
+
+    const orgResolution = await resolveCallerOrg(userId, assignRole);
+    if (!orgResolution.ok) {
+      return NextResponse.json(
+        { ok: false, error: orgResolution.error },
+        { status: 422 }
+      );
+    }
+    const { organizationId } = orgResolution;
+
+    // ── Step 4: Transaction — accept + upsert CaseOrganization ─────────────
+    // Atomically:
+    //   1. Re-read and verify assignment (TOCTOU guard)
+    //   2. Handle expiry if needed
+    //   3. Update assignment to ACCEPTED
+    //   4. Upsert CaseOrganization(role=ASSIGNED)
+    //   5. Create acceptance notification
+    //
+    // Either both the assignment update and the CaseOrganization upsert
+    // commit, or neither does.
+
     const result = await prisma.$transaction(
       async (tx): Promise<AcceptResult> => {
         const assignment = await tx.caseAssignment.findFirst({
-          where: {
-            caseId,
-            assigneeClerkUserId: userId,
-            activeKey: 'ACTIVE'
-          },
+          where: { caseId, assigneeClerkUserId: userId, activeKey: 'ACTIVE' },
           orderBy: { assignedAt: 'desc' },
           select: {
             id: true,
@@ -79,11 +244,18 @@ export async function POST(
           }
         });
 
-        if (!assignment) {
-          return { kind: 'NOT_ASSIGNED' };
-        }
+        if (!assignment) return { kind: 'NOT_ASSIGNED' };
 
         const role = String(assignment.role);
+
+        // Liveness guard: activeKey='ACTIVE' + active=false is inconsistent
+        if (!assignment.active) {
+          await tx.caseAssignment.update({
+            where: { id: assignment.id },
+            data: { activeKey: null }
+          });
+          return { kind: 'NOT_ASSIGNED' };
+        }
 
         if (assignment.status === 'ACCEPTED') {
           return {
@@ -91,27 +263,20 @@ export async function POST(
             assignment: {
               id: assignment.id,
               status: 'ACCEPTED',
-              active: Boolean(assignment.active),
+              active: true,
               expiresAt: assignment.expiresAt,
               role
             }
           };
         }
 
-        if (assignment.status !== 'PENDING') {
-          return { kind: 'NOT_ASSIGNED' };
-        }
+        if (assignment.status !== 'PENDING') return { kind: 'NOT_ASSIGNED' };
 
         if (assignment.expiresAt <= now) {
           await tx.caseAssignment.update({
             where: { id: assignment.id },
-            data: {
-              status: 'EXPIRED' as any,
-              active: false,
-              activeKey: null
-            }
+            data: { status: 'EXPIRED' as any, active: false, activeKey: null }
           });
-
           await tx.notification.create({
             data: {
               userId,
@@ -124,12 +289,7 @@ export async function POST(
               readAt: null
             }
           });
-
-          return {
-            kind: 'EXPIRED',
-            assignmentId: assignment.id,
-            role
-          };
+          return { kind: 'EXPIRED', assignmentId: assignment.id, role };
         }
 
         const updated = await tx.caseAssignment.update({
@@ -147,6 +307,20 @@ export async function POST(
             expiresAt: true,
             role: true
           }
+        });
+
+        // Upsert CaseOrganization ASSIGNED — canonical Phase 3B invariant.
+        // Idempotent: repeated accepts do not duplicate this row.
+        await tx.caseOrganization.upsert({
+          where: {
+            caseId_organizationId_role: {
+              caseId,
+              organizationId,
+              role: 'ASSIGNED'
+            }
+          },
+          update: {},
+          create: { caseId, organizationId, role: 'ASSIGNED' }
         });
 
         await tx.notification.create({
@@ -175,6 +349,8 @@ export async function POST(
       }
     );
 
+    // ── Step 5: Post-transaction side effects ───────────────────────────────
+
     if (result.kind === 'NOT_ASSIGNED') {
       await logOperationalEvent({
         caseId,
@@ -183,10 +359,9 @@ export async function POST(
         result: 'DENIED',
         actorType: 'PARTNER',
         actorId: userId,
-        message: 'Accept denied: no active assignment found',
+        message: 'Accept denied: assignment state changed during transaction',
         metadata: {}
       });
-
       return NextResponse.json(
         { ok: false, error: 'Not assigned' },
         { status: 404 }
@@ -204,11 +379,9 @@ export async function POST(
         message: `Assignment already accepted for role ${result.assignment.role}`,
         metadata: {
           assignmentId: result.assignment.id,
-          role: result.assignment.role,
-          status: result.assignment.status
+          role: result.assignment.role
         }
       });
-
       return NextResponse.json({
         ok: true,
         assignment: {
@@ -229,12 +402,8 @@ export async function POST(
         actorType: 'PARTNER',
         actorId: userId,
         message: `Assignment expired before accept for role ${result.role}`,
-        metadata: {
-          assignmentId: result.assignmentId,
-          role: result.role
-        }
+        metadata: { assignmentId: result.assignmentId, role: result.role }
       });
-
       return NextResponse.json(
         { ok: false, error: 'Expired' },
         { status: 410 }
@@ -252,7 +421,7 @@ export async function POST(
       metadata: {
         assignmentId: result.assignment.id,
         role: result.assignment.role,
-        status: result.assignment.status
+        organizationId
       }
     });
 
@@ -262,16 +431,13 @@ export async function POST(
         process.env.ADMIN_NOTIFY_EMAIL ??
         process.env.SMTP_USER ??
         'info@gutachtery.de';
-
       const c = await prisma.case.findUnique({
         where: { id: caseId },
         select: { token: true, caseNumber: true }
       });
-
       const caseLabel = c?.caseNumber ?? 'Fall ohne Nummer';
       const dashboardUrl = `${appUrl}/dashboard/cases/${caseId}`;
       const trackerUrl = c?.token ? `${appUrl}/case/${c.token}` : null;
-
       await sendMail({
         to: adminEmail,
         subject: `Gutachtery24 – Fall angenommen (${result.assignment.role}) – ${caseLabel}`,
@@ -311,11 +477,8 @@ export async function POST(
       actorType: 'PARTNER',
       actorId: null,
       message: 'Assignment accept failed',
-      metadata: {
-        error: String(e?.message ?? e)
-      }
+      metadata: { error: String(e?.message ?? e) }
     });
-
     return NextResponse.json(
       { ok: false, error: String(e?.message ?? e) },
       { status: 500 }
