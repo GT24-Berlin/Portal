@@ -6,6 +6,8 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { requireIdentity, getActiveMemberships } from '@/lib/policy';
 
 export const metadata: Metadata = {
   title: {
@@ -21,6 +23,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const identity = await requireIdentity();
+  if (!identity.ok) redirect('/auth/sign-in');
+
+  const memberships = await getActiveMemberships(identity.clerkUserId);
+  if (memberships.length === 0) redirect('/no-access');
+
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
