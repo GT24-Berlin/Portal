@@ -1,26 +1,23 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
+import {
+  requireCaseFileAccess,
+  requireCaseAssignmentAccess
+} from '@/lib/policy';
 import { CaseFileVisibility } from '@prisma/client';
 import { createStoredFileDownloadResponse } from '@/lib/storage';
+
 export const runtime = 'nodejs';
+
+const PARTNER_DOWNLOADABLE: CaseFileVisibility[] = [
+  CaseFileVisibility.PARTNERS,
+  CaseFileVisibility.CUSTOMER_AND_PARTNERS
+];
 
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string; fileId: string }> }
 ) {
   try {
-    const guard = await requireRole();
-    if (!guard.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
-        },
-        { status: guard.status }
-      );
-    }
-
     const { id: caseId, fileId } = await params;
     if (!caseId || !fileId) {
       return NextResponse.json(
@@ -29,64 +26,47 @@ export async function GET(
       );
     }
 
-    const role = guard.role;
-    const userId = guard.userId!;
+    // Level 1: file existence + case-level access (binds fileId to caseId,
+    // prevents cross-case file enumeration)
+    const access = await requireCaseFileAccess(fileId, caseId);
+    if (!access.ok) {
+      const error = access.status === 401 ? 'Unauthorized' : 'file not found';
+      return NextResponse.json(
+        { ok: false, error },
+        { status: access.status === 401 ? 401 : 404 }
+      );
+    }
 
-    // Partner dürfen nur, wenn ACCEPTED + active Assignment existiert
-    if (isPartner(role) && !isAdmin(role)) {
-      const a = await prisma.caseAssignment.findFirst({
-        where: {
-          caseId,
-          assigneeClerkUserId: userId,
-          role: role as any,
-          active: true,
-          status: 'ACCEPTED' as any
-        },
-        select: { id: true }
-      });
+    // Determine caller tier from CaseOrganization org types
+    const isInternalUser = access.caseOrgs.some(
+      (co) => co.organization.type === 'INTERNAL'
+    );
 
-      if (!a) {
+    if (!isInternalUser) {
+      // Level 2: partner must have a live ACCEPTED assignment
+      const assignmentAccess = await requireCaseAssignmentAccess(caseId);
+      if (!assignmentAccess.ok) {
         return NextResponse.json(
           { ok: false, error: 'Forbidden' },
           { status: 403 }
         );
       }
+
+      // Visibility gate: partners may only download PARTNERS / CUSTOMER_AND_PARTNERS
+      if (!PARTNER_DOWNLOADABLE.includes(access.file.visibility)) {
+        return NextResponse.json(
+          { ok: false, error: 'file not found' },
+          { status: 404 }
+        );
+      }
     }
 
-    const visibilityFilter = isAdmin(role)
-      ? undefined
-      : {
-          in: [
-            CaseFileVisibility.PARTNERS,
-            CaseFileVisibility.CUSTOMER_AND_PARTNERS
-          ]
-        };
-
-    const f = await prisma.caseFile.findFirst({
-      where: {
-        id: fileId,
-        caseId,
-        ...(visibilityFilter ? { visibility: visibilityFilter } : {})
-      },
-      select: {
-        filename: true,
-        mimeType: true,
-        storageKey: true,
-        size: true
-      }
-    });
-
-    if (!f)
-      return NextResponse.json(
-        { ok: false, error: 'file not found' },
-        { status: 404 }
-      );
-
+    // storageKey is used internally only — never forwarded in response body or headers
     return createStoredFileDownloadResponse({
-      storageKey: f.storageKey,
-      filename: f.filename,
-      mimeType: f.mimeType,
-      size: f.size
+      storageKey: access.file.storageKey,
+      filename: access.file.filename,
+      mimeType: access.file.mimeType,
+      size: access.file.size
     });
   } catch (e: any) {
     return NextResponse.json(

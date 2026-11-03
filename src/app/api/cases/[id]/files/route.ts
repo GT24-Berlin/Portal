@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireRole, isAdmin, isPartner } from '@/lib/rbac';
+import { requireCaseAccess, requireCaseAssignmentAccess } from '@/lib/policy';
 import { CaseFileVisibility } from '@prisma/client';
 
 export const runtime = 'nodejs';
@@ -10,17 +10,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const guard = await requireRole();
-    if (!guard.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
-        },
-        { status: guard.status }
-      );
-    }
-
     const { id: caseId } = await params;
     if (!caseId) {
       return NextResponse.json(
@@ -29,23 +18,28 @@ export async function GET(
       );
     }
 
-    const role = guard.role;
-    const userId = guard.userId!;
+    // Level 1: case-level access — ACTIVE membership + CaseOrganization
+    const access = await requireCaseAccess(caseId);
+    if (!access.ok) {
+      const error =
+        access.status === 401
+          ? 'Unauthorized'
+          : access.status === 404
+            ? 'Not found'
+            : 'Forbidden';
+      return NextResponse.json({ ok: false, error }, { status: access.status });
+    }
 
-    // Partner dürfen nur, wenn ACCEPTED + active Assignment existiert
-    if (isPartner(role) && !isAdmin(role)) {
-      const a = await prisma.caseAssignment.findFirst({
-        where: {
-          caseId,
-          assigneeClerkUserId: userId,
-          role: role as any,
-          active: true,
-          status: 'ACCEPTED' as any
-        },
-        select: { id: true }
-      });
+    // Determine caller tier from CaseOrganization org types
+    const isInternalUser = access.caseOrgs.some(
+      (co) => co.organization.type === 'INTERNAL'
+    );
 
-      if (!a) {
+    if (!isInternalUser) {
+      // Level 2: partner operational access — must have a live ACCEPTED assignment
+      // (activeKey='ACTIVE' + status=ACCEPTED + active=true enforced inside helper)
+      const assignmentAccess = await requireCaseAssignmentAccess(caseId);
+      if (!assignmentAccess.ok) {
         return NextResponse.json(
           { ok: false, error: 'Forbidden' },
           { status: 403 }
@@ -53,11 +47,11 @@ export async function GET(
       }
     }
 
-    const visibilityFilter = isAdmin(role)
+    const visibilityFilter = isInternalUser
       ? undefined
       : {
           in: [
-            CaseFileVisibility.CUSTOMER, // ✅ Kunden-Uploads immer sichtbar für Partner
+            CaseFileVisibility.CUSTOMER,
             CaseFileVisibility.CUSTOMER_AND_PARTNERS,
             CaseFileVisibility.PARTNERS
           ]
@@ -80,8 +74,8 @@ export async function GET(
         title: true,
         filename: true,
         mimeType: true,
-        size: true,
-        storageKey: true
+        size: true
+        // storageKey intentionally omitted — never expose to clients
       },
       take: 200
     });
