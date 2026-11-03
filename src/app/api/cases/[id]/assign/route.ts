@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth, clerkClient } from '@clerk/nextjs/server';
+import { requireCaseWrite } from '@/lib/policy';
 import { createNotification } from '@/lib/notify';
-import { NotificationType } from '@prisma/client';
+import {
+  NotificationType,
+  type PartnerType,
+  type OrganizationType
+} from '@prisma/client';
 import { sendMail } from '@/lib/mailer';
 import { getPrimaryEmailForClerkUser } from '@/lib/clerk-email';
-import { requireAdmin } from '@/lib/rbac';
 import { logOperationalEvent } from '@/lib/ops-log';
 
 export const runtime = 'nodejs';
@@ -14,59 +17,98 @@ type TransactionClient = Parameters<
   Parameters<typeof prisma.$transaction>[0]
 >[0];
 
-type Role = 'ADMIN' | 'GUTACHTER' | 'ANWALT' | '';
-
 type Body = {
   role?: 'GUTACHTER' | 'ANWALT';
   assigneeClerkUserId?: string;
-  expiresInHours?: number; // default 24
-  force?: boolean; // optional: bestehende Zuweisung ersetzen
+  expiresInHours?: number;
+  force?: boolean;
 };
 
-function getRoleFromClaims(claims: any): Role {
-  const r =
-    claims?.publicMetadata?.role ??
-    claims?.metadata?.role ??
-    claims?.user?.publicMetadata?.role ??
-    '';
-  return String(r) as Role;
-}
+// Invariants that must all hold for a valid assignee.
+// GUTACHTER assignment: profile+partner=GUTACHTER, org=GUTACHTER
+// ANWALT assignment:    profile+partner=ANWALT, org=LEGAL
+const ROLE_INVARIANTS: Record<
+  'GUTACHTER' | 'ANWALT',
+  { partnerType: PartnerType; orgType: OrganizationType }
+> = {
+  GUTACHTER: { partnerType: 'GUTACHTER', orgType: 'GUTACHTER' },
+  ANWALT: { partnerType: 'ANWALT', orgType: 'LEGAL' }
+};
 
-async function getUserRole(userId: string, sessionClaims: any): Promise<Role> {
-  // 1) zuerst aus Claims
-  let role = getRoleFromClaims(sessionClaims);
-  if (role) return role;
+type AssigneeCheckResult =
+  | { ok: true; organizationId: string }
+  | { ok: false; error: string };
 
-  // 2) Fallback: User aus Clerk laden (SDK-Compat: clerkClient kann obj ODER function sein)
-  const client: any =
-    typeof clerkClient === 'function'
-      ? await (clerkClient as any)()
-      : (clerkClient as any);
+// Validates the full DB chain: PartnerProfile → Partner → Organization → Membership.
+// Must succeed BEFORE any transaction that could release an existing assignment.
+async function validateAssignee(
+  assigneeClerkUserId: string,
+  assignRole: 'GUTACHTER' | 'ANWALT'
+): Promise<AssigneeCheckResult> {
+  const profile = await prisma.partnerProfile.findUnique({
+    where: { clerkUserId: assigneeClerkUserId }
+  });
+  if (!profile) return { ok: false, error: 'Assignee has no PartnerProfile' };
+  if (!profile.partnerId)
+    return { ok: false, error: 'PartnerProfile has no linked Partner' };
 
-  const u = await client.users.getUser(userId);
-  role = String((u.publicMetadata as any)?.role ?? '') as Role;
+  const partner = await prisma.partner.findUnique({
+    where: { id: profile.partnerId }
+  });
+  if (!partner) return { ok: false, error: 'Partner not found' };
+  if (!partner.organizationId)
+    return { ok: false, error: 'Partner has no linked Organization' };
 
-  return role;
+  const organization = await prisma.organization.findUnique({
+    where: { id: partner.organizationId }
+  });
+  if (!organization) return { ok: false, error: 'Organization not found' };
+  if (organization.status !== 'ACTIVE')
+    return { ok: false, error: 'Organization is not ACTIVE' };
+
+  const { partnerType, orgType } = ROLE_INVARIANTS[assignRole];
+
+  if (profile.role !== partnerType)
+    return {
+      ok: false,
+      error: `PartnerProfile role mismatch: expected ${partnerType}, got ${profile.role}`
+    };
+  if (partner.type !== partnerType)
+    return {
+      ok: false,
+      error: `Partner type mismatch: expected ${partnerType}, got ${partner.type}`
+    };
+  if (organization.type !== orgType)
+    return {
+      ok: false,
+      error: `Organization type mismatch: expected ${orgType}, got ${organization.type}`
+    };
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      clerkUserId: assigneeClerkUserId,
+      organizationId: organization.id,
+      status: 'ACTIVE'
+    }
+  });
+  if (!membership)
+    return {
+      ok: false,
+      error: 'Assignee has no ACTIVE Membership in their Organization'
+    };
+
+  return { ok: true, organizationId: organization.id };
 }
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const guard = await requireAdmin();
-    if (!guard.ok) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: guard.status === 401 ? 'Unauthorized' : 'Forbidden'
-        },
-        { status: guard.status }
-      );
-    }
-    const userId = guard.userId;
+  const { id: caseId } = await params;
 
-    const { id: caseId } = await params;
+  try {
+    // ── Step 1: Input validation ──────────────────────────────────────────
+
     if (!caseId) {
       return NextResponse.json(
         { ok: false, error: 'Missing case id' },
@@ -75,7 +117,6 @@ export async function POST(
     }
 
     const body = (await req.json().catch(() => ({}))) as Body;
-
     const assignRole = body.role;
     const assignee = body.assigneeClerkUserId?.trim();
     const expiresInHours = Number(body.expiresInHours ?? 24);
@@ -109,31 +150,63 @@ export async function POST(
       );
     }
 
-    // Case existiert?
-    const exists = await prisma.case.findUnique({
-      where: { id: caseId },
-      select: { id: true, token: true }
-    });
+    // ── Step 2: Authorize caller — DB-backed ASSIGN policy ────────────────
+    // requireCaseWrite(ASSIGN) enforces:
+    //   - authenticated Clerk identity
+    //   - ACTIVE Membership in ACTIVE INTERNAL org
+    //   - Membership.role = ADMIN or OWNER
+    //   - CaseOrganization(role=OWNER) for this case
+    // Returns 404 when the case is not visible to the caller (no OWNER CaseOrg).
 
-    if (!exists) {
+    const guard = await requireCaseWrite(caseId, 'ASSIGN');
+    if (!guard.ok) {
+      const status = guard.status;
+      const error =
+        status === 401
+          ? 'Unauthorized'
+          : status === 404
+            ? 'Not found'
+            : 'Forbidden';
+      return NextResponse.json({ ok: false, error }, { status });
+    }
+    const actorId = guard.clerkUserId;
+
+    // ── Step 3: Validate assignee BEFORE any transaction ──────────────────
+    // Validates the full chain: PartnerProfile → Partner → Organization →
+    // Membership. An invalid replacement must never release a valid assignment,
+    // so this check runs outside and before the transaction.
+
+    const assigneeCheck = await validateAssignee(assignee, assignRole);
+    if (!assigneeCheck.ok) {
       return NextResponse.json(
-        { ok: false, error: 'Case not found' },
-        { status: 404 }
+        { ok: false, error: assigneeCheck.error },
+        { status: 422 }
       );
     }
+
+    // Case token needed for email (safe to fetch after authorization passes)
+    const caseRecord = await prisma.case.findUnique({
+      where: { id: caseId },
+      select: { token: true }
+    });
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + expiresInHours * 60 * 60 * 1000);
 
+    // ── Step 4: Transaction — release old (if force) + create new ─────────
+    // Assignee is already validated. All reads and writes are atomic.
+    // New assignment: status=PENDING, active=true, activeKey='ACTIVE'.
+    // ASSIGNED CaseOrganization is NOT created here — only on accept (3B-2D2).
+
     const created = await prisma.$transaction(async (tx: TransactionClient) => {
-      // ACTIVE ist ausschließlich über activeKey="ACTIVE" definiert
+      // ACTIVE is exclusively defined via activeKey='ACTIVE'
       let active = await tx.caseAssignment.findFirst({
         where: { caseId, role: assignRole as any, activeKey: 'ACTIVE' },
         orderBy: { assignedAt: 'desc' },
         select: { id: true, status: true, expiresAt: true }
       });
 
-      // Sicherheitsnetz: inkonsistente active-Zeile deaktivieren
+      // Safety net: inconsistent row with non-operational status
       if (
         active &&
         active.status !== 'PENDING' &&
@@ -151,7 +224,6 @@ export async function POST(
       }
 
       if (active && force) {
-        // zuerst die gefundene ACTIVE-Zeile sauber freigeben
         await tx.caseAssignment.update({
           where: { id: active.id },
           data: {
@@ -161,8 +233,7 @@ export async function POST(
             releasedAt: now
           }
         });
-
-        // Safety-net: falls es Altlasten/Race gab -> alles für Case+Role deaktivieren
+        // Safety net: clear any stale races for this case+role
         await tx.caseAssignment.updateMany({
           where: {
             caseId,
@@ -176,7 +247,6 @@ export async function POST(
             releasedAt: now
           }
         });
-
         active = null;
       }
 
@@ -190,7 +260,7 @@ export async function POST(
           activeKey: 'ACTIVE',
           assignedAt: now,
           expiresAt,
-          assignedByClerkUserId: userId
+          assignedByClerkUserId: actorId
         },
         select: {
           id: true,
@@ -219,6 +289,8 @@ export async function POST(
       return { kind: 'CREATED' as const, assignment: newRow };
     });
 
+    // ── Step 5: Post-transaction side effects ─────────────────────────────
+
     if (created.kind === 'CREATED') {
       await logOperationalEvent({
         caseId,
@@ -226,7 +298,7 @@ export async function POST(
         action: 'ASSIGN',
         result: 'SUCCESS',
         actorType: 'ADMIN',
-        actorId: userId,
+        actorId,
         message: `Assignment created for role ${assignRole}`,
         metadata: {
           role: assignRole,
@@ -240,12 +312,12 @@ export async function POST(
       try {
         const toEmail = await getPrimaryEmailForClerkUser(assignee);
         if (toEmail) {
-          const inboxUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/dashboard/inbox`;
-
           const appUrl =
             process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-          const caseUrl = exists?.token ? `${appUrl}/case/${exists.token}` : '';
-
+          const inboxUrl = `${appUrl}/dashboard/inbox`;
+          const caseUrl = caseRecord?.token
+            ? `${appUrl}/case/${caseRecord.token}`
+            : '';
           await sendMail({
             to: toEmail,
             subject: `Gutachtery24 – Neuer Fall zugewiesen (${assignRole})`,
@@ -253,12 +325,12 @@ export async function POST(
               `Dir wurde ein Fall als ${assignRole} zugewiesen.\n` +
               `Bitte innerhalb von ${expiresInHours}h in der Inbox annehmen oder freigeben.\n\n` +
               `Inbox: ${inboxUrl}\n` +
-              (exists?.token ? `Kunden-Tracker: ${caseUrl}\n` : ''),
+              (caseRecord?.token ? `Kunden-Tracker: ${caseUrl}\n` : ''),
             html: `
   <p>Dir wurde ein Fall als <b>${assignRole}</b> zugewiesen.</p>
   <p>Bitte innerhalb von <b>${expiresInHours}h</b> in der Inbox annehmen oder freigeben.</p>
   <p><a href="${inboxUrl}">Zur Inbox öffnen</a></p>
-  ${exists?.token ? `<p><a href="${caseUrl}">Kunden-Tracker öffnen</a></p>` : ''}
+  ${caseRecord?.token ? `<p><a href="${caseUrl}">Kunden-Tracker öffnen</a></p>` : ''}
 `
           });
         }
@@ -267,6 +339,8 @@ export async function POST(
           'Email send failed (ASSIGNMENT_CREATED): SMTP unavailable'
         );
       }
+
+      return NextResponse.json({ ok: true, assignment: created.assignment });
     }
 
     if (created.kind === 'ALREADY_ASSIGNED') {
@@ -276,7 +350,7 @@ export async function POST(
         action: 'ASSIGN',
         result: 'ALREADY_DONE',
         actorType: 'ADMIN',
-        actorId: userId,
+        actorId,
         message: `Assignment already active for role ${assignRole}`,
         metadata: {
           role: assignRole,
@@ -297,20 +371,16 @@ export async function POST(
         { status: 409 }
       );
     }
-
-    return NextResponse.json({ ok: true, assignment: created.assignment });
   } catch (e: any) {
     await logOperationalEvent({
-      caseId: null,
+      caseId,
       domain: 'ASSIGNMENT',
       action: 'ASSIGN',
       result: 'FAILED',
       actorType: 'ADMIN',
       actorId: null,
       message: 'Assignment creation failed',
-      metadata: {
-        error: String(e?.message ?? e)
-      }
+      metadata: { error: String(e?.message ?? e) }
     });
 
     return NextResponse.json(
